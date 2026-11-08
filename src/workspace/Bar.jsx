@@ -1,3 +1,4 @@
+import { Brand } from '../components/logos.jsx'
 import { NavLink, useLocation } from 'react-router-dom'
 import { DotText } from '../builder/FxBits.jsx'
 import { cn } from '../lib/utils'
@@ -11,13 +12,14 @@ const SECTIONS = [
   ['06', 'Admin', '/admin', (p) => p.startsWith('/admin')],
   ['07', 'Public site', '/site', (p) => p.startsWith('/site')],
   ['08', 'States & mobile', '/ds/states', (p) => p.startsWith('/ds/states')],
+  ['09', 'Logo lab', '/ds/logos', (p) => p.startsWith('/ds/logos')],
 ]
 
 export default function WorkspaceBar() {
   const { pathname } = useLocation()
   return (
     <div className="flex h-10 shrink-0 items-center gap-1 overflow-x-auto border-b border-line bg-black px-3">
-      <NavLink to="/ds/foundations" className="mr-3 flex shrink-0 items-center gap-2"><DotText text="BLIPMADE" height={11} /><span className="font-mono text-[10px] uppercase tracking-[.08em] text-dim">Design system</span></NavLink>
+      <NavLink to="/ds/foundations" className="mr-3 flex shrink-0 items-center gap-2"><Brand height={11} /><span className="font-mono text-[10px] uppercase tracking-[.08em] text-dim">Design system</span></NavLink>
       {SECTIONS.map(([n, l, to, is]) => (
         <NavLink key={n} to={to} className={cn('flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-[12.5px] transition-colors', is(pathname) ? 'bg-white/[0.08] text-fg' : 'text-mute hover:text-fg')}>
           <span className={cn('font-mono text-[10px]', is(pathname) ? 'text-[var(--brand)]' : 'text-dim')}>{n}</span>{l}

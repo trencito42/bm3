@@ -1,3 +1,4 @@
+import { Brand } from '../components/logos.jsx'
 import { useMemo, useState } from 'react'
 import { NavLink, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -130,7 +131,7 @@ export default function AdminApp() {
   const [mob, setMob] = useState(false)
   const Side = () => (
     <>
-      <div className="flex h-14 shrink-0 items-center gap-2 border-b border-line px-5"><DotText text="BLIPMADE" height={12} /><Badge tone="bad" dot={false}>Admin</Badge></div>
+      <div className="flex h-14 shrink-0 items-center gap-2 border-b border-line px-5"><Brand height={12} /><Badge tone="bad" dot={false}>Admin</Badge></div>
       <div className="flex-1 space-y-4 overflow-y-auto p-3">{GROUPS.map(([g, items]) => <div key={g}><div className="px-2.5 pb-1 font-mono text-[10px] uppercase tracking-[.08em] text-dim">{g}</div>{items.map(([to, l, I]) => <NavLink key={to} end to={'/admin' + (to ? '/' + to : '')} onClick={() => setMob(false)} className={({ isActive }) => cn('flex h-8 items-center gap-3 rounded-[10px] px-2.5 text-[13px] font-medium transition-colors', isActive ? 'bg-white/[0.08] text-fg' : 'text-fg/70 hover:bg-hover hover:text-fg')}>{({ isActive }) => (<><I className={cn('size-4', isActive && 'text-[var(--brand)]')} />{l}</>)}</NavLink>)}</div>)}</div>
     </>
   )

@@ -1,3 +1,4 @@
+import { Brand } from './components/logos.jsx'
 import { useEffect, useState } from 'react'
 import { NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { Command } from 'cmdk'
@@ -27,6 +28,7 @@ import Components from './workspace/Components.jsx'
 import Patterns from './workspace/Patterns.jsx'
 import Product from './workspace/Product.jsx'
 import States from './workspace/States.jsx'
+import Logos from './workspace/Logos.jsx'
 import AdminApp from './admin/AdminApp.jsx'
 import SiteApp from './site/SiteApp.jsx'
 
@@ -70,7 +72,7 @@ function SideBody({ rail, setRail, openPalette, onNavigate = () => {} }) {
       <div className={cn('flex h-14 shrink-0 items-center border-b border-line', rail ? 'justify-center' : 'gap-1 pl-5 pr-2.5')}>
         {rail ? <button onClick={() => setRail(false)} aria-label="Expand sidebar" className="grid size-8 place-items-center rounded-md text-mute hover:bg-hover hover:text-fg"><PanelLeft className="size-4" /></button> : (
           <>
-            <NavLink to="/" onClick={onNavigate} className="mr-auto flex items-center"><DotText text="BLIPMADE" height={13} /></NavLink>
+            <NavLink to="/" onClick={onNavigate} className="mr-auto flex items-center"><Brand height={13} /></NavLink>
             <button onClick={() => { openPalette(); onNavigate() }} aria-label="Search" className="grid size-8 place-items-center rounded-md text-mute hover:bg-hover hover:text-fg"><Search className="size-4" /></button>
             {setRail && <button onClick={() => setRail(true)} aria-label="Collapse sidebar" className="hidden size-8 place-items-center rounded-md text-mute hover:bg-hover hover:text-fg md:grid"><PanelLeft className="size-4" /></button>}
           </>
@@ -275,6 +277,7 @@ function Root() {
             <Route path="/ds/patterns" element={<Patterns />} />
             <Route path="/ds/product" element={<Product />} />
             <Route path="/ds/states" element={<States />} />
+            <Route path="/ds/logos" element={<Logos />} />
           </Routes>
         ) : admin ? <AdminApp /> : site ? <SiteApp /> : <Layout />}
       </div>
