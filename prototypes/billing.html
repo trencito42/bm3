@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blipmade · Client area</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Geist+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="blip-fx.css">
+<link rel="stylesheet" href="blip-ui.css">
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="brand"><span data-orb="28"></span><span data-dm="BLIPMADE" data-h="12"></span><span class="lbl">Cloud</span></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="wallet">
+      <div class="row"><span class="mono-s">Balance</span><span class="badge ok">Active</span></div>
+      <div id="bal" style="height:26px;display:flex;align-items:center"></div>
+      <button class="btn sm full" id="fund">Add funds</button>
+    </div>
+    <div class="me"><span class="avatar">S</span><div><b>Stefan</b><small>stefan10xdd@gmail.com</small></div></div>
+  </aside>
+
+  <div class="main" data-dot-host>
+    <canvas aria-hidden="true"></canvas>
+    <div class="topbar">
+      <div class="crumb mono-s" id="crumb"></div><span class="sp"></span>
+      <div class="search" id="srch"></div>
+      <button class="ibtn" id="bell" aria-label="Notifications"><span class="pip"></span></button>
+    </div>
+    <div class="view" id="view"></div>
+  </div>
+</div>
+
+<script src="blip-fx.js"></script>
+<script src="blip-ui.js"></script>
+<script>
+var F=BlipFX,U=BlipUI,$=U.$,$$=U.$$,icon=U.icon,money=U.money,sleep=F.sleep;
+function h(html){var t=document.createElement('template');t.innerHTML=html.trim();return t.content.firstElementChild}
+F.mountDots();F.mountOrbs();
+F.dotField($('.main>canvas'),{tone:'dark',pitch:28,strength:.8,glyphs:false});
+
+/* =============================== DUMMY DATA =============================== */
+var S={
+  balance:42.50,
+  services:[
+    {id:'vps-01',name:'blipmade-prod',type:'VPS Pro',ico:'server',ip:'45.83.12.9',region:'Frankfurt',status:'running',cpu:34,ram:61,disk:48,price:12,due:'Dec 02'},
+    {id:'web-02',name:'portfolio.site',type:'Web Hosting Nano',ico:'globe',ip:'45.83.14.21',region:'Amsterdam',status:'running',cpu:8,ram:22,disk:15,price:4,due:'Dec 09'},
+    {id:'db-03',name:'pg-cluster',type:'Managed Database',ico:'db',ip:'10.0.4.7',region:'Frankfurt',status:'running',cpu:72,ram:88,disk:64,price:29,due:'Dec 14'},
+    {id:'game-04',name:'mc-survival',type:'Game Server',ico:'game',ip:'45.83.20.3',region:'Helsinki',status:'stopped',cpu:0,ram:0,disk:31,price:9,due:'Dec 21'},
+    {id:'vps-05',name:'staging',type:'VPS Nano',ico:'server',ip:'45.83.12.44',region:'Frankfurt',status:'running',cpu:19,ram:37,disk:22,price:4,due:'Dec 28'}
+  ],
+  invoices:[
+    {id:'INV-1048',date:'Nov 02',due:'Nov 16',amount:38.00,status:'unpaid',items:[['VPS Pro · blipmade-prod',12],['Managed Database · pg-cluster',29],['Credit applied',-3]]},
+    {id:'INV-1047',date:'Oct 21',due:'Nov 04',amount:9.00,status:'overdue',items:[['Game Server · mc-survival',9]]},
+    {id:'INV-1046',date:'Oct 02',due:'Oct 16',amount:41.00,status:'paid',items:[['VPS Pro · blipmade-prod',12],['Managed Database · pg-cluster',29]]},
+    {id:'INV-1045',date:'Sep 14',due:'Sep 28',amount:8.00,status:'paid',items:[['VPS Nano · staging',4],['Web Hosting Nano',4]]},
+    {id:'INV-1044',date:'Sep 02',due:'Sep 16',amount:41.00,status:'paid',items:[['VPS Pro · blipmade-prod',12],['Managed Database · pg-cluster',29]]},
+    {id:'INV-1043',date:'Aug 18',due:'Sep 01',amount:12.00,status:'paid',items:[['Domain · blipmade.app',12]]},
+    {id:'INV-1042',date:'Aug 02',due:'Aug 16',amount:41.00,status:'paid',items:[['VPS Pro · blipmade-prod',12],['Managed Database · pg-cluster',29]]}
+  ],
+  tickets:[
+    {id:1,subject:'Cannot reach my VPS over SSH',status:'open',when:'12 min ago',dept:'Technical',msgs:[['me','Hi, since this morning I cannot SSH into blipmade-prod. Connection times out.','09:12'],['bot','Thanks for reaching out. I checked the node: the firewall rule for port 22 was reset during maintenance. I can restore it now.','09:14']]},
+    {id:2,subject:'Upgrade pg-cluster to 8 GB RAM',status:'answered',when:'2 h ago',dept:'Sales',msgs:[['me','Can I upgrade pg-cluster to the 8 GB plan without downtime?','07:40'],['bot','Yes. The upgrade is online, takes about 90 seconds, and is prorated on your next invoice.','07:42']]},
+    {id:3,subject:'Invoice INV-1047 question',status:'closed',when:'3 days ago',dept:'Billing',msgs:[['me','Why was I charged for a stopped server?','Mon'],['bot','Stopped servers keep their disk and IP reserved, so they are billed at the storage rate. You can delete it to stop billing.','Mon']]}
+  ],
+  owned:[{d:'blipmade.app',exp:'Aug 18, 2027',auto:true},{d:'stefan.dev',exp:'Mar 02, 2027',auto:true},{d:'portfolio.site',exp:'Jan 11, 2027',auto:false}]
+};
+var PLANS=[
+  {id:'nano',name:'Nano',price:4,specs:['1 vCPU','1 GB RAM','25 GB NVMe','1 TB traffic']},
+  {id:'pro',name:'Pro',price:12,specs:['2 vCPU','4 GB RAM','80 GB NVMe','4 TB traffic'],tag:'Popular'},
+  {id:'max',name:'Max',price:29,specs:['6 vCPU','16 GB RAM','240 GB NVMe','10 TB traffic']}
+];
+
+/* =============================== SHELL =============================== */
+var NAV=[['overview','Overview','home'],['services','Services','server',function(){return S.services.length}],['invoices','Invoices','receipt',function(){return S.invoices.filter(function(i){return i.status!=='paid'}).length}],['order','Order','cart'],['domains','Domains','globe'],['tickets','Support','life',function(){return S.tickets.filter(function(t){return t.status==='open'}).length}]];
+function drawNav(cur){
+  $('#nav').innerHTML='<span class="sec mono-s">Client area</span>'+NAV.map(function(n){var c=n[3]?n[3]():0;return '<a href="#/'+n[0]+'" class="'+(n[0]===cur?'on':'')+'">'+icon(n[2])+n[1]+(c?'<span class="n">'+c+'</span>':'')+'</a>'}).join('');
+}
+function drawWallet(){$('#bal').replaceChildren(U.dotNum(money(S.balance),24,{animate:false}))}
+$('#bell').insertAdjacentHTML('afterbegin',icon('bell'));
+$('#srch').innerHTML=icon('search')+'Search or jump to…<kbd>⌘K</kbd>';
+drawWallet();
+
+var cleanup=null,view=$('#view');
+var V={};
+function route(){
+  if(cleanup){cleanup();cleanup=null}
+  var parts=(location.hash.slice(2)||'overview').split('/'),name=V[parts[0]]?parts[0]:'overview';
+  var page=(name==='services'&&parts[1]?V.service:V[name])(parts[1]);view.replaceChildren(page);view.scrollTop=0;drawNav(name);
+  $('#crumb').textContent='Client area / '+name+(parts[1]?' / '+parts[1]:'');
+}
+addEventListener('hashchange',route);
+function go(p){location.hash='#/'+p}
+
+var badge=function(s){var m={running:['ok','Running'],stopped:['off','Stopped'],restarting:['warn','Restarting'],paid:['ok','Paid'],unpaid:['warn','Unpaid'],overdue:['bad','Overdue'],open:['info','Open'],answered:['ok','Answered'],closed:['off','Closed'],available:['ok','Available'],taken:['off','Taken']}[s]||['off',s];return '<span class="badge '+m[0]+'">'+m[1]+'</span>'};
+var orbFor=function(s){return {running:'idle',stopped:'waiting',restarting:'thinking'}[s]||'idle'};
+
+/* =============================== OVERVIEW =============================== */
+function stat(label,text,foot,delta,cls){
+  var c=h('<div class="card stat hov"><div class="mono-s">'+label+'</div><div class="num"></div><div class="foot"><span>'+foot+'</span>'+(delta?'<span class="delta '+(cls||'')+'">'+delta+'</span>':'')+'</div></div>');
+  c.querySelector('.num').appendChild(U.dotNum(text,34));return c;
+}
+function seeded(n,seed){var a=[],x=seed;for(var i=0;i<n;i++){x=(x*9301+49297)%233280;a.push(30+x/233280*70+(i%7===5?25:0))}return a}
+V.overview=function(){
+  var p=h('<div class="page"><div class="ph"><div><div class="hello"></div><p>Here is what is happening across your infrastructure.</p></div><div class="acts"><button class="btn ghost" data-go="order">'+icon('plus')+'New service</button><button class="btn" data-fund>Add funds</button></div></div><div class="grid g4" id="stats"></div><div class="grid g21"><div class="card" id="bw"></div><div class="card" id="res"></div></div><div class="grid g2"><div class="card flush" id="svc"></div><div class="card flush" id="inv"></div></div><div class="card" id="up"></div></div>');
+  p.querySelector('.hello').appendChild(F.dotText({text:'HELLO, STEFAN',assemble:true,title:'Hello, Stefan'}));
+  var st=p.querySelector('#stats');
+  st.append(stat('Active services',String(S.services.filter(function(s){return s.status==='running'}).length),'of '+S.services.length+' total','+1','up'),
+            stat('Next payment','$38.00','Due Nov 16','2 invoices','down'),
+            stat('Open tickets',String(S.tickets.filter(function(t){return t.status==='open'}).length),'avg reply 6 min'),
+            stat('Uptime','99.98%','last 90 days','+0.02','up'));
+  /* bandwidth */
+  var bw=p.querySelector('#bw'),days=30;
+  function drawBw(){var n=days;bw.innerHTML='<div class="hd"><h3>Bandwidth · GB / day</h3><div class="seg"><button data-d="14" class="'+(n===14?'on':'')+'">14D</button><button data-d="30" class="'+(n===30?'on':'')+'">30D</button><button data-d="60" class="'+(n===60?'on':'')+'">60D</button></div></div><div id="ch"></div><div class="legend"><span>Peak <b style="color:#fff;font-weight:500">128 GB</b></span><span>Average <b style="color:#fff;font-weight:500">74 GB</b></span><span>Hover a column</span></div>';
+    bw.querySelector('#ch').appendChild(U.bars(seeded(n,n*7),{rows:11,label:function(i,v){return 'Day '+(i+1)+' · '+Math.round(v)+' GB'}}));
+    $$('.seg button',bw).forEach(function(b){b.onclick=function(){days=+b.dataset.d;drawBw()}})}
+  drawBw();
+  /* gauges */
+  var res=p.querySelector('#res');res.innerHTML='<div class="hd"><h3>Fleet usage</h3><span class="badge ok">Healthy</span></div><div style="display:flex;justify-content:space-around;gap:10px;flex-wrap:wrap;padding:6px 0"></div>';
+  var gw=res.lastChild;gw.append(U.gauge(38,{label:'CPU',size:104}),U.gauge(64,{label:'RAM',size:104}),U.gauge(47,{label:'DISK',size:104}));
+  /* services */
+  var sv=p.querySelector('#svc');sv.innerHTML='<div class="hd"><h3>Services</h3><a class="link" href="#/services">View all →</a></div><div class="rows" style="margin-top:14px"></div>';
+  S.services.slice(0,4).forEach(function(s){var r=h('<div class="row"><span class="ico">'+icon(s.ico)+'</span><div class="t"><b>'+s.name+'</b><small>'+s.type+' · '+s.region+'</small></div>'+badge(s.status)+'</div>');r.onclick=function(){go('services/'+s.id)};sv.lastChild.appendChild(r)});
+  /* invoices */
+  var iv=p.querySelector('#inv');iv.innerHTML='<div class="hd"><h3>Recent invoices</h3><a class="link" href="#/invoices">View all →</a></div><div class="rows" style="margin-top:14px"></div>';
+  S.invoices.slice(0,4).forEach(function(i){var r=h('<div class="row"><span class="ico">'+icon('receipt')+'</span><div class="t"><b>'+i.id+'</b><small>'+i.date+'</small></div><div class="end"><b style="font-weight:500">'+money(i.amount)+'</b>'+badge(i.status)+'</div></div>');r.onclick=function(){go('invoices');setTimeout(function(){openInvoice(i.id)},60)};iv.lastChild.appendChild(r)});
+  /* uptime */
+  var up=p.querySelector('#up');up.innerHTML='<div class="hd"><h3>Network uptime · last 90 days</h3><span class="mono-s" style="color:#fff">99.98%</span></div>';
+  up.appendChild(U.heat(90,{12:'warn',47:'bad',71:'warn'}));
+  up.insertAdjacentHTML('beforeend','<div class="legend"><span><i style="background:var(--ok)"></i>Operational</span><span><i style="background:var(--warn)"></i>Degraded</span><span><i style="background:var(--bad)"></i>Outage</span></div>');
+  wire(p);return p;
+};
+function wire(root){
+  $$('[data-go]',root).forEach(function(b){b.onclick=function(){go(b.dataset.go)}});
+  $$('[data-fund]',root).forEach(function(b){b.onclick=addFunds});
+}
+
+/* =============================== SERVICES =============================== */
+V.services=function(){
+  var f='all';
+  var p=h('<div class="page"><div class="ph"><div><h1>Services</h1><p>Everything you are running, in one place.</p></div><div class="acts"><div class="seg" id="flt"><button class="on" data-f="all">All</button><button data-f="running">Running</button><button data-f="stopped">Stopped</button></div><button class="btn" data-go="order">'+icon('plus')+'New service</button></div></div><div class="card flush"><div class="scrollx"><table class="tbl"><thead><tr><th>Service</th><th>IP address</th><th>Region</th><th>Status</th><th style="width:170px">CPU</th><th class="r">Price</th><th></th></tr></thead><tbody></tbody></table></div></div></div>');
+  function draw(){
+    var tb=p.querySelector('tbody');tb.replaceChildren();
+    S.services.filter(function(s){return f==='all'||s.status===f}).forEach(function(s){
+      var tr=h('<tr><td><b>'+s.name+'</b><br><span style="font-size:12px;color:var(--w35)">'+s.type+'</span></td><td class="mono">'+s.ip+'</td><td>'+s.region+'</td><td>'+badge(s.status)+'</td><td><div class="meter '+(s.cpu>80?'hot':'')+'"><i style="width:0%" data-w="'+s.cpu+'"></i></div></td><td class="r"><b>'+money(s.price)+'</b><span style="color:var(--w35)"> /mo</span></td><td class="r" style="color:var(--w35)">'+icon('chev').replace('<svg','<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"')+'</td></tr>');
+      tr.onclick=function(){go('services/'+s.id)};tb.appendChild(tr);
+    });
+    requestAnimationFrame(function(){requestAnimationFrame(function(){$$('.meter i',p).forEach(function(i){i.style.width=i.dataset.w+'%'})})});
+  }
+  $('#flt',p).onclick=function(e){var b=e.target.closest('button');if(!b)return;f=b.dataset.f;$$('button',this).forEach(function(x){x.classList.toggle('on',x===b)});draw()};
+  draw();wire(p);return p;
+};
+
+V.service=function(id){
+  var s=S.services.filter(function(x){return x.id===id})[0];if(!s)return V.services();
+  var p=h('<div class="page"><div class="ph"><div style="display:flex;gap:18px;align-items:center"><span id="o"></span><div><h1>'+s.name+'</h1><p>'+s.type+' · '+s.region+' · <span style="font-family:var(--font-mono)">'+s.ip+'</span></p></div></div><div class="acts"><button class="btn ghost" id="back">← All services</button><button class="btn ghost" id="re">'+icon('refresh')+'Restart</button><button class="btn danger" id="pw">'+icon('power')+'<span>Stop</span></button></div></div>'+
+   '<div class="grid g12"><div class="card"><div class="hd"><h3>Status</h3><span id="bd"></span></div><div style="display:flex;flex-direction:column;gap:14px;font-size:13.5px" id="info"></div></div>'+
+   '<div class="card"><div class="hd"><h3>Live usage</h3><span class="mono-s" id="tick">updating every 2s</span></div><div id="gs" style="display:flex;justify-content:space-around;gap:12px;flex-wrap:wrap"></div></div></div>'+
+   '<div class="card"><div class="tabs" id="tabs"><button class="on" data-t="console">Console</button><button data-t="network">Network</button><button data-t="backups">Backups</button><button data-t="billing">Billing</button></div><div id="tab"></div></div></div>');
+  var orb=F.orb(56,orbFor(s.status));p.querySelector('#o').replaceWith(orb);
+  var gC=U.gauge(s.cpu,{label:'CPU',size:112}),gR=U.gauge(s.ram,{label:'RAM',size:112}),gD=U.gauge(s.disk,{label:'DISK',size:112});p.querySelector('#gs').append(gC,gR,gD);
+  function info(){p.querySelector('#bd').innerHTML=badge(s.status);
+    p.querySelector('#info').innerHTML=[['Plan',s.type],['Next due',s.due+' · '+money(s.price)],['OS','Ubuntu 24.04 LTS'],['Uptime',s.status==='running'?'23d 4h 12m':'—'],['Auto-renew','<span class="switch on" style="display:inline-block;vertical-align:middle"></span>']].map(function(r){return '<div style="display:flex;justify-content:space-between;gap:10px"><span style="color:var(--w55)">'+r[0]+'</span><span>'+r[1]+'</span></div>'}).join('');
+    var pw=p.querySelector('#pw');pw.lastChild.textContent=s.status==='stopped'?'Start':'Stop';pw.className=s.status==='stopped'?'btn':'btn danger'}
+  info();
+  var tick=setInterval(function(){if(s.status!=='running')return;var j=function(v){return Math.max(3,Math.min(97,v+(Math.random()*10-5)))};s.cpu=j(s.cpu);s.ram=j(s.ram);gC.set(s.cpu);gR.set(s.ram)},2000);
+  cleanup=function(){clearInterval(tick)};
+  /* tabs */
+  var term=null;
+  function logLine(t,c){if(!term)return;var d=document.createElement('div');d.className=c||'';d.textContent=t;term.appendChild(d);term.scrollTop=term.scrollHeight}
+  var T={
+    console:function(){var c=h('<div><div class="term" id="term"></div><div style="display:flex;gap:8px;margin-top:12px"><input class="inp mono" id="cmd" placeholder="$ type a command, e.g. uptime" aria-label="Command"><button class="btn">Run</button></div></div>');term=c.querySelector('#term');
+      logLine('blipmade-cloud console · connected to '+s.ip,'d');if(s.status==='running'){logLine('Welcome to Ubuntu 24.04 LTS','');logLine('system load: 0.34   memory: 61%   processes: 128','d')}else logLine('Server is stopped. Start it to open a shell.','w');
+      c.querySelector('button').onclick=run;c.querySelector('#cmd').onkeydown=function(e){if(e.key==='Enter')run()};
+      function run(){var i=c.querySelector('#cmd'),v=i.value.trim();if(!v)return;i.value='';logLine('$ '+v,'');if(s.status!=='running')return logLine('connection refused','w');
+        var out={uptime:' 23 days, 4:12,  load average: 0.34, 0.29, 0.31',whoami:'root',ls:'app  backups  logs  nginx.conf',date:new Date().toString().slice(0,24)}[v.split(' ')[0]];logLine(out||('bash: '+v.split(' ')[0]+': command not found'),out?'ok':'w')}return c},
+    network:function(){return h('<div class="grid g3">'+[['Public IPv4',s.ip],['IPv6','2a01:4f8:c17::'+(10+s.id.length)+'/64'],['Private','10.0.4.'+(s.id.length*3)],['Inbound','312 Mbps'],['Outbound','148 Mbps'],['Firewall','4 rules active']].map(function(r){return '<div style="border:1px solid var(--w12);border-radius:12px;padding:14px"><div class="mono-s">'+r[0]+'</div><div style="margin-top:8px;font-family:var(--font-mono);font-size:13.5px">'+r[1]+'</div></div>'}).join('')+'</div>')},
+    backups:function(){var c=h('<div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><span style="color:var(--w55);font-size:13.5px">Daily snapshots, kept 7 days.</span><button class="btn sm" id="snap">'+icon('plus')+'Snapshot now</button></div><div class="rows" id="bl"></div></div>');
+      ['Today 03:00','Yesterday 03:00','2 days ago 03:00'].forEach(function(t,i){c.querySelector('#bl').appendChild(h('<div class="row"><span class="ico">'+icon('download')+'</span><div class="t"><b>'+t+'</b><small>'+(2.1+i*.3).toFixed(1)+' GB · automatic</small></div><button class="btn ghost sm">Restore</button></div>'))});
+      c.querySelector('#snap').onclick=function(){U.toast('Snapshot started')};return c},
+    billing:function(){return h('<div style="display:flex;flex-direction:column;gap:12px;font-size:13.5px">'+[['Recurring',money(s.price)+' / month'],['Billing cycle','Monthly'],['Next invoice',s.due],['Payment method','Visa ·· 4242']].map(function(r){return '<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--w07);padding-bottom:12px"><span style="color:var(--w55)">'+r[0]+'</span><span>'+r[1]+'</span></div>'}).join('')+'</div>')}
+  };
+  function tab(n){$$('#tabs button',p).forEach(function(b){b.classList.toggle('on',b.dataset.t===n)});term=null;$('#tab',p).replaceChildren(T[n]())}
+  $('#tabs',p).onclick=function(e){var b=e.target.closest('button');if(b)tab(b.dataset.t)};tab('console');
+  /* actions */
+  async function power(next,steps){
+    s.status='restarting';info();orb.setState('thinking');tab('console');
+    for(var i=0;i<steps.length;i++){logLine(steps[i],i===steps.length-1?'ok':'');await sleep(650)}
+    s.status=next;if(next==='stopped'){s.cpu=0;s.ram=0;gC.set(0);gR.set(0)}else{s.cpu=22;s.ram=40;gC.set(22);gR.set(40)}
+    info();orb.setState(next==='running'?'happy':'waiting');if(next==='running')setTimeout(function(){orb.setState('idle')},2200);
+    U.toast(s.name+(next==='running'?' is running':' stopped'));
+  }
+  p.querySelector('#re').onclick=function(){if(s.status==='restarting')return;power('running',['systemctl restart all…','Stopping services','Syncing disks','Booting kernel 6.8.0','All services healthy'])};
+  p.querySelector('#pw').onclick=function(){if(s.status==='restarting')return;if(s.status==='stopped')power('running',['Allocating resources','Booting kernel 6.8.0','Server is up']);else power('stopped',['Sending shutdown signal','Stopping services','Server powered off'])};
+  p.querySelector('#back').onclick=function(){go('services')};
+  return p;
+};
+
+/* =============================== INVOICES =============================== */
+V.invoices=function(){
+  var f='all';
+  var due=S.invoices.filter(function(i){return i.status!=='paid'}).reduce(function(a,i){return a+i.amount},0);
+  var p=h('<div class="page"><div class="ph"><div><h1>Invoices</h1><p>Pay, download and review your billing history.</p></div><div class="acts"><div class="seg" id="flt"><button class="on" data-f="all">All</button><button data-f="unpaid">Unpaid</button><button data-f="paid">Paid</button></div></div></div><div class="grid g3" id="st"></div><div class="card flush"><div class="scrollx"><table class="tbl"><thead><tr><th>Invoice</th><th>Date</th><th>Due</th><th>Status</th><th class="r">Amount</th><th></th></tr></thead><tbody></tbody></table></div></div></div>');
+  $('#st',p).append(stat('Outstanding',money(due),S.invoices.filter(function(i){return i.status!=='paid'}).length+' invoices','Overdue','down'),stat('Paid this year','$412.00','7 payments','+12%','up'),stat('Credit balance',money(S.balance),'auto-applied'));
+  function draw(){var tb=$('tbody',p);tb.replaceChildren();
+    S.invoices.filter(function(i){return f==='all'||(f==='paid'?i.status==='paid':i.status!=='paid')}).forEach(function(i){
+      var tr=h('<tr><td><b class="mono" style="color:#fff">'+i.id+'</b></td><td>'+i.date+'</td><td>'+i.due+'</td><td>'+badge(i.status)+'</td><td class="r"><b>'+money(i.amount)+'</b></td><td class="r"><button class="btn sm '+(i.status==='paid'?'ghost':'')+'">'+(i.status==='paid'?'View':'Pay now')+'</button></td></tr>');
+      tr.onclick=function(){openInvoice(i.id)};tb.appendChild(tr)})}
+  $('#flt',p).onclick=function(e){var b=e.target.closest('button');if(!b)return;f=b.dataset.f;$$('button',this).forEach(function(x){x.classList.toggle('on',x===b)});draw()};
+  draw();p.redraw=draw;return p;
+};
+function openInvoice(id){
+  var i=S.invoices.filter(function(x){return x.id===id})[0];if(!i)return;
+  var d=U.drawer('<div class="invoice"><div class="mono-s">Invoice</div><h2 style="font-size:22px;letter-spacing:-.02em;margin-top:4px">'+i.id+'</h2><div style="margin-top:10px">'+badge(i.status)+'</div><div class="big"></div><div class="mono-s">Total due</div><div class="lines">'+i.items.map(function(l){return '<div><span>'+l[0]+'</span><span>'+(l[1]<0?'−':'')+money(Math.abs(l[1]))+'</span></div>'}).join('')+'<div style="border-top:1px dashed var(--w20);padding-top:12px;color:#fff"><b style="font-weight:500">Total</b><b style="font-weight:500">'+money(i.amount)+'</b></div></div><div style="display:flex;gap:10px"><button class="btn ghost" style="flex:1">'+icon('download')+'PDF</button>'+(i.status!=='paid'?'<button class="btn" style="flex:2" id="pay">Pay '+money(i.amount)+'</button>':'')+'</div><p class="mono-s" style="margin-top:22px">Issued '+i.date+' · Due '+i.due+'</p></div>');
+  $('.big',d.el).appendChild(U.dotNum(money(i.amount),44));
+  var pay=$('#pay',d.el);if(pay)pay.onclick=function(){d.close();checkout(i)};
+}
+function checkout(inv){
+  var m=U.modal('<div id="cx"><h2>Pay '+inv.id+'</h2><p class="sub">Secure payment · 256-bit encryption</p><div class="seg" id="mth" style="margin:18px 0 16px"><button class="on">Card</button><button>PayPal</button><button>Crypto</button><button>Balance</button></div><div style="display:flex;flex-direction:column;gap:12px"><label class="lab">Card number<input class="inp mono" value="4242 4242 4242 4242"></label><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><label class="lab">Expiry<input class="inp mono" value="08 / 28"></label><label class="lab">CVC<input class="inp mono" value="•••"></label></div></div><div class="summary" style="margin:20px 0 18px"><div class="l"><span>'+inv.id+'</span><b>'+money(inv.amount)+'</b></div></div><button class="btn lg full" id="go">Pay '+money(inv.amount)+'</button></div>');
+  $('#mth',m.el).onclick=function(e){var b=e.target.closest('button');if(b)$$('button',this).forEach(function(x){x.classList.toggle('on',x===b)})};
+  $('#go',m.el).onclick=async function(){
+    var cx=$('#cx',m.el),o=F.orb(72,'thinking'),bar=F.dotBar(24);
+    cx.innerHTML='<div class="proc"></div>';var pr=cx.firstChild;pr.append(o,bar);pr.insertAdjacentHTML('beforeend','<p>Contacting your bank…</p>');
+    for(var i=1;i<=24;i++){bar.set(i/24);if(i===12)pr.lastChild.textContent='Confirming payment…';await sleep(70)}
+    o.setState('happy');pr.replaceChildren(o,U.dotNum('PAID',40),h('<p>'+money(inv.amount)+' received. A receipt was sent to your email.</p>'),h('<button class="btn full" data-close>Done</button>'));
+    inv.status='paid';U.toast(inv.id+' paid');var pg=$('.page',view);if(pg&&pg.redraw)pg.redraw();drawNav('invoices');
+    $('[data-close]',m.el).onclick=m.close;
+  };
+}
+function addFunds(){
+  var amt=25;
+  var m=U.modal('<div id="fx"><h2>Add funds</h2><p class="sub">Credit is applied to invoices automatically.</p><div class="chipset" style="margin:20px 0" id="amts">'+[10,25,50,100].map(function(a){return '<button class="chip '+(a===25?'on':'')+'" data-a="'+a+'">$'+a+'</button>'}).join('')+'</div><label class="lab">Custom amount<input class="inp mono" id="ca" placeholder="$ 0.00"></label><button class="btn lg full" id="go" style="margin-top:20px">Add $25.00</button></div>');
+  $('#amts',m.el).onclick=function(e){var b=e.target.closest('.chip');if(!b)return;amt=+b.dataset.a;$$('.chip',this).forEach(function(x){x.classList.toggle('on',x===b)});$('#go',m.el).textContent='Add $'+amt.toFixed(2)};
+  $('#ca',m.el).oninput=function(){var v=parseFloat(this.value.replace(/[^0-9.]/g,''));if(v>0){amt=v;$$('.chip',m.el).forEach(function(x){x.classList.remove('on')});$('#go',m.el).textContent='Add $'+amt.toFixed(2)}};
+  $('#go',m.el).onclick=async function(){var o=F.orb(64,'thinking');$('#fx',m.el).innerHTML='<div class="proc"><p>Processing…</p></div>';$('.proc',m.el).prepend(o);await sleep(1400);
+    S.balance+=amt;drawWallet();o.setState('happy');var pr=$('.proc',m.el);pr.replaceChildren(o,U.dotNum('+'+money(amt),36),h('<p>New balance '+money(S.balance)+'</p>'),h('<button class="btn full" data-close>Done</button>'));$('[data-close]',m.el).onclick=m.close;U.toast('Funds added')};
+}
+$('#fund').onclick=addFunds;
+
+/* =============================== ORDER =============================== */
+V.order=function(){
+  var st={plan:'pro',yearly:false,region:'Frankfurt',os:'Ubuntu 24.04',gb:0,add:{backups:true,ddos:false,ip:false}};
+  var p=h('<div class="page"><div class="ph"><div><h1>New service</h1><p>Configure a server. It is provisioned in about 40 seconds.</p></div><div class="acts"><div class="seg" id="cyc"><button class="on" data-y="0">Monthly</button><button data-y="1">Yearly · −20%</button></div></div></div>'+
+   '<div class="grid" style="grid-template-columns:minmax(0,1fr) 340px;align-items:start" id="lay"><div style="display:flex;flex-direction:column;gap:16px"><div class="grid" id="plans" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))"></div>'+
+   '<div class="card"><div class="hd"><h3>Configuration</h3></div><div style="display:flex;flex-direction:column;gap:22px">'+
+   '<div class="lab">Region<div class="chipset" id="reg">'+['Frankfurt','Amsterdam','Helsinki','Ashburn'].map(function(r){return '<button class="chip '+(r==='Frankfurt'?'on':'')+'" data-v="'+r+'">'+r+'</button>'}).join('')+'</div></div>'+
+   '<div class="lab">Operating system<div class="chipset" id="os">'+['Ubuntu 24.04','Debian 12','AlmaLinux 9','Arch'].map(function(r){return '<button class="chip '+(r==='Ubuntu 24.04'?'on':'')+'" data-v="'+r+'">'+r+'</button>'}).join('')+'</div></div>'+
+   '<div class="lab"><div style="display:flex;justify-content:space-between"><span>Extra storage</span><span id="gbv" style="color:#fff;font-family:var(--font-mono)">+0 GB</span></div><input type="range" class="range" id="gb" min="0" max="500" step="25" value="0"></div>'+
+   '<div id="adds" style="display:flex;flex-direction:column;gap:14px"></div></div></div></div>'+
+   '<div class="card" style="position:sticky;top:0"><div class="hd"><h3>Summary</h3></div><div class="summary" id="sum"></div></div></div></div>');
+  var planBox=$('#plans',p);
+  function drawPlans(){planBox.replaceChildren();PLANS.forEach(function(pl){
+    var price=pl.price*(st.yearly?.8:1),c=h('<div class="plan '+(st.plan===pl.id?'sel':'')+'">'+(pl.tag?'<span class="badge info tag">'+pl.tag+'</span>':'')+'<div class="mono-s">'+pl.name+'</div><div class="price"><small></small></div><ul>'+pl.specs.map(function(s){return '<li>'+s+'</li>'}).join('')+'</ul></div>');
+    c.querySelector('.price').prepend(U.dotNum('$'+(price%1?price.toFixed(2):price),40,{animate:false}));c.querySelector('small').textContent='/ mo';c.onclick=function(){st.plan=pl.id;drawPlans();sum()};planBox.appendChild(c)})}
+  var ADDS=[['backups','Daily backups',2],['ddos','DDoS protection',3],['ip','Dedicated IPv4',1.5]];
+  function drawAdds(){$('#adds',p).innerHTML=ADDS.map(function(a){return '<div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13.5px">'+a[1]+'</div><div style="color:var(--w35);font-size:12px">+'+money(a[2])+' / mo</div></div><button class="switch '+(st.add[a[0]]?'on':'')+'" data-k="'+a[0]+'" aria-label="'+a[1]+'"></button></div>'}).join('');
+    $$('.switch',p).forEach(function(b){b.onclick=function(){st.add[b.dataset.k]=!st.add[b.dataset.k];drawAdds();sum()}})}
+  function total(){var pl=PLANS.filter(function(x){return x.id===st.plan})[0],m=pl.price+st.gb*.05+ADDS.reduce(function(a,x){return a+(st.add[x[0]]?x[2]:0)},0);return {pl:pl,m:m*(st.yearly?.8:1),lines:[[pl.name+' plan',pl.price],['Extra storage · '+st.gb+' GB',st.gb*.05]].concat(ADDS.filter(function(x){return st.add[x[0]]}).map(function(x){return [x[1],x[2]]}))}}
+  function sum(){var t=total();$('#sum',p).innerHTML=t.lines.filter(function(l){return l[1]>0}).map(function(l){return '<div class="l"><span>'+l[0]+'</span><b>'+money(l[1])+'</b></div>'}).join('')+(st.yearly?'<div class="l"><span>Yearly discount</span><b style="color:var(--ok)">−20%</b></div>':'')+'<hr><div class="l"><span>'+st.region+' · '+st.os+'</span></div><div class="tot"><span class="mono-s">Total / mo</span><span id="tt"></span></div><label class="lab" style="margin-top:6px">Promo code<input class="inp mono" placeholder="BLIP20"></label><button class="btn lg full" id="co" style="margin-top:6px">Checkout</button>';
+    $('#tt',p).appendChild(U.dotNum(money(t.m),26,{animate:false}));$('#co',p).onclick=function(){order(t)}}
+  $('#cyc',p).onclick=function(e){var b=e.target.closest('button');if(!b)return;st.yearly=b.dataset.y==='1';$$('button',this).forEach(function(x){x.classList.toggle('on',x===b)});drawPlans();sum()};
+  [['#reg','region'],['#os','os']].forEach(function(g){$(g[0],p).onclick=function(e){var b=e.target.closest('.chip');if(!b)return;st[g[1]]=b.dataset.v;$$('.chip',this).forEach(function(x){x.classList.toggle('on',x===b)});sum()}});
+  var gb=$('#gb',p);gb.oninput=function(){st.gb=+gb.value;gb.style.setProperty('--p',(gb.value/5)+'%');$('#gbv',p).textContent='+'+gb.value+' GB';sum()};
+  drawPlans();drawAdds();sum();
+  async function order(t){
+    var m=U.modal('<div class="proc" id="pr"></div>'),o=F.orb(72,'thinking'),bar=F.dotBar(28),pr=$('#pr',m.el),log=h('<div class="term" style="width:100%;height:150px;text-align:left"></div>');
+    pr.append(o,bar,log);
+    var L=['Reserving '+t.pl.name+' in '+st.region+'…','Allocating '+st.os+' image','Attaching network · IPv4 + IPv6','Applying firewall rules','Generating SSH keys','Server online'];
+    for(var i=0;i<L.length;i++){var d=document.createElement('div');d.className=i===L.length-1?'ok':'';d.textContent=(i===L.length-1?'✓ ':'› ')+L[i];log.appendChild(d);bar.set((i+1)/L.length);await sleep(750)}
+    var id='vps-'+(10+S.services.length);S.services.unshift({id:id,name:'new-'+t.pl.id.toLowerCase()+'-'+(S.services.length+1),type:'VPS '+t.pl.name,ico:'server',ip:'45.83.'+(30+S.services.length)+'.'+(10+S.services.length*7),region:st.region,status:'running',cpu:4,ram:12,disk:6,price:t.m,due:'Dec 08'});
+    o.setState('happy');pr.replaceChildren(o,U.dotNum('LIVE',40),h('<p>Your server is online and ready for SSH.</p>'),h('<button class="btn full" id="vw">View service</button>'));
+    $('#vw',m.el).onclick=function(){m.close();go('services/'+id)};U.toast('Server provisioned');drawNav('order');
+  }
+  return p;
+};
+
+/* =============================== TICKETS =============================== */
+V.tickets=function(sel){
+  var cur=S.tickets.filter(function(t){return String(t.id)===sel})[0]||S.tickets[0];
+  var p=h('<div class="page"><div class="ph"><div><h1>Support</h1><p>Average first reply under 6 minutes.</p></div><div class="acts"><button class="btn" id="nt">'+icon('plus')+'New ticket</button></div></div><div class="tk"><div class="card flush list"><div class="rows" id="tl"></div></div><div class="card flush pane"><div class="hd" style="padding:18px 20px;margin:0;border-bottom:1px solid var(--w12)" id="th"></div><div class="msgs" id="ms"></div><div class="compose"><form class="field" id="fm"><textarea rows="1" placeholder="Write a reply…" aria-label="Reply"></textarea><button class="send" disabled aria-label="Send"></button></form></div></div></div></div>');
+  function list(){var tl=$('#tl',p);tl.replaceChildren();S.tickets.forEach(function(t){var r=h('<div class="row" style="'+(t===cur?'background:var(--w07)':'')+'"><div class="t"><b>'+t.subject+'</b><small>'+t.dept+' · '+t.when+'</small></div>'+badge(t.status)+'</div>');r.onclick=function(){cur=t;list();thread()};tl.appendChild(r)})}
+  function bubble(m){var who=m[0]==='me';if(who)return h('<div class="bubble mine rise">'+m[1]+'<div class="who" style="color:#00000066;margin:6px 0 0">'+m[2]+'</div></div>');
+    var w=h('<div class="theirs rise"><span></span><div><div class="who">Blip · support</div><div class="bubble">'+m[1]+'</div></div></div>');w.firstChild.replaceWith(F.orb(28,'idle'));return w}
+  function thread(){$('#th',p).innerHTML='<div><b style="font-weight:500;font-size:14.5px">'+cur.subject+'</b><div class="mono-s" style="margin-top:4px">Ticket #'+(1040+cur.id)+' · '+cur.dept+'</div></div>'+badge(cur.status);var ms=$('#ms',p);ms.replaceChildren();cur.msgs.forEach(function(m){ms.appendChild(bubble(m))});ms.scrollTop=ms.scrollHeight}
+  list();thread();
+  var ta=$('textarea',p),sb=$('.send',p);sb.innerHTML=F.SEND;F.autoGrow(ta);
+  ta.oninput=function(){sb.disabled=!ta.value.trim()};ta.onkeydown=function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#fm',p).requestSubmit()}};
+  $('#fm',p).onsubmit=async function(e){e.preventDefault();var v=ta.value.trim();if(!v)return;ta.value='';ta.dispatchEvent(new Event('input'));
+    var t=cur;t.msgs.push(['me',v.replace(/</g,'&lt;'),'now']);t.status='open';var ms=$('#ms',p);ms.appendChild(bubble(t.msgs[t.msgs.length-1]));ms.scrollTop=ms.scrollHeight;list();$('#th',p).lastChild.outerHTML=badge('open');
+    var w=h('<div class="theirs"><span></span><div><div class="who">Blip · support</div><div class="bubble" style="min-width:60px"></div></div></div>');var o=F.orb(28,'thinking');w.firstChild.replaceWith(o);ms.appendChild(w);ms.scrollTop=ms.scrollHeight;await sleep(1400);
+    o.setState('speaking');var reply='Thanks, I am looking into that now. I will update this ticket in a few minutes.',bb=w.querySelector('.bubble');await F.stream(bb,reply,70);o.setState('idle');t.msgs.push(['bot',reply,'now']);t.status='answered';list();$('#th',p).lastChild.outerHTML=badge('answered');drawNav('tickets');ms.scrollTop=ms.scrollHeight};
+  $('#nt',p).onclick=function(){var m=U.modal('<h2>New ticket</h2><p class="sub">Describe the problem and we will reply fast.</p><div style="display:flex;flex-direction:column;gap:14px;margin:20px 0"><label class="lab">Subject<input class="inp" id="sj" placeholder="e.g. Website is slow"></label><label class="lab">Department<div class="chipset" id="dp"><button class="chip on">Technical</button><button class="chip">Billing</button><button class="chip">Sales</button></div></label></div><button class="btn lg full" id="go">Open ticket</button>');
+    $('#dp',m.el).onclick=function(e){var b=e.target.closest('.chip');if(b)$$('.chip',this).forEach(function(x){x.classList.toggle('on',x===b)})};
+    $('#go',m.el).onclick=function(){var d=$('#dp .on',m.el).textContent,sj=$('#sj',m.el).value.trim()||'New request';S.tickets.unshift({id:S.tickets.length+1,subject:sj,status:'open',when:'just now',dept:d,msgs:[['me',sj,'now']]});m.close();cur=S.tickets[0];list();thread();drawNav('tickets');U.toast('Ticket opened')}};
+  return p;
+};
+
+/* =============================== DOMAINS =============================== */
+V.domains=function(){
+  var p=h('<div class="page"><div class="ph"><div><h1>Domains</h1><p>Search, register and manage your names.</p></div></div><div class="card"><div class="hd"><h3>Find a domain</h3></div><form id="sf" style="display:flex;gap:10px"><input class="inp" id="q" placeholder="yourproject" style="height:48px;font-size:15px" aria-label="Domain name"><button class="btn lg">Search</button></form><div class="rows" id="res" style="margin:16px -20px -20px"></div></div><div class="card flush"><div class="hd"><h3>Your domains</h3></div><div class="scrollx" style="margin-top:14px"><table class="tbl"><thead><tr><th>Domain</th><th>Expires</th><th>Auto-renew</th><th>Status</th></tr></thead><tbody></tbody></table></div></div></div>');
+  S.owned.forEach(function(o){p.querySelector('tbody').appendChild(h('<tr><td><b>'+o.d+'</b></td><td>'+o.exp+'</td><td><span class="switch '+(o.auto?'on':'')+'" style="display:inline-block;vertical-align:middle"></span></td><td><span class="badge ok">Active</span></td></tr>'))});
+  $$('.switch',p).forEach(function(s){s.onclick=function(){s.classList.toggle('on')}});
+  var TLD=[['.com',12.99],['.app',14],['.dev',13],['.io',39],['.cloud',9.99],['.net',11.5],['.xyz',2.99]];
+  var hash=function(s){var x=0;for(var i=0;i<s.length;i++)x=(x*31+s.charCodeAt(i))>>>0;return x};
+  $('#sf',p).onsubmit=async function(e){e.preventDefault();var q=$('#q',p).value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'');if(!q)return;
+    var res=$('#res',p);res.replaceChildren();
+    for(var i=0;i<TLD.length;i++){var d=q+TLD[i][0],free=(hash(d)%5)!==0&&!(q==='blipmade'),
+      r=h('<div class="row rise"><span class="ico">'+icon('globe')+'</span><div class="t"><b>'+d+'</b><small>'+(free?'Instant setup · free WHOIS privacy':'Registered by someone else')+'</small></div>'+badge(free?'available':'taken')+(free?'<b style="font-weight:500;min-width:64px;text-align:right">'+money(TLD[i][1])+'</b><button class="btn sm">Add</button>':'<span style="min-width:128px"></span>')+'</div>');
+      res.appendChild(r);var b=r.querySelector('.btn');if(b)b.onclick=function(){this.textContent='Added ✓';this.className='btn sm ghost';U.toast('Added to cart')};await sleep(220)}};
+  return p;
+};
+
+/* =============================== COMMAND PALETTE =============================== */
+$('#srch').onclick=function(){document.dispatchEvent(new KeyboardEvent('keydown',{key:'k',ctrlKey:true}))};
+U.cmdk([].concat(NAV.map(function(n){return {label:'Go to '+n[1],icon:n[2],hint:'Page',run:function(){go(n[0])}}}),
+  [{label:'Add funds',icon:'card',hint:'Action',run:addFunds},{label:'Order a new server',icon:'plus',hint:'Action',run:function(){go('order')}},{label:'Pay latest invoice',icon:'receipt',hint:'Action',run:function(){go('invoices');setTimeout(function(){openInvoice('INV-1048')},80)}}],
+  S.services.map(function(s){return {label:'Open '+s.name,icon:s.ico,hint:'Service',run:function(){go('services/'+s.id)}}})));
+$('#bell').onclick=function(){U.toast('INV-1048 is due in 8 days')};
+
+if(!location.hash)location.hash='#/overview';
+route();
+</script>
+</body>
+</html>

@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blipmade · Spotlight</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Geist+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="blip-fx.css">
+<style>
+/* C — SPOTLIGHT: no thread. The orb is the agent; type is the status; the site is the answer. */
+html,body{height:100%}
+main{position:relative;display:flex;flex-direction:column;height:100dvh;overflow:hidden;padding:24px 20px}
+@media(min-width:768px){main{padding:28px 40px}}
+main>canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.top{position:relative;z-index:4;display:flex;align-items:center;gap:10px;min-height:32px}
+.top .lbl{font-size:12px;font-weight:500;color:var(--w55)}
+.top .sp{flex:1}
+.vers{display:flex;gap:6px;align-items:center}
+.vers button{height:26px;padding:0 10px;border:1px solid var(--w12);border-radius:99px;font-family:var(--font-mono);font-size:11px;color:var(--w55);transition:all .15s}
+.vers button.on{background:#fff;color:#000;border-color:#fff}
+.vers button:not(.on):hover{border-color:var(--w35);color:#fff}
+
+/* idle + working */
+.hero{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;transition:opacity .5s,filter .5s,transform .7s var(--ease-spring)}
+.core{position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:center;width:100%;max-width:760px}
+.core .veil{inset:-90px -140px}
+.orbbig{margin-bottom:34px}
+.lab{margin-bottom:18px;min-height:17px}
+.head{height:56px;display:flex;align-items:center;justify-content:center}
+.head .dm{height:56px;width:auto;max-width:100%}
+.sub{margin-top:26px;min-height:44px;font-size:16px;line-height:1.4;color:var(--w75);max-width:460px}
+.prog{display:none;flex-direction:column;align-items:center;gap:14px;margin-top:28px}
+.prog .log{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--w35)}
+main.s-work .prog{display:flex}
+main.s-work .pillwrap{opacity:0;pointer-events:none;transform:translateY(10px)}
+.pillwrap{width:100%;max-width:680px;margin-top:34px;transition:opacity .4s,transform .5s var(--ease-spring)}
+.pill{display:flex;align-items:center;gap:10px;height:64px;padding:0 10px 0 22px;border:1px solid var(--w20);border-radius:20px;background:#000;transition:border-color .15s,box-shadow .3s;text-align:left}
+.pill:focus-within{border-color:var(--w75);box-shadow:0 0 60px rgba(120,100,255,.18)}
+.pill input{flex:1;min-width:0;outline:none;font-size:17px;caret-color:#fff}
+.pill input::placeholder{color:var(--w35)}
+.pill .send{width:44px;height:44px;border-radius:14px}
+.pill .kbd{font-family:var(--font-mono);font-size:11px;color:var(--w35);border:1px solid var(--w12);border-radius:6px;padding:2px 6px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:16px}
+main.s-done .hero{display:none}
+
+/* result */
+.result{display:none;position:relative;z-index:2;flex:1;min-height:0;justify-content:center;padding:18px 0 0}
+main.s-done .result{display:flex}
+.shell{width:100%;max-width:1000px;display:flex;flex-direction:column;min-height:0;border:1px solid var(--w12);border-radius:16px;background:#050506;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.7),0 0 80px rgba(100,90,255,.08);animation:rise .9s var(--ease-spring) backwards}
+.shell .tb{display:flex;align-items:center;gap:10px;height:42px;padding:0 14px;border-bottom:1px solid var(--w12);flex:none}
+.shell .dots{display:flex;gap:5px}.shell .dots i{width:7px;height:7px;border-radius:50%;background:var(--w20)}
+.shell .url{flex:1;text-align:center;font-family:var(--font-mono);font-size:11.5px;color:var(--w55)}.shell .url b{color:#fff;font-weight:400}
+.shell .scroller{flex:1;min-height:0;overflow-y:auto;position:relative}
+.shell .box{position:relative;overflow:hidden}
+.shell .ms{position:absolute;left:0;top:0}
+.shell .pub{height:28px;font-size:12px;padding:0 12px}
+.shell.flash{animation:flash 1s ease-out}
+@keyframes flash{0%{box-shadow:0 0 0 1px #fff,0 0 90px rgba(255,255,255,.3)}to{box-shadow:0 40px 100px rgba(0,0,0,.7),0 0 80px rgba(100,90,255,.08)}}
+
+/* bottom bar */
+.bottom{display:none;position:relative;z-index:4;flex-direction:column;align-items:center;gap:10px;padding-top:14px}
+main.s-done .bottom{display:flex}
+.bottom .row{display:flex;align-items:center;gap:12px;width:100%;max-width:760px}
+.bottom .pill{flex:1;height:54px}
+.bottom .pill .send{width:38px;height:38px;border-radius:12px}
+.bottom .chips{margin:0}
+.note{height:14px;display:flex;align-items:center}
+.note .dm{height:12px;width:auto;color:#fff}
+</style>
+</head>
+<body>
+<main data-dot-host id="app" class="s-idle">
+  <canvas aria-hidden="true"></canvas>
+  <header class="top">
+    <span data-orb="26"></span><span data-dm="BLIPMADE" data-h="12"></span><span class="lbl">Spotlight</span>
+    <span class="sp"></span>
+    <div class="vers" id="vers"></div>
+  </header>
+
+  <!-- idle + working -->
+  <section class="hero" id="hero">
+    <div class="core">
+      <span class="veil"></span>
+      <span class="orbbig" id="orbbig"></span>
+      <div class="lab mono" id="lab">Blipmade can build</div>
+      <div class="head" id="head"></div>
+      <p class="sub" id="sub">Describe your idea in one sentence. I will design it, write it and put it online.</p>
+      <div class="prog" id="prog"><div class="log" id="log"></div></div>
+      <div class="pillwrap">
+        <form class="pill" id="f1"><input id="in1" autocomplete="off" spellcheck="false" placeholder="A bakery in Porto with online booking…" aria-label="Describe your site"><span class="kbd">↵</span><button class="send" type="submit" disabled aria-label="Build"></button></form>
+        <div class="chips" id="chips"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- result -->
+  <section class="result" id="result">
+    <div class="shell" id="shell">
+      <div class="tb"><span class="dots"><i></i><i></i><i></i></span><span class="url" id="url"></span><button class="btn pub" id="pub">Publish</button></div>
+      <div class="scroller" id="scroller"><div class="box" id="box"><div class="ms" id="ms"></div></div></div>
+    </div>
+  </section>
+  <div class="bottom" id="bottom">
+    <div class="note" id="note"></div>
+    <div class="chips" id="chips2"></div>
+    <div class="row"><span id="miniorb"></span><form class="pill" id="f2"><input id="in2" autocomplete="off" spellcheck="false" placeholder="Change something: “make it dark”, “add pricing”…" aria-label="Ask for a change"><button class="send" type="submit" disabled aria-label="Send"></button></form></div>
+  </div>
+</main>
+
+<script src="blip-fx.js"></script>
+<script>
+var F=BlipFX,$=function(s){return document.querySelector(s)};
+var main=$('#app');
+F.mountDots();F.mountOrbs();
+document.querySelectorAll('.send').forEach(function(b){b.innerHTML=F.SEND});
+var field=F.dotField($('main>canvas'),{tone:'dark',pitch:34,glyphs:true});
+var orb=F.orb(120,'idle');$('#orbbig').replaceWith(orb);orb.classList.add('orbbig');orb.style.marginBottom='34px';
+var mini=F.orb(40,'idle');$('#miniorb').replaceWith(mini);
+
+/* ---- rotating dot headline ---- */
+var IDEAS=['A BAKERY IN PORTO','A PHOTO PORTFOLIO','A CANDLE SHOP','A TIMER APP','A SURF SCHOOL'];
+var head=$('#head'),hi=0,rot;
+function setHead(text,assemble){head.replaceChildren(F.dotText({text:text,assemble:true,title:text,className:''}))}
+function startRot(){setHead(IDEAS[hi],true);rot=setInterval(function(){hi=(hi+1)%IDEAS.length;setHead(IDEAS[hi],true)},3400)}
+startRot();
+
+/* ---- inputs ---- */
+var in1=$('#in1'),in2=$('#in2');
+[[in1,'#f1'],[in2,'#f2']].forEach(function(p){
+  var btn=$(p[1]+' .send');p[0].addEventListener('input',function(){btn.disabled=!p[0].value.trim()});
+});
+['Surprise me','A bakery in Porto with online booking','Photographer portfolio, dark','Handmade candle shop'].forEach(function(t,i){
+  var b=document.createElement('button');b.className='chip';b.type='button';b.textContent=t;
+  b.onclick=function(){in1.value=i?t:['A surf school in Peniche with pricing','A jazz bar with a gallery','A freelance designer portfolio'][Math.floor(Math.random()*3)];build(in1.value)};
+  $('#chips').appendChild(b);
+});
+$('#f1').addEventListener('submit',function(e){e.preventDefault();if(in1.value.trim())build(in1.value.trim())});
+
+var PLAN=null,HIST=[],cur=0,busy=false,fit;
+
+var STAGES=[['PLANNING','Reading your brief'],['DESIGNING','Choosing palette and type'],['WRITING','Drafting the copy'],['BUILDING','Assembling sections'],['DEPLOYING','Pushing to the edge']];
+async function build(text){
+  if(busy)return;busy=true;clearInterval(rot);
+  main.className='s-work';in1.blur();
+  var p=F.plan(text);PLAN=p;
+  $('#lab').textContent='Working on “'+text.slice(0,46)+(text.length>46?'…':'')+'”';
+  orb.setState('thinking');
+  var bar=F.dotBar(36);$('#prog').insertBefore(bar,$('#log'));
+  var sub=$('#sub');sub.textContent='';
+  await F.sleep(300);
+  var total=7*4+14,tick=0;                       /* 4 short stages + the long BUILDING stage */
+  for(var i=0;i<STAGES.length;i++){
+    setHead(STAGES[i][0],true);$('#log').textContent=STAGES[i][1];
+    var steps=i===3?14:7;
+    for(var k=0;k<steps;k++){
+      tick++;bar.set(tick/total);
+      field.pulse(innerWidth*(.15+.7*(tick/total)),innerHeight*(.5+.2*Math.sin(tick/3)));  /* grid glows where the agent works */
+      await F.sleep(i===3?210:130);
+    }
+  }
+  bar.set(1);field.pulse(-1e4,-1e4);
+  orb.setState('happy');setHead('DONE',true);$('#log').textContent='Your site is ready';await F.sleep(900);
+  show(p,true);busy=false;
+}
+
+/* ---- result ---- */
+function show(p,first){
+  main.className='s-done';
+  $('#url').innerHTML='<b>'+p.slug+'</b>.blipmade.app';
+  var ms=$('#ms'),box=$('#box');
+  if(first){
+    ms.innerHTML='';F.renderSite(ms,p);
+    fit=F.fitScale(box,ms,1000,true);
+    HIST=[p];cur=0;renderVers();
+    F.sleep(2400).then(function(){orb.setState('idle')});
+    mini.setState('happy');setTimeout(function(){mini.setState('idle')},2000);
+    quick();
+  }else{F.renderSite(ms,p)}
+  fit&&fit();
+}
+function renderVers(){
+  var v=$('#vers');v.replaceChildren();
+  HIST.forEach(function(h,i){var b=document.createElement('button');b.textContent='v'+(i+1);if(i===cur)b.className='on';b.onclick=function(){cur=i;PLAN=HIST[i];F.renderSite($('#ms'),PLAN);fit&&fit();renderVers()};v.appendChild(b)});
+}
+function quick(){
+  var c=$('#chips2');c.replaceChildren();
+  ['Make it dark','Accent green','Add pricing','Add a FAQ','Use a serif'].forEach(function(t){
+    var b=document.createElement('button');b.className='chip';b.type='button';b.textContent=t;b.onclick=function(){change(t)};c.appendChild(b);
+  });
+}
+function noteText(t){var n=$('#note');n.replaceChildren(F.dotText({text:t.toUpperCase().slice(0,34),animate:true}))}
+async function change(text){
+  if(busy||!text.trim())return;busy=true;in2.value='';$('#f2 .send').disabled=true;
+  mini.setState('thinking');await F.sleep(900);
+  var r=F.edit(PLAN,text);
+  if(!r){mini.setState('error');noteText('Try another change');await F.sleep(1200);mini.setState('idle');busy=false;return}
+  PLAN=r.plan;HIST=HIST.slice(0,cur+1);HIST.push(PLAN);cur=HIST.length-1;renderVers();
+  show(PLAN,false);
+  var sh=$('#shell');sh.classList.remove('flash');void sh.offsetWidth;sh.classList.add('flash');
+  mini.setState('happy');noteText(r.note.split(',')[0]);
+  setTimeout(function(){mini.setState('idle')},1800);busy=false;
+}
+$('#f2').addEventListener('submit',function(e){e.preventDefault();change(in2.value)});
+
+$('#pub').onclick=async function(){
+  var b=this;b.disabled=true;var bar=F.dotBar(12);b.replaceChildren(bar);
+  mini.setState('thinking');
+  for(var i=1;i<=12;i++){bar.set(i/12);await F.sleep(60)}
+  b.textContent='Published ✓';mini.setState('happy');noteText('Live at '+PLAN.slug);setTimeout(function(){mini.setState('idle')},2000);
+};
+</script>
+</body>
+</html>

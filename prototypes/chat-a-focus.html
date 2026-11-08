@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blipmade · Focus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Geist+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="blip-fx.css">
+<style>
+/* A — FOCUS: one calm column. Glyph grid behind, hero collapses into a chat thread. */
+html,body{height:100%}
+main{position:relative;display:flex;flex-direction:column;height:100dvh;overflow:hidden;padding:24px 20px 20px}
+@media(min-width:768px){main{padding:28px 40px 24px}}
+main>canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.top{position:relative;display:flex;align-items:center;gap:10px;z-index:3}
+.top .sp{flex:1}
+.top .lbl{font-size:12px;font-weight:500;color:var(--w55)}
+.stage{position:relative;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth;display:flex;flex-direction:column}
+.col{width:100%;max-width:720px;margin:0 auto;display:flex;flex-direction:column}
+
+/* intro (landing) */
+.intro{position:relative;isolation:isolate;margin:auto;display:flex;flex-direction:column;align-items:center;text-align:center;width:100%;max-width:640px;padding:40px 0;transition:opacity .45s,transform .6s var(--ease-spring),filter .45s}
+.intro .orbwrap{margin-bottom:30px}
+.intro p.lead{margin-top:30px;font-size:17px;line-height:1.375;color:var(--w75);max-width:500px}
+.intro .slot{width:100%;margin-top:34px;text-align:left}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:18px}
+.intro .note{margin-top:18px}
+main.chatting .intro{display:none}
+
+/* thread */
+.thread{display:none;flex-direction:column;gap:30px;padding:28px 0 24px}
+main.chatting .thread{display:flex}
+.msg{display:flex;gap:14px;align-items:flex-start}
+.msg.u{justify-content:flex-end}
+.msg.u .bub{max-width:80%;padding:12px 16px;border:1px solid var(--w12);background:var(--w04);border-radius:18px 18px 4px 18px;font-size:15px;line-height:1.5;white-space:pre-wrap}
+.msg.a .av{flex:none;width:34px;height:34px;display:grid;place-items:center;margin-top:-3px}
+.msg.a .body{flex:1;min-width:0}
+.msg.a .txt{font-size:15px;line-height:1.55;color:var(--w95);min-height:23px}
+.msg.a .txt:empty{display:none}
+
+/* site card */
+.site{margin-top:16px;border:1px solid var(--w12);border-radius:16px;overflow:hidden;background:#050506}
+.site .bar{display:flex;align-items:center;gap:10px;height:40px;padding:0 14px;border-bottom:1px solid var(--w12)}
+.site .dots{display:flex;gap:5px}.site .dots i{width:7px;height:7px;border-radius:50%;background:var(--w20)}
+.site .url{flex:1;text-align:center;font-family:var(--font-mono);font-size:11.5px;color:var(--w55);letter-spacing:.02em}
+.site .url b{color:#fff;font-weight:400}
+.site .view{position:relative;height:360px;overflow:hidden}
+.site .view::after{content:"";position:absolute;left:0;right:0;bottom:0;height:90px;background:linear-gradient(transparent,#050506);pointer-events:none}
+.site .view .ms{position:absolute;left:0;top:0}
+.site .acts{display:flex;align-items:center;gap:8px;padding:12px 14px;border-top:1px solid var(--w12)}
+.site .acts .sp{flex:1}
+.site .live{font-family:var(--font-mono);font-size:11.5px;color:#7dffb0;display:none}
+.site.published .live{display:block}
+.fade-flash{animation:flash .9s ease-out}
+@keyframes flash{0%{box-shadow:0 0 0 1px #fff,0 0 40px rgba(255,255,255,.25)}to{box-shadow:0 0 0 1px transparent,0 0 0 transparent}}
+
+/* dock */
+.dock{position:relative;z-index:3;width:100%;max-width:720px;margin:0 auto;padding-top:8px}
+.dock:empty{display:none}
+.dock .hint{display:flex;justify-content:space-between;margin-top:10px;padding:0 6px}
+.dock .sugg{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+</style>
+</head>
+<body>
+<main data-dot-host id="app">
+  <canvas aria-hidden="true"></canvas>
+  <header class="top">
+    <span data-orb="26"></span>
+    <span data-dm="BLIPMADE" data-h="12"></span>
+    <span class="lbl">Studio</span>
+    <span class="sp"></span>
+    <button class="btn ghost" id="new" hidden>New site</button>
+  </header>
+
+  <div class="stage" id="stage"><div class="col">
+    <section class="intro" id="intro">
+      <span class="veil"></span>
+      <span class="orbwrap" data-orb="72"></span>
+      <span data-dm="BUILD A SITE" data-w="460" data-ghost data-asm></span>
+      <h1 class="sr-only">What should we build?</h1>
+      <p class="lead">Describe it in a sentence. Blipmade designs, writes and deploys it, then you refine it by chatting.</p>
+      <div class="slot" id="slot">
+        <form class="field" id="form">
+          <textarea id="ta" rows="1" placeholder="A bakery in Porto with online booking…" aria-label="Describe your site"></textarea>
+          <button class="send" id="send" type="submit" disabled aria-label="Send"></button>
+        </form>
+        <div class="chips" id="chips"></div>
+      </div>
+      <p class="mono note">Enter to send · Shift+Enter for a new line</p>
+    </section>
+    <section class="thread" id="thread"></section>
+  </div></div>
+  <div class="dock" id="dock"></div>
+</main>
+
+<script src="blip-fx.js"></script>
+<script>
+var F=BlipFX, $=function(s){return document.querySelector(s)};
+var main=$('#app'),stage=$('#stage'),thread=$('#thread'),dock=$('#dock'),form=$('#form'),ta=$('#ta'),send=$('#send');
+F.mountDots();F.mountOrbs();send.innerHTML=F.SEND;F.autoGrow(ta);
+F.dotField($('main>canvas'),{tone:'dark',pitch:34,glyphs:true});
+
+['A bakery in Porto with online booking','Photographer portfolio, dark and minimal','Online store for handmade candles','Landing page for a time-tracking app'].forEach(function(t){
+  var b=document.createElement('button');b.className='chip';b.type='button';b.textContent=t;
+  b.onclick=function(){ta.value=t;ta.dispatchEvent(new Event('input'));submit()};$('#chips').appendChild(b);
+});
+
+var PLAN=null,busy=false;
+ta.addEventListener('input',function(){send.disabled=!ta.value.trim()||busy});
+ta.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();submit()}});
+form.addEventListener('submit',function(e){e.preventDefault();submit()});
+$('#new').onclick=function(){location.reload()};
+
+function scroll(){stage.scrollTop=stage.scrollHeight}
+function el(h){var d=document.createElement('div');d.innerHTML=h.trim();return d.firstChild}
+
+function toChat(){
+  if(main.classList.contains('chatting'))return;
+  main.classList.add('chatting');$('#new').hidden=false;
+  dock.appendChild(form);                       /* the composer slides down into the dock */
+  form.classList.add('rise');
+  dock.insertAdjacentHTML('beforeend','<div class="hint mono"><span>Try: “make it dark”, “add pricing”, “accent green”</span><span>Enter ↵</span></div>');
+  ta.placeholder='Ask for a change…';
+}
+
+async function submit(){
+  var text=ta.value.trim();if(!text||busy)return;
+  busy=true;toChat();ta.value='';ta.dispatchEvent(new Event('input'));send.disabled=true;
+  thread.appendChild(el('<div class="msg u rise"><div class="bub"></div></div>')).firstChild.textContent=text;scroll();
+  await F.sleep(350);
+  var m=el('<div class="msg a rise"><div class="av"></div><div class="body"><p class="txt"></p></div></div>');
+  var o=F.orb(30,'thinking');m.querySelector('.av').appendChild(o);thread.appendChild(m);scroll();
+  var txt=m.querySelector('.txt'),body=m.querySelector('.body');
+  await F.sleep(900);
+
+  if(!PLAN){                                      /* ---------- first message: build ---------- */
+    var p=F.plan(text);PLAN=p;
+    o.setState('speaking');await F.stream(txt,F.reply(p),70);o.setState('thinking');
+    var ul=el('<ul class="steps"></ul>');body.appendChild(ul);
+    F.STEPS.forEach(function(s){ul.appendChild(el('<li><span class="ic"><i></i></span>'+s+'</li>'))});
+    var card=el('<div class="site"><div class="bar"><span class="dots"><i></i><i></i><i></i></span><span class="url"><b>'+p.slug+'</b>.blipmade.app</span></div><div class="view"><div class="ms"></div></div><div class="acts"><button class="btn ghost" data-a="edit">Edit in studio</button><span class="live">● LIVE</span><span class="sp"></span><button class="btn" data-a="pub">Publish</button></div></div>');
+    var inner=card.querySelector('.ms'),view=card.querySelector('.view');
+    var S=F.sections(p),li=ul.children;
+    for(var i=0;i<li.length;i++){
+      li[i].className='run';await F.sleep(i===3?400:850);
+      if(i===3){body.appendChild(card);F.fitScale(view,inner,1000);
+        for(var k=1;k<=S.length;k++){F.renderSite(inner,p,k);scroll();await F.sleep(480)}}
+      li[i].className='done';
+    }
+    await F.sleep(300);
+    var done=el('<p class="txt" style="margin-top:14px"></p>');body.appendChild(done);
+    o.setState('speaking');await F.stream(done,'Your site is ready. Say what to change (colors, sections, tone), or publish it when you are happy.',70);
+    o.setState('happy');setTimeout(function(){o.setState('idle')},2200);
+    card.querySelector('[data-a=pub]').onclick=function(){publish(card,this)};
+    card.querySelector('[data-a=edit]').onclick=function(){location.href='chat-b-studio.html'};
+    window.__inner=inner;
+  }else{                                          /* ---------- follow-up: edit ---------- */
+    var r=F.edit(PLAN,text);
+    if(!r){
+      o.setState('speaking');await F.stream(txt,'I can switch colors (blue, green, pink…), go dark or light, change the typeface, or add or remove pricing, gallery, FAQ and contact sections. What would you like?',70);
+      o.setState('idle');
+    }else{
+      PLAN=r.plan;o.setState('speaking');await F.stream(txt,'Done. I '+r.note+'.',70);
+      var inn=window.__inner;F.renderSite(inn,PLAN);
+      var card2=inn.closest('.site');card2.classList.remove('fade-flash');void card2.offsetWidth;card2.classList.add('fade-flash');
+      card2.querySelector('.view').scrollTop=0;o.setState('happy');setTimeout(function(){o.setState('idle')},1800);
+    }
+  }
+  busy=false;send.disabled=!ta.value.trim();scroll();ta.focus();
+}
+
+async function publish(card,btn){
+  btn.disabled=true;var bar=F.dotBar(18);btn.replaceChildren(bar);
+  for(var i=1;i<=18;i++){bar.set(i/18);await F.sleep(55)}
+  card.classList.add('published');btn.textContent='Published';
+}
+</script>
+</body>
+</html>
