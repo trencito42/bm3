@@ -55,3 +55,26 @@ Automated audit (`window.__audit` style script, run in-browser) over 37 routes: 
 **Bugs fixed this pass:** price slider drag (component defined inside component remounted every tick; same class fixed in AdminApp), AnimatedPrice now pops dots in ~0.4 s so a number is never unreadable while dragging.
 **QA (automated + screenshots):** 66 routes × widths 320, 390, 768, 1024(earlier), 1280×520, 1440, 1920(earlier) → no horizontal overflow, no runtime errors, no collapsed dot numerals. Builder generation verified on a 390 px viewport (preview opens automatically).
 **Still open:** real-device keyboard/safe-area behaviour; pixel-level visual review of every page at every width (only spot-checked); mouse drag on sliders not automatable here (keyboard verified); remaining brief items not built as dedicated demos: ResizablePanel with a drag handle (slider stand-in), ScrollContainer, DetailLayout as a named pattern, Customer app "Live chat" is a tab of Support (not a separate route); repo `trencito42/blipmade-hosting` still not inspected (no access).
+
+---
+## Craft pass 1 (microinteractions & motion system)
+Approach: fix behaviour first, verify in the running app (sampling real frames / computed styles), then commit.
+
+**Motion system** (`src/index.css`): one vocabulary of tokens (`--ease-out/in/std`, 120 / 180 / 150 / 240 / 280 ms). Popper surfaces (menu, select, popover, hover card, tooltip) grow from the trigger's own origin (`--radix-popper-transform-origin`) and now have exit animations (they used to vanish). Dialogs 240 in / 150 out; side sheets travel their full width, 280 in / 200 out; scrims fade. Route/tab content is opacity-only (no rise on every navigation). Global reduced-motion rule. `touch-action: manipulation` and no tap flash on controls.
+- **Real bug fixed:** dialog entrance applied `translate(-50%, -48%)` on top of Tailwind's centring, so every dialog drifted in from the top-left. Verified now: centre stays at (640, 450) for the whole animation, rising 8 px.
+**Buttons:** tonal hover/press states (no scale), `loading` prop swaps the label for a spinner with identical width/height (verified 119 → 119 px), unified focus ring. **Fields:** one `fieldBase` (hover lift, focus border + soft ring, placeholder recedes, invalid, disabled, read-only) shared by `Input`, `Textarea` and `inputCls`. `PasswordInput` whose eye never steals focus (verified caret/focus kept). **Copy button:** icon crossfade on the button itself, no toast. **Switch:** thumb stretches while pressed. **Slider:** grab cursor, hover/active ring. **RadioCard:** check badge pops in.
+**Tabs / Segmented / DetailLayout:** a single indicator that glides between items (`useSlideIndicator`), re-measures on resize/state change, and scrolls an off-screen active tab into view on phones. Verified: indicator x goes 480 → 396 → 268 → 235 → 200 → 185 → 179 → 177 → 176 in ~220 ms (ease-out), keyboard arrows move selection.
+**Mobile sheet:** shared `MobileSheet` (customer app + admin) stays mounted for its exit, closes on Escape, locks body scroll, honours the safe area. Verified slide-in frames −300 → −235 → −173 → −122 at 16–17 ms per frame; rapid open/close/open ends in the right state.
+**DataTable:** selected rows get a 2 px left marker; sortable headers show a faint affordance on hover; `aria-sort`.
+**AnimatedPrice (signature):** digits swap instantly while the value is moving (verified min dot opacity 1 on every frame of a 5-step drag), then one settle pulse on the digits that changed and a single net delta (+$12.50) after 220 ms of stillness. Stat numerals no longer play the red entrance flash on every navigation (`DotNum` is static by default).
+**DotBars:** hover has no stagger delay after the reveal (was up to 500 ms late); tooltip snaps to the hovered column's top dot (verified x equal) and glides between columns.
+**Orb lab:** 10 selectable styles with shared face, states and cursor-follow; plasma rebuilt darker so eyes stay legible; mercury uses dark eyes.
+**Deploy:** step content cross-fades (summary card stays mounted). Webmail compose grows out of its docked corner.
+
+**QA:** overflow/error/collapsed-numeral audit over 70 routes at 390 px and 1280 px after all changes: 0 findings.
+
+**Not verified / remaining**
+- Focus-ring appearance under real keyboard modality (`:focus-visible` cannot be triggered by script); Select / Popover / ContextMenu exits were verified indirectly (same CSS as the dropdown that was sampled).
+- Pointer-leave of the chart tooltip (synthetic events do not exercise React's leave); real hover on touch devices.
+- Chart crosshair / dataset transitions, orb state-to-state transitions, toast timing, file-manager and webmail interaction details, Site builder choreography are untouched in this batch.
+- Virtual keyboard and safe-area behaviour on real devices.

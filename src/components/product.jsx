@@ -335,7 +335,7 @@ export function Webmail({ height = 460, mobile: forceMobile }) {
         )}
       </div>
       {compose && (
-        <div className="anim-menu absolute bottom-3 right-3 z-10 w-[min(420px,calc(100%-1.5rem))] rounded-xl border border-line-2 bg-[#101012] shadow-2xl shadow-black/60">
+        <div className="anim-menu absolute bottom-3 right-3 z-10 w-[min(420px,calc(100%-1.5rem))] rounded-xl border border-line-2 bg-[#101012] shadow-2xl shadow-black/60" style={{ transformOrigin: '100% 100%' }}>
           <div className="flex items-center justify-between border-b border-line px-4 py-2.5 text-[13px] font-medium">New message<button aria-label="Close" onClick={() => setCompose(false)} className="text-dim hover:text-fg"><X className="size-4" /></button></div>
           <div className="space-y-2 p-3"><input placeholder="To" className={inputCls()} aria-label="To" /><input placeholder="Subject" className={inputCls()} aria-label="Subject" /><Textarea rows={5} placeholder="Write something…" /></div>
           <div className="flex items-center justify-between border-t border-line px-3 py-2.5"><Button variant="ghost" size="icon" aria-label="Attach"><Paperclip /></Button><Button onClick={() => { setCompose(false); toast.success('Sent (simulated)') }}><Send />Send</Button></div>
