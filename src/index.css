@@ -20,7 +20,7 @@
 
 :root {
   --brand: #ff2d36;
-  --ease-spring: cubic-bezier(0.22, 0.8, 0.24, 1);
+  --ease-spring: cubic-bezier(0.22, 0.8, 0.24, 1); /* legacy alias of --ease-out */
 }
 
 html, body, #root { height: 100%; }
@@ -29,17 +29,64 @@ body { background: var(--color-bg); color: var(--color-fg); font-family: var(--f
 ::selection { background: #fff; color: #000; }
 button { cursor: pointer; }
 
-/* radix animations */
-@keyframes overlay-in { from { opacity: 0 } }
-@keyframes pop-in { from { opacity: 0; transform: translate(-50%, -48%) scale(.97) } }
-@keyframes slide-in { from { transform: translateX(24px); opacity: 0 } }
-@keyframes menu-in { from { opacity: 0; transform: translateY(-4px) scale(.98) } }
-@keyframes fade-up { from { opacity: 0; transform: translateY(6px) } }
-.anim-overlay { animation: overlay-in .18s ease-out }
-.anim-pop { animation: pop-in .22s var(--ease-spring) }
-.anim-slide { animation: slide-in .3s var(--ease-spring) }
-.anim-menu { animation: menu-in .14s ease-out }
-.anim-page { animation: fade-up .35s var(--ease-spring) }
+/* ============================================================
+   MOTION SYSTEM
+   one vocabulary for every surface:
+   direct manipulation  0 ms   (drag, press: no transition)
+   hover / focus        120-150 ms  ease-std
+   selection            180 ms  ease-out
+   popovers / menus     150 in / 100 out, scale .96 from the trigger's own origin
+   dialogs              240 in / 150 out
+   drawers              280 in / 200 out, travel the full width (physically coherent)
+   Exits are always shorter than entrances and use an accelerating curve.
+   ============================================================ */
+:root {
+  --ease-out: cubic-bezier(.22, .8, .24, 1);
+  --ease-in: cubic-bezier(.4, 0, 1, 1);
+  --ease-std: cubic-bezier(.4, 0, .2, 1);
+  --t-fast: 120ms; --t-sel: 180ms; --t-menu: 150ms; --t-dialog: 240ms; --t-drawer: 280ms;
+}
+@keyframes fade-in { from { opacity: 0 } }
+@keyframes badge-pop { from { transform: scale(.6); opacity: 0 } }
+@keyframes fade-out { to { opacity: 0 } }
+@keyframes pop-open { from { opacity: 0; transform: translateY(var(--dy, -3px)) scale(.96) } }
+@keyframes pop-close { to { opacity: 0; transform: scale(.97) } }
+@keyframes dialog-in { from { opacity: 0; transform: translateY(8px) scale(.985) } }
+@keyframes dialog-out { to { opacity: 0; transform: translateY(4px) scale(.985) } }
+@keyframes drawer-in { from { transform: translateX(100%) } }
+@keyframes drawer-out { to { transform: translateX(100%) } }
+@keyframes drawer-left-in { from { transform: translateX(-100%) } }
+@keyframes drawer-left-out { to { transform: translateX(-100%) } }
+
+/* scrims */
+.anim-overlay:not([data-state=closed]) { animation: fade-in var(--t-dialog) ease-out; }
+.anim-overlay[data-state=closed] { animation: fade-out 160ms ease-in forwards; }
+/* popper surfaces: menu, select, popover, hover card, tooltip. Origin comes from Radix so it grows out of the trigger. */
+.anim-menu { transform-origin: var(--radix-popper-transform-origin, 50% 0); }
+.anim-menu[data-side=top], .anim-menu[data-side=left] { --dy: 3px; }
+.anim-menu:not([data-state=closed]) { animation: pop-open var(--t-menu) var(--ease-out); }
+.anim-menu[data-state=closed] { animation: pop-close 100ms var(--ease-in) forwards; }
+/* centred dialog: Tailwind's `translate` property centres it, so keyframes only touch `transform` */
+.anim-pop:not([data-state=closed]) { animation: dialog-in var(--t-dialog) var(--ease-out); }
+.anim-pop[data-state=closed] { animation: dialog-out 150ms var(--ease-in) forwards; }
+/* side sheets */
+.anim-slide:not([data-state=closed]) { animation: drawer-in var(--t-drawer) var(--ease-out); }
+.anim-slide[data-state=closed] { animation: drawer-out 200ms var(--ease-in) forwards; }
+.anim-slide-left:not([data-state=closed]) { animation: drawer-left-in var(--t-drawer) var(--ease-out); }
+.anim-slide-left[data-state=closed] { animation: drawer-left-out 200ms var(--ease-in) forwards; }
+/* route / tab content: opacity only, never a rise on every navigation */
+@keyframes page-in { from { opacity: 0 } }
+.anim-page { animation: page-in 140ms ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .anim-overlay, .anim-menu, .anim-pop, .anim-slide, .anim-slide-left, .anim-page { animation-duration: 1ms !important; }
+}
+
+/* one focus language for everything keyboard-reachable (inputs use border + soft ring instead) */
+:where(a, button, [role=tab], [role=switch], [role=checkbox], [role=slider], [role=separator], [role=radio]):focus-visible {
+  outline: 2px solid rgb(255 255 255 / .6);
+  outline-offset: 2px;
+}
+:where(input, textarea, select):focus-visible { outline: none; }
 
 /* cmdk */
 [cmdk-root] { width: 100% }

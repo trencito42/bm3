@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Bell, Check, Database, GitBranch, Globe, Lock, Mail, Plus, Server, ShieldCheck, Smartphone, Terminal, User, KeyRound, Camera } from 'lucide-react'
 import { Badge, Button, Card, CardBody, CardHeader, CardTitle, ChipTabs, Dialog, DialogContent, EmptyState, IconTile, Input, PageHeader, Progress, RadioCard, RadioGroup, SectionHead, Segmented, Separator, Switch, Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui.jsx'
-import { Breadcrumbs, FormField, InlineAlert, OTPInput, Select, Stepper, inputCls, CopyValue, CodeBlock } from '../../components/ui2.jsx'
+import { Breadcrumbs, FormField, InlineAlert, OTPInput, PasswordInput, Select, Stepper, inputCls, CopyValue, CodeBlock } from '../../components/ui2.jsx'
 import { DotNum } from '../../components/DotViz.jsx'
 import { DotText } from '../../builder/FxBits.jsx'
 import {
@@ -178,7 +178,7 @@ export function AccountPage() {
       <PageHeader title="Account & security" description="Profile, password and two-factor authentication." />
       <div className="grid gap-4 lg:grid-cols-2">
         <Card><CardHeader><CardTitle>Profile</CardTitle></CardHeader><CardBody className="space-y-4"><FormField label="Name"><input defaultValue="Stefan" className={inputCls()} /></FormField><FormField label="Email" hint="Verified"><input defaultValue="stefan10xdd@gmail.com" className={inputCls()} /></FormField><Button>Save changes</Button></CardBody></Card>
-        <Card><CardHeader><CardTitle>Password</CardTitle></CardHeader><CardBody className="space-y-4"><FormField label="Current password"><input type="password" className={inputCls()} /></FormField><FormField label="New password" hint="At least 12 characters"><input type="password" className={inputCls()} /></FormField><Button variant="outline">Update password</Button></CardBody></Card>
+        <Card><CardHeader><CardTitle>Password</CardTitle></CardHeader><CardBody className="space-y-4"><FormField label="Current password"><PasswordInput /></FormField><FormField label="New password" hint="At least 12 characters"><PasswordInput autoComplete="new-password" /></FormField><Button variant="outline">Update password</Button></CardBody></Card>
         <Card><CardHeader><CardTitle>Two-factor authentication</CardTitle><Badge tone="warn">Off</Badge></CardHeader><CardBody className="space-y-4"><p className="text-[13px] text-mute">Enter the 6-digit code from your authenticator app to enable.</p><OTPInput value={otp} onChange={setOtp} /><Button disabled={otp.length < 6} onClick={() => toast.success('2FA enabled (simulated)')}>Enable 2FA</Button></CardBody></Card>
         <Card><CardHeader><CardTitle>API keys & sessions</CardTitle></CardHeader><CardBody className="space-y-3"><CopyValue label="Key" value="blip_live_9f3a21c7d84e" mask /><Separator />{[['Chrome · Windows', 'Current session'], ['Safari · iPhone', '2 days ago']].map(([a, b]) => <div key={a} className="flex items-center justify-between text-[13px]"><span>{a}</span><span className="text-xs text-dim">{b}</span></div>)}</CardBody></Card>
       </div>

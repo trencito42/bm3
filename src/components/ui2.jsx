@@ -7,9 +7,9 @@ import * as HoverP from '@radix-ui/react-hover-card'
 import * as AlertP from '@radix-ui/react-alert-dialog'
 import { Command } from 'cmdk'
 import { toast } from 'sonner'
-import { AlertTriangle, ArrowDown, ArrowUp, Check, ChevronDown, ChevronLeft, ChevronRight, Copy, Info, CheckCircle2, XCircle, X, Minus } from 'lucide-react'
+import { Eye, EyeOff, AlertTriangle, ArrowDown, ArrowUp, Check, ChevronDown, ChevronLeft, ChevronRight, Copy, Info, CheckCircle2, XCircle, X, Minus } from 'lucide-react'
 import { cn } from '../lib/utils'
-import { Button } from './ui.jsx'
+import { Button, fieldBase } from './ui.jsx'
 
 /* ---------- FormField ---------- */
 export const FormField = ({ label, hint, error, required, optional, children, className }) => (
@@ -22,7 +22,7 @@ export const FormField = ({ label, hint, error, required, optional, children, cl
     {error ? <p className="flex items-center gap-1.5 text-[12px] text-bad"><XCircle className="size-3.5" />{error}</p> : hint && <p className="text-[12px] text-dim">{hint}</p>}
   </div>
 )
-export const inputCls = (err) => cn('flex h-9 w-full items-center rounded-lg border bg-transparent px-3 text-[13.5px] text-fg outline-none transition-colors placeholder:text-dim focus:ring-2 disabled:cursor-not-allowed disabled:opacity-40 read-only:bg-white/[0.03]', err ? 'border-bad/60 focus:border-bad focus:ring-bad/20' : 'border-line-2 focus:border-white/40 focus:ring-white/10')
+export const inputCls = (err) => cn('flex h-9 items-center', fieldBase, err && 'border-bad/60 hover:border-bad/70 focus:border-bad focus:ring-bad/20')
 
 /* ---------- Checkbox / Radio-ish ---------- */
 export const Checkbox = ({ className, ...p }) => (
@@ -130,10 +130,33 @@ export function Confirm({ trigger, title, description, confirmLabel = 'Confirm',
   )
 }
 
+/* ---------- PasswordInput: the eye never steals focus, so the caret stays where it was ---------- */
+export const PasswordInput = React.forwardRef(({ className, ...p }, ref) => {
+  const [show, setShow] = React.useState(false)
+  return (
+    <div className="relative">
+      <input ref={ref} type={show ? 'text' : 'password'} autoComplete="current-password" className={cn(inputCls(), 'pr-10', className)} {...p} />
+      <button type="button" aria-label={show ? 'Hide password' : 'Show password'} aria-pressed={show} onMouseDown={(e) => e.preventDefault()} onClick={() => setShow((s) => !s)} className="absolute right-1 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-md text-dim transition-colors duration-150 hover:text-fg">
+        <Eye className={cn('absolute size-4 transition-[opacity,transform] duration-150', show ? 'scale-75 opacity-0' : 'opacity-100')} />
+        <EyeOff className={cn('absolute size-4 transition-[opacity,transform] duration-150', show ? 'opacity-100' : 'scale-75 opacity-0')} />
+      </button>
+    </div>
+  )
+})
+
 /* ---------- Copy ---------- */
 export const CopyButton = ({ value, className }) => {
   const [ok, setOk] = React.useState(false)
-  return <button aria-label="Copy" onClick={() => { navigator.clipboard?.writeText(value); setOk(true); toast('Copied'); setTimeout(() => setOk(false), 1200) }} className={cn('grid size-7 place-items-center rounded-md text-dim transition-colors hover:bg-hover hover:text-fg', className)}>{ok ? <Check className="size-3.5 text-ok" /> : <Copy className="size-3.5" />}</button>
+  const t = React.useRef()
+  React.useEffect(() => () => clearTimeout(t.current), [])
+  const copy = () => { navigator.clipboard?.writeText(value); setOk(true); clearTimeout(t.current); t.current = setTimeout(() => setOk(false), 1400) }
+  /* the confirmation lives on the button itself (icon crossfade + colour), so no toast competes with it */
+  return (
+    <button aria-label={ok ? 'Copied' : 'Copy'} onClick={copy} className={cn('relative grid size-7 place-items-center rounded-md transition-colors duration-150 hover:bg-hover active:bg-white/10', ok ? 'text-ok' : 'text-dim hover:text-fg', className)}>
+      <Copy className={cn('absolute size-3.5 transition-[opacity,transform] duration-150', ok ? 'scale-50 opacity-0' : 'scale-100 opacity-100')} />
+      <Check className={cn('absolute size-3.5 transition-[opacity,transform] duration-150', ok ? 'scale-100 opacity-100' : 'scale-50 opacity-0')} />
+    </button>
+  )
 }
 export const CopyValue = ({ value, mask, label }) => {
   const [show, setShow] = React.useState(!mask)
@@ -242,8 +265,8 @@ export function DataTable({ columns, rows, sortKey, sortDir, onSort, selectable,
           <tr>
             {selectable && <th className="w-10 border-b border-line px-4"><Checkbox checked={all ? true : some ? 'indeterminate' : false} onCheckedChange={(v) => onSelect(v ? rows.map((r) => r.id) : [])} aria-label="Select all" /></th>}
             {columns.map((c) => (
-              <th key={c.key} className={cn('h-10 whitespace-nowrap border-b border-line px-4 text-left font-mono text-[10.5px] font-normal uppercase tracking-[.08em] text-dim', c.align === 'right' && 'text-right', c.className)}>
-                {c.sortable ? <button onClick={() => onSort?.(c.key)} className="inline-flex items-center gap-1 uppercase hover:text-fg">{c.label}{sortKey === c.key && (sortDir === 'asc' ? <ArrowUp className="size-3" /> : <ArrowDown className="size-3" />)}</button> : c.label}
+              <th key={c.key} aria-sort={sortKey === c.key ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined} className={cn('h-10 whitespace-nowrap border-b border-line px-4 text-left font-mono text-[10.5px] font-normal uppercase tracking-[.08em] text-dim', c.align === 'right' && 'text-right', c.className)}>
+                {c.sortable ? <button onClick={() => onSort?.(c.key)} className={cn('group inline-flex items-center gap-1 uppercase transition-colors hover:text-fg', sortKey === c.key && 'text-fg', c.align === 'right' && 'flex-row-reverse')}>{c.label}<span className="grid size-3 place-items-center">{sortKey === c.key ? (sortDir === 'asc' ? <ArrowUp className="size-3" /> : <ArrowDown className="size-3" />) : <ArrowDown className="size-3 opacity-0 transition-opacity duration-150 group-hover:opacity-40" />}</span></button> : c.label}
               </th>
             ))}
           </tr>
@@ -251,7 +274,7 @@ export function DataTable({ columns, rows, sortKey, sortDir, onSort, selectable,
         <tbody>
           {rows.length === 0 && <tr><td colSpan={columns.length + 1} className="py-12 text-center text-dim">{empty || 'No results'}</td></tr>}
           {rows.map((r) => (
-            <tr key={r.id} onClick={() => onRowClick?.(r)} className={cn('transition-colors hover:bg-hover [&:last-child_td]:border-b-0', onRowClick && 'cursor-pointer', selected.includes(r.id) && 'bg-white/[0.04]')}>
+            <tr key={r.id} onClick={() => onRowClick?.(r)} className={cn('transition-colors duration-100 hover:bg-hover active:bg-white/[0.09] [&:last-child_td]:border-b-0', onRowClick && 'cursor-pointer', selected.includes(r.id) && 'bg-white/[0.05] [&>td:first-child]:shadow-[inset_2px_0_0_var(--color-fg)]')}>
               {selectable && <td className="border-b border-line/60 px-4" onClick={(e) => e.stopPropagation()}><Checkbox checked={selected.includes(r.id)} onCheckedChange={(v) => onSelect(v ? [...selected, r.id] : selected.filter((x) => x !== r.id))} aria-label="Select row" /></td>}
               {columns.map((c) => <td key={c.key} className={cn('whitespace-nowrap border-b border-line/60 px-4 text-mute', dense ? 'py-2' : 'py-3.5', c.align === 'right' && 'text-right', c.cell && 'text-fg')}>{c.cell ? c.cell(r) : r[c.key]}</td>)}
             </tr>

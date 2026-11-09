@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { Bell, ChevronDown, Copy, Download, Edit3, Eye, Inbox, Loader2, MoreHorizontal, Plus, Save, Search, Settings, Share2, Trash2, Upload, Home, Server, Receipt, LifeBuoy, Menu as MenuIcon, X, Folder, Globe } from 'lucide-react'
 import { Doc, Demo, Row } from './Doc.jsx'
 import { Avatar, Badge, Button, Card, Dialog, DialogContent, DialogTrigger, Input, Label, Menu, MenuContent, MenuItem, MenuLabel, MenuSep, MenuTrigger, Progress, Segmented, Slider, StatusBadge, Switch, Tabs, TabsContent, TabsList, TabsTrigger, Textarea, Tooltip, EmptyState, ChipTabs, Separator, IconTile } from '../components/ui.jsx'
-import { Breadcrumbs, Checkbox, CodeBlock, Combobox, Confirm, ContextContent, ContextItem, ContextMenu, ContextSep, ContextTrigger, CopyButton, CopyValue, FormField, HoverCard, InlineAlert, NumberStepper, OTPInput, Pagination, Popover, PopoverContent, PopoverTrigger, Select, Skeleton, Stepper, TagInput, inputCls } from '../components/ui2.jsx'
+import { PasswordInput, Breadcrumbs, Checkbox, CodeBlock, Combobox, Confirm, ContextContent, ContextItem, ContextMenu, ContextSep, ContextTrigger, CopyButton, CopyValue, FormField, HoverCard, InlineAlert, NumberStepper, OTPInput, Pagination, Popover, PopoverContent, PopoverTrigger, Select, Skeleton, Stepper, TagInput, inputCls } from '../components/ui2.jsx'
 import { DotBars, DotGauge } from '../components/DotViz.jsx'
 import * as DialogP from '@radix-ui/react-dialog'
 import * as RadioP from '@radix-ui/react-radio-group'
@@ -20,7 +20,7 @@ function Actions() {
       <Demo label="Button · variants × sizes × states">
         <div className="space-y-5">
           {['default', 'secondary', 'outline', 'ghost', 'destructive'].map((v) => (
-            <Row key={v}><span className="w-24 font-mono text-[11px] uppercase text-dim">{v}</span><Button variant={v} size="sm">Small</Button><Button variant={v}>Medium</Button><Button variant={v} size="lg">Large</Button><Button variant={v} disabled>Disabled</Button><Button variant={v} onClick={() => { setLoad(true); setTimeout(() => setLoad(false), 1500) }}>{load && <Loader2 className="animate-spin" />}{load ? 'Saving' : 'Loading'}</Button></Row>
+            <Row key={v}><span className="w-24 font-mono text-[11px] uppercase text-dim">{v}</span><Button variant={v} size="sm">Small</Button><Button variant={v}>Medium</Button><Button variant={v} size="lg">Large</Button><Button variant={v} disabled>Disabled</Button><Button variant={v} loading={load} onClick={() => { setLoad(true); setTimeout(() => setLoad(false), 1500) }}>Save changes</Button></Row>
           ))}
         </div>
       </Demo>
@@ -74,7 +74,7 @@ function Inputs() {
             <FormField label="Domain" hint="We verify DNS after you save."><div className="flex"><input value={dom} onChange={(e) => setDom(e.target.value)} className={cn(inputCls(), 'rounded-r-none')} /><span className="grid h-9 place-items-center rounded-r-lg border border-l-0 border-line-2 px-3 font-mono text-[12.5px] text-dim">.blipmade.app</span></div></FormField>
             <FormField label="Allowed CIDR" error={bad ? 'Prefix must be between /0 and /32' : undefined} hint={!bad ? 'Valid range' : undefined}><input value={cidr} onChange={(e) => setCidr(e.target.value)} className={cn(inputCls(bad), 'font-mono')} /></FormField>
             <FormField label="Credit top-up"><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-dim">$</span><input defaultValue="25.00" inputMode="decimal" className={cn(inputCls(), 'pl-7 text-right font-mono')} /></div></FormField>
-            <FormField label="Password" hint="Min 12 characters"><input type="password" defaultValue="hunter2hunter2" className={inputCls()} /></FormField>
+            <FormField label="Password" hint="Min 12 characters"><PasswordInput defaultValue="hunter2hunter2" /></FormField>
           </div>
         </Demo>
       </div>

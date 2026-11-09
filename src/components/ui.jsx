@@ -16,24 +16,35 @@ import { cn } from '../lib/utils'
 import { DotNum } from './DotViz.jsx'
 
 /* ------------------------------ Button ------------------------------ */
+/* Press feedback is a tonal step (no scale): hover 150 ms, press is instant (duration-0 while :active) so it feels physical. */
 const buttonCva = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 disabled:pointer-events-none disabled:opacity-40 [&_svg]:size-4 [&_svg]:shrink-0',
+  'relative inline-flex select-none items-center justify-center whitespace-nowrap rounded-lg text-[13px] font-medium transition-[background-color,border-color,color,opacity] duration-150 ease-[var(--ease-std)] active:duration-0 disabled:pointer-events-none disabled:opacity-40 [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
-        default: 'bg-fg text-black hover:bg-white/85',
-        secondary: 'bg-hover text-fg hover:bg-white/10',
-        outline: 'border border-line-2 bg-transparent text-fg hover:bg-hover',
-        ghost: 'text-mute hover:bg-hover hover:text-fg',
-        destructive: 'border border-bad/30 text-bad hover:bg-bad/10',
+        default: 'bg-fg text-black hover:bg-white/85 active:bg-white/70',
+        secondary: 'bg-hover text-fg hover:bg-white/10 active:bg-white/[0.14]',
+        outline: 'border border-line-2 bg-transparent text-fg hover:border-white/25 hover:bg-hover active:bg-white/[0.1]',
+        ghost: 'text-mute hover:bg-hover hover:text-fg active:bg-white/10',
+        destructive: 'border border-bad/30 text-bad hover:border-bad/50 hover:bg-bad/10 active:bg-bad/[0.16]',
       },
       size: { sm: 'h-8 px-3', md: 'h-9 px-4', lg: 'h-11 px-5 text-sm', icon: 'size-9' },
     },
     defaultVariants: { variant: 'default', size: 'md' },
   }
 )
-export const Button = React.forwardRef(({ className, variant, size, ...p }, ref) => (
-  <button ref={ref} className={cn(buttonCva({ variant, size }), className)} {...p} />
+const Spinner = () => (
+  <svg viewBox="0 0 24 24" className="size-4 animate-spin" style={{ animationDuration: '700ms' }} aria-hidden>
+    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2.5" opacity=".22" />
+    <path d="M21 12a9 9 0 0 0-9-9" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+  </svg>
+)
+/* `loading` swaps the label for a spinner without changing the button's width, so nothing around it moves. */
+export const Button = React.forwardRef(({ className, variant, size, loading, children, disabled, ...p }, ref) => (
+  <button ref={ref} disabled={disabled || loading} aria-busy={loading || undefined} className={cn(buttonCva({ variant, size }), 'gap-2', loading && 'cursor-progress disabled:opacity-100', className)} {...p}>
+    <span className={cn('inline-flex items-center justify-center gap-2 transition-opacity duration-150', loading && 'opacity-0')}>{children}</span>
+    {loading && <span className="absolute inset-0 grid place-items-center"><Spinner /></span>}
+  </button>
 ))
 
 /* ------------------------------ Card ------------------------------ */
@@ -44,7 +55,7 @@ export const CardDesc = ({ className, ...p }) => <p className={cn('mt-1 text-[13
 export const CardBody = ({ className, ...p }) => <div className={cn('p-5', className)} {...p} />
 
 /* ------------------------------ Badge ------------------------------ */
-const badgeCva = cva('inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 font-mono text-[10.5px] uppercase tracking-[.06em]', {
+const badgeCva = cva('inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 font-mono text-[10.5px] uppercase tracking-[.06em] transition-[color,background-color,border-color] duration-200', {
   variants: {
     tone: {
       neutral: 'border-line-2 text-mute',
@@ -64,11 +75,13 @@ export const Badge = ({ className, tone, dot = true, children, ...p }) => (
 )
 
 /* ------------------------------ Inputs ------------------------------ */
+/* One field language: rest -> hover (border lifts) -> focus (border + soft ring, placeholder recedes) -> invalid -> disabled. */
+export const fieldBase = 'w-full rounded-lg border border-line-2 bg-transparent px-3 text-[13.5px] text-fg outline-none transition-[border-color,box-shadow,background-color] duration-150 ease-[var(--ease-std)] placeholder:text-dim placeholder:transition-opacity placeholder:duration-150 hover:border-white/25 focus:border-white/45 focus:ring-2 focus:ring-white/10 focus:placeholder:opacity-50 aria-[invalid=true]:border-bad/60 aria-[invalid=true]:focus:ring-bad/20 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-line-2 read-only:bg-white/[0.03]'
 export const Input = React.forwardRef(({ className, ...p }, ref) => (
-  <input ref={ref} className={cn('flex h-9 w-full rounded-lg border border-line-2 bg-transparent px-3 text-[13.5px] text-fg outline-none transition-colors placeholder:text-dim focus:border-white/40 focus:ring-2 focus:ring-white/10', className)} {...p} />
+  <input ref={ref} className={cn('flex h-9', fieldBase, className)} {...p} />
 ))
 export const Textarea = React.forwardRef(({ className, ...p }, ref) => (
-  <textarea ref={ref} className={cn('flex w-full resize-none rounded-lg border border-line-2 bg-transparent px-3 py-2 text-[13.5px] outline-none placeholder:text-dim focus:border-white/40', className)} {...p} />
+  <textarea ref={ref} className={cn('flex resize-none py-2', fieldBase, className)} {...p} />
 ))
 export const Label = ({ className, ...p }) => <label className={cn('text-[12.5px] font-medium text-mute', className)} {...p} />
 
@@ -85,7 +98,7 @@ export function DialogContent({ className, children, title, description, side, .
           'fixed z-50 border border-line-2 bg-card shadow-2xl shadow-black/60 outline-none',
           side
             ? 'anim-slide right-0 top-0 h-full w-full max-w-md overflow-y-auto border-y-0 border-r-0 p-6'
-            : 'anim-pop left-1/2 top-1/2 max-h-[90vh] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl p-6',
+            : 'anim-pop left-1/2 top-1/2 max-h-[90dvh] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl p-6',
           className
         )}
         {...p}
@@ -104,17 +117,60 @@ export function DialogContent({ className, children, title, description, side, .
 }
 
 /* ------------------------------ Tabs ------------------------------ */
+/* Shared by tabs, segmented controls and DetailLayout: one indicator element that glides to whichever
+   child is active (data-state=active|on, or aria-selected=true). Re-measures on resize and on any state change,
+   and brings an off-screen active tab into view when the list scrolls (phones). */
+export const ACTIVE = '[data-state=active],[data-state=on],[aria-selected=true]'
+export function useSlideIndicator(ref, { scroll = false } = {}) {
+  const [box, setBox] = React.useState(null)
+  const first = React.useRef(true)
+  const measure = React.useCallback(() => {
+    const el = ref.current
+    if (!el) return
+    const a = el.querySelector(ACTIVE)
+    if (!a) { setBox(null); return }
+    setBox({ left: a.offsetLeft, top: a.offsetTop, width: a.offsetWidth, height: a.offsetHeight })
+    if (scroll && el.scrollWidth > el.clientWidth + 1) {
+      const target = a.offsetLeft - (el.clientWidth - a.offsetWidth) / 2
+      el.scrollTo({ left: Math.max(0, target), behavior: first.current ? 'auto' : 'smooth' })
+    }
+    first.current = false
+  }, [ref, scroll])
+  React.useLayoutEffect(() => {
+    const el = ref.current
+    measure()
+    const mo = new MutationObserver(measure)
+    mo.observe(el, { attributes: true, subtree: true, attributeFilter: ['data-state', 'aria-selected'] })
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    document.fonts?.ready.then(measure)
+    return () => { mo.disconnect(); ro.disconnect() }
+  }, [ref, measure])
+  return box
+}
+const mergeRefs = (...refs) => (node) => refs.forEach((r) => { if (typeof r === 'function') r(node); else if (r) r.current = node })
+
 export const Tabs = TabsP.Root
-export const TabsList = ({ className, ...p }) => <TabsP.List className={cn('flex max-w-full gap-1 overflow-x-auto whitespace-nowrap border-b border-line [scrollbar-width:none]', className)} {...p} />
+export const TabsList = React.forwardRef(({ className, children, ...p }, fwd) => {
+  const ref = React.useRef(null)
+  const box = useSlideIndicator(ref, { scroll: true })
+  return (
+    <TabsP.List ref={mergeRefs(ref, fwd)} className={cn('relative flex max-w-full gap-1 overflow-x-auto whitespace-nowrap border-b border-line [scrollbar-width:none]', className)} {...p}>
+      {children}
+      <span aria-hidden className="pointer-events-none absolute bottom-0 left-0 h-px bg-fg" style={box ? { width: Math.max(0, box.width - 24), transform: `translateX(${box.left + 12}px)`, opacity: 1, transition: 'transform 220ms var(--ease-out), width 220ms var(--ease-out), opacity 120ms' } : { opacity: 0 }} />
+    </TabsP.List>
+  )
+})
 export const TabsTrigger = ({ className, ...p }) => (
-  <TabsP.Trigger className={cn("relative h-10 shrink-0 px-3 text-[13px] text-dim transition-colors hover:text-fg data-[state=active]:text-fg after:absolute after:inset-x-3 after:-bottom-px after:h-px after:bg-fg after:opacity-0 data-[state=active]:after:opacity-100", className)} {...p} />
+  <TabsP.Trigger className={cn('relative h-10 shrink-0 px-3 text-[13px] text-dim transition-colors duration-150 hover:text-fg data-[state=active]:text-fg', className)} {...p} />
 )
 export const TabsContent = ({ className, ...p }) => <TabsP.Content className={cn('outline-none', className)} {...p} />
 
 /* ------------------------------ Switch / Slider / Progress ------------------------------ */
 export const Switch = ({ className, ...p }) => (
-  <SwitchP.Root className={cn('relative h-5 w-9 shrink-0 rounded-full border border-line-2 bg-transparent transition-colors data-[state=checked]:border-fg data-[state=checked]:bg-fg', className)} {...p}>
-    <SwitchP.Thumb className="block size-3.5 translate-x-[3px] rounded-full bg-mute transition-transform data-[state=checked]:translate-x-[18px] data-[state=checked]:bg-black" />
+  <SwitchP.Root className={cn('group relative h-5 w-9 shrink-0 rounded-full border border-line-2 bg-transparent transition-[background-color,border-color] duration-[180ms] ease-[var(--ease-std)] hover:border-white/30 data-[state=checked]:border-fg data-[state=checked]:bg-fg disabled:cursor-not-allowed disabled:opacity-40', className)} {...p}>
+    {/* thumb stretches slightly while pressed, then settles: tells you the control is grabbed */}
+    <SwitchP.Thumb className="block h-3.5 w-3.5 translate-x-[3px] rounded-full bg-mute transition-[transform,width,background-color] duration-[200ms] ease-[var(--ease-out)] group-active:w-[17px] data-[state=checked]:translate-x-[18px] data-[state=checked]:bg-black group-active:data-[state=checked]:translate-x-[15px]" />
   </SwitchP.Root>
 )
 export const Slider = ({ className, ...p }) => (
@@ -122,12 +178,12 @@ export const Slider = ({ className, ...p }) => (
     <SliderP.Track className="relative h-1 grow rounded-full bg-white/10">
       <SliderP.Range className="absolute h-full rounded-full bg-fg" />
     </SliderP.Track>
-    <SliderP.Thumb className="block size-4 rounded-full bg-fg shadow outline-none ring-4 ring-bg focus-visible:ring-white/30" />
+    <SliderP.Thumb className="block size-4 cursor-grab rounded-full bg-fg shadow outline-none ring-4 ring-bg transition-[box-shadow] duration-150 hover:ring-white/15 focus-visible:ring-white/40 active:cursor-grabbing active:ring-white/25" />
   </SliderP.Root>
 )
 export const Progress = ({ value, className, hot }) => (
   <ProgressP.Root value={value} className={cn('relative h-1.5 w-full overflow-hidden rounded-full bg-white/8', className)}>
-    <ProgressP.Indicator className={cn('h-full rounded-full transition-all duration-700', hot ? 'bg-bad' : 'bg-fg')} style={{ width: `${value}%` }} />
+    <ProgressP.Indicator className={cn('h-full rounded-full transition-[width,background-color] duration-500 ease-[var(--ease-out)]', hot ? 'bg-bad' : 'bg-fg')} style={{ width: `${value}%` }} />
   </ProgressP.Root>
 )
 
@@ -164,22 +220,28 @@ export const MenuLabel = (p) => <MenuP.Label className="px-2.5 py-1.5 text-[11px
 export const MenuSep = () => <MenuP.Separator className="my-1 h-px bg-line" />
 
 /* ------------------------------ Toggle group (segmented) ------------------------------ */
-export const Segmented = ({ className, options, ...p }) => (
-  <ToggleP.Root type="single" className={cn('inline-flex rounded-lg border border-line p-0.5', className)} {...p}>
-    {options.map(([v, l]) => (
-      <ToggleP.Item key={v} value={v} className="h-7 rounded-md px-3 text-[12.5px] text-dim transition-colors hover:text-fg data-[state=on]:bg-white/10 data-[state=on]:text-fg">
-        {l}
-      </ToggleP.Item>
-    ))}
-  </ToggleP.Root>
-)
+/* The selected pill is one element that slides between options (items keep their own width). */
+export const Segmented = ({ className, options, ...p }) => {
+  const ref = React.useRef(null)
+  const box = useSlideIndicator(ref)
+  return (
+    <ToggleP.Root ref={ref} type="single" className={cn('relative inline-flex rounded-lg border border-line p-0.5', className)} {...p}>
+      <span aria-hidden className="pointer-events-none absolute left-0 top-0 rounded-md bg-white/[0.11]" style={box ? { width: box.width, height: box.height, transform: `translate(${box.left}px, ${box.top}px)`, opacity: 1, transition: 'transform 200ms var(--ease-out), width 200ms var(--ease-out), opacity 120ms' } : { opacity: 0 }} />
+      {options.map(([v, l]) => (
+        <ToggleP.Item key={v} value={v} className="relative z-10 h-7 rounded-md px-3 text-[12.5px] text-dim transition-colors duration-150 hover:text-fg data-[state=on]:text-fg">
+          {l}
+        </ToggleP.Item>
+      ))}
+    </ToggleP.Root>
+  )
+}
 
 /* ------------------------------ Radio cards ------------------------------ */
 export const RadioGroup = RadioP.Root
 export const RadioCard = ({ className, children, ...p }) => (
-  <RadioP.Item className={cn('relative rounded-xl border border-line bg-card p-5 text-left transition-all hover:border-line-2 data-[state=checked]:border-fg/70 data-[state=checked]:bg-white/[0.03] data-[state=checked]:ring-1 data-[state=checked]:ring-white/30', className)} {...p}>
+  <RadioP.Item className={cn('relative rounded-xl border border-line bg-card p-5 text-left transition-[border-color,background-color,box-shadow] duration-[180ms] ease-[var(--ease-std)] hover:border-line-2 active:bg-white/[0.02] data-[state=checked]:border-fg/70 data-[state=checked]:bg-white/[0.03] data-[state=checked]:ring-1 data-[state=checked]:ring-white/30', className)} {...p}>
     {children}
-    <RadioP.Indicator className="absolute right-4 top-4 grid size-5 place-items-center rounded-full bg-fg text-black"><Check className="size-3" /></RadioP.Indicator>
+    <RadioP.Indicator className="absolute right-4 top-4 grid size-5 place-items-center rounded-full bg-fg text-black data-[state=checked]:animate-[badge-pop_180ms_var(--ease-out)]"><Check className="size-3" /></RadioP.Indicator>
   </RadioP.Item>
 )
 
@@ -188,6 +250,33 @@ export const Table = ({ className, ...p }) => <div className="overflow-x-auto"><
 export const Th = ({ className, ...p }) => <th className={cn('h-10 whitespace-nowrap border-b border-line px-5 text-left font-mono text-[10.5px] font-normal uppercase tracking-[.08em] text-dim', className)} {...p} />
 export const Td = ({ className, ...p }) => <td className={cn('whitespace-nowrap border-b border-line/60 px-5 py-3.5 text-mute', className)} {...p} />
 export const Tr = ({ className, ...p }) => <tr className={cn('transition-colors hover:bg-hover [&:last-child_td]:border-b-0', p.onClick && 'cursor-pointer', className)} {...p} />
+
+/* ------------------------------ Mobile sheet (left drawer) ------------------------------ */
+/* Stays mounted for the exit animation, closes on Escape, locks body scroll, respects the safe area. */
+export function MobileSheet({ open, onClose, children, className }) {
+  const [mounted, setMounted] = React.useState(open)
+  React.useEffect(() => {
+    if (open) { setMounted(true); return }
+    const t = setTimeout(() => setMounted(false), 200)
+    return () => clearTimeout(t)
+  }, [open])
+  React.useEffect(() => {
+    if (!open) return
+    const k = (e) => e.key === 'Escape' && onClose()
+    addEventListener('keydown', k)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { removeEventListener('keydown', k); document.body.style.overflow = prev }
+  }, [open, onClose])
+  if (!mounted) return null
+  const state = open ? 'open' : 'closed'
+  return (
+    <div className="fixed inset-0 z-40 md:hidden">
+      <div data-state={state} className="anim-overlay absolute inset-0 bg-black/60 backdrop-blur-[2px]" onClick={onClose} />
+      <aside data-state={state} role="dialog" aria-modal="true" className={cn('anim-slide-left absolute inset-y-0 left-0 flex w-[min(300px,85vw)] flex-col border-r border-line bg-[#0b0b0d]', className)} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>{children}</aside>
+    </div>
+  )
+}
 
 /* ------------------------------ Page header ------------------------------ */
 export const PageHeader = ({ title, description, children }) => (

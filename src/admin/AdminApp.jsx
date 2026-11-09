@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import { NavLink, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Activity, AlertTriangle, BarChart3, Bell, BookOpen, Boxes, Cloud, CreditCard, FileText, Globe, HardDrive, LayoutDashboard, LifeBuoy, Mail, Megaphone, Package, Plus, Search, Server, Settings, Shield, ShieldAlert, Tag, Users, Workflow, ScrollText, UserCog, Cpu, Receipt, Network, X } from 'lucide-react'
-import { Badge, Button, Card, CardBody, CardHeader, CardTitle, ChipTabs, Dialog, DialogContent, Input, Segmented, Separator, StatusBadge, Switch, Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui.jsx'
+import { MobileSheet, Badge, Button, Card, CardBody, CardHeader, CardTitle, ChipTabs, Dialog, DialogContent, Input, Segmented, Separator, StatusBadge, Switch, Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui.jsx'
 import { Checkbox, DataTable, FormField, InlineAlert, Select, inputCls } from '../components/ui2.jsx'
 import { DotBars, DotNum } from '../components/DotViz.jsx'
 import { DotText } from '../builder/FxBits.jsx'
@@ -138,7 +138,7 @@ export default function AdminApp() {
   return (
     <div className="flex h-full">
       <aside className="hidden w-60 shrink-0 flex-col border-r border-line bg-[#0b0b0d] md:flex">{Side()}</aside>
-      {mob && <div className="fixed inset-0 z-40 md:hidden"><div className="absolute inset-0 bg-black/60" onClick={() => setMob(false)} /><aside className="anim-slide absolute inset-y-0 left-0 flex w-64 flex-col border-r border-line bg-[#0b0b0d]">{Side()}</aside></div>}
+      <MobileSheet open={mob} onClose={() => setMob(false)}>{Side()}</MobileSheet>
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line px-5"><button className="grid size-9 place-items-center rounded-lg text-mute md:hidden" onClick={() => setMob(true)} aria-label="Menu"><Boxes className="size-4" /></button><span className="grid size-8 place-items-center rounded-lg border border-line-2 bg-white/[0.04] text-mute"><CurIcon className="size-4" /></span><h2 className="text-[15px] font-semibold tracking-tight">{cur[1]}</h2><div className="flex-1" /><div className="hidden items-center gap-2 rounded-lg border border-line px-2.5 py-1.5 text-[12.5px] text-dim sm:flex"><Search className="size-3.5" />Search everything<kbd className="ml-6 font-mono text-[10px]">⌘K</kbd></div></header>
         <main className="min-h-0 flex-1 overflow-y-auto"><div className="anim-page mx-auto max-w-6xl p-6 md:p-8" key={pathname}>{SECTIONS[seg] ?? SECTIONS['']}</div></main>

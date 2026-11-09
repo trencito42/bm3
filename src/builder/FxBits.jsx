@@ -4,18 +4,8 @@ import './fx.js'
 
 export const fx = () => window.BlipFX
 
-export function Orb({ size = 28, state = 'idle', className }) {
-  const host = useRef(null)
-  const orb = useRef(null)
-  useEffect(() => {
-    const o = fx().orb(size, state)
-    orb.current = o
-    host.current.replaceChildren(o)
-    return () => o.remove()
-  }, [size])
-  useEffect(() => { orb.current?.setState(state) }, [state])
-  return <span ref={host} className={className} style={{ display: 'inline-grid' }} />
-}
+/* the orb now lives in components/orbs.jsx (10 selectable styles); re-exported so every existing import keeps working */
+export { Orb } from '../components/orbs.jsx'
 
 export function DotText({ text, height = 12, assemble, ghost, animate, quick, delay, className }) {
   const host = useRef(null)

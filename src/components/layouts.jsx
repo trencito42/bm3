@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowUp } from 'lucide-react'
 import { Breadcrumbs } from './ui2.jsx'
+import { useSlideIndicator } from './ui.jsx'
 import { cn } from '../lib/utils'
 
 /* ---------------- ResizablePanel ----------------
@@ -93,6 +94,8 @@ export function ScrollContainer({ height = 280, children, className, header, pro
 export function DetailLayout({ crumbs, title, subtitle, status, actions, tabs, aside, footer, className }) {
   const [tab, setTab] = useState(tabs[0].id)
   const cur = tabs.find((t) => t.id === tab)
+  const listRef = useRef(null)
+  const box = useSlideIndicator(listRef, { scroll: true })
   return (
     <div className={cn('relative flex min-w-0 flex-col', className)}>
       <div className="space-y-3 pb-4">
@@ -105,12 +108,13 @@ export function DetailLayout({ crumbs, title, subtitle, status, actions, tabs, a
           {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
         </div>
       </div>
-      <div role="tablist" className="flex max-w-full gap-1 overflow-x-auto whitespace-nowrap border-b border-line [scrollbar-width:none]">
+      <div ref={listRef} role="tablist" className="relative flex max-w-full gap-1 overflow-x-auto whitespace-nowrap border-b border-line [scrollbar-width:none]">
         {tabs.map((t) => (
-          <button key={t.id} role="tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)} className={cn('relative h-10 shrink-0 px-3 text-[13px] transition-colors after:absolute after:inset-x-3 after:-bottom-px after:h-px after:bg-fg after:opacity-0', tab === t.id ? 'text-fg after:opacity-100' : 'text-dim hover:text-fg')}>
+          <button key={t.id} role="tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)} className={cn('relative h-10 shrink-0 px-3 text-[13px] transition-colors duration-150', tab === t.id ? 'text-fg' : 'text-dim hover:text-fg')}>
             {t.label}{t.badge != null && <span className="ml-1.5 rounded-full border border-line-2 px-1.5 font-mono text-[10px] text-mute">{t.badge}</span>}
           </button>
         ))}
+        <span aria-hidden className="pointer-events-none absolute bottom-0 left-0 h-px bg-fg" style={box ? { width: Math.max(0, box.width - 24), transform: `translateX(${box.left + 12}px)`, opacity: 1, transition: 'transform 220ms var(--ease-out), width 220ms var(--ease-out), opacity 120ms' } : { opacity: 0 }} />
       </div>
       <div className={cn('grid items-start gap-6 pt-6', aside && 'lg:grid-cols-[minmax(0,1fr)_300px]')}>
         <div key={tab} role="tabpanel" className="anim-page min-w-0 space-y-4">{cur.content}</div>

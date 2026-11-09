@@ -57,7 +57,7 @@ function dotText(o){
   L.dots.forEach(function(p,i){
     var e=c(p.x,p.y);e.setAttribute('fill','currentColor');
     if(o.assemble){e.style.setProperty('--d',(d+Math.abs(rnd(i+7))*500)+'ms');e.style.setProperty('--tx',(rnd(i)*14)+'px');e.style.setProperty('--ty',(rnd(i+99)*9)+'px')}
-    else if(o.animate)e.style.setProperty('--d',o.quick?((p.x*3+p.y*2)+'ms'):((d+(off+p.x)*14+p.y*6)+'ms'));
+    else if(o.animate||o.quick)e.style.setProperty('--d',o.quick?((p.x*3+p.y*2)+'ms'):((d+(off+p.x)*14+p.y*6)+'ms'));
     svg.appendChild(e);
   });
   return svg;
@@ -263,7 +263,7 @@ function fitScale(box,inner,baseW,fillH){
 function autoGrow(ta){var g=function(){ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,180)+'px'};ta.addEventListener('input',g);g();return g}
 var SEND='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
 
-window.BlipFX={sleep:sleep,dotText:dotText,mountDots:mountDots,dotField:dotField,orb:orb,mountOrbs:mountOrbs,dotBar:dotBar,
+window.BlipFX={track:function(el){if(!reduce)orbs.add(el);return function(){orbs.delete(el)}},sleep:sleep,dotText:dotText,mountDots:mountDots,dotField:dotField,orb:orb,mountOrbs:mountOrbs,dotBar:dotBar,
   plan:plan,edit:edit,reply:reply,STEPS:STEPS,sections:sections,renderSite:renderSite,applyTheme:applyTheme,siteSource:siteSource,
   stream:stream,fitScale:fitScale,autoGrow:autoGrow,SEND:SEND,LABEL:LABEL};
 })();

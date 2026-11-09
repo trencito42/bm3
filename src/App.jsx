@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Server, Receipt, ShoppingCart, Globe, LifeBuoy, Rocket, Boxes, Mail, Cloud, UserCog, Search, Bell, Plus, Wand2, ChevronDown, FolderOpen, PanelLeft, Menu as MenuIcon, LogOut, Settings, User, CreditCard,
 } from 'lucide-react'
 import { StoreProvider, useStore } from './lib/store.jsx'
-import { Avatar, Menu, MenuContent, MenuItem, MenuLabel, MenuSep, MenuTrigger } from './components/ui.jsx'
+import { MobileSheet, Avatar, Menu, MenuContent, MenuItem, MenuLabel, MenuSep, MenuTrigger } from './components/ui.jsx'
 import { cn, money } from './lib/utils'
 import { AddFundsDialog } from './components/AddFunds.jsx'
 import { DotNum } from './components/DotViz.jsx'
@@ -29,6 +29,7 @@ import Patterns from './workspace/Patterns.jsx'
 import Product from './workspace/Product.jsx'
 import States from './workspace/States.jsx'
 import Logos from './workspace/Logos.jsx'
+import Orbs from './workspace/Orbs.jsx'
 import AdminApp from './admin/AdminApp.jsx'
 import SiteApp from './site/SiteApp.jsx'
 
@@ -126,14 +127,10 @@ function Sidebar({ rail, setRail, openPalette }) {
 
 /* mobile: slide-in drawer + bottom tab bar */
 function MobileDrawer({ open, onClose, openPalette }) {
-  if (!open) return null
   return (
-    <div className="fixed inset-0 z-40 md:hidden">
-      <div className="anim-overlay absolute inset-0 bg-black/60 backdrop-blur-[2px]" onClick={onClose} />
-      <aside className="anim-slide absolute inset-y-0 left-0 flex w-[min(300px,85vw)] flex-col border-r border-line bg-[#0b0b0d]" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        <SideBody rail={false} openPalette={openPalette} onNavigate={onClose} />
-      </aside>
-    </div>
+    <MobileSheet open={open} onClose={onClose}>
+      <SideBody rail={false} openPalette={openPalette} onNavigate={onClose} />
+    </MobileSheet>
   )
 }
 function BottomNav({ onMore }) {
@@ -278,6 +275,7 @@ function Root() {
             <Route path="/ds/product" element={<Product />} />
             <Route path="/ds/states" element={<States />} />
             <Route path="/ds/logos" element={<Logos />} />
+            <Route path="/ds/orbs" element={<Orbs />} />
           </Routes>
         ) : admin ? <AdminApp /> : site ? <SiteApp /> : <Layout />}
       </div>

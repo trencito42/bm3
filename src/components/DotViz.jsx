@@ -1,9 +1,10 @@
+import * as React from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { DotText } from '../builder/FxBits.jsx'
 import { cn } from '../lib/utils'
 
 /* dot-matrix numeral, e.g. <DotNum text="$42.50" height={28} /> */
-export const DotNum = ({ text, height = 30, animate = true, className }) => (
+export const DotNum = ({ text, height = 30, animate = false, className }) => (
   <DotText text={String(text)} height={height} animate={animate} className={className} />
 )
 
@@ -74,37 +75,55 @@ export function DotHeat({ n = 90, incidents = {} }) {
 /* Animated price: each character is its own dot glyph. Only characters that change are
    re-mounted, so they re-assemble (red flash -> white, staggered across the glyph),
    while unchanged digits stay still. A delta chip floats up and fades. */
-/* animate flag is captured at mount, so unchanged glyphs never replay */
-function Glyph({ ch, height, animate }) {
-  const [a] = useState(animate)
-  return <DotText text={ch} height={height} animate={a} quick />
+/* Price made of dot glyphs.
+   While the value is changing (dragging a slider) digits swap instantly, so the number is always readable and
+   never flickers. When it has been still for 220 ms, the digits that changed pop once (red, ~0.4 s) and a net
+   delta floats up. Positions are stable, so width only changes when the digit count does. */
+function Glyph({ ch, height, pulse }) {
+  const host = React.useRef(null)
+  useEffect(() => {
+    if (!pulse) return
+    const svg = host.current?.querySelector('svg')
+    if (!svg) return
+    svg.classList.remove('dm-quick')
+    void svg.getBoundingClientRect() /* restart the animation */
+    svg.classList.add('dm-quick')
+    const t = setTimeout(() => svg.classList.remove('dm-quick'), 700)
+    return () => clearTimeout(t)
+  }, [pulse])
+  return <span ref={host} className="inline-flex"><DotText text={ch} height={height} quick /></span>
 }
 export function AnimatedPrice({ value, height = 34, prefix = '$', decimals = 2, showDelta = true, className }) {
   const text = prefix + Number(value).toFixed(decimals)
-  const prev = useRef(null)
+  const [pulse, setPulse] = useState({ tick: 0, idx: [] })
   const [delta, setDelta] = useState(null)
-  const [tick, setTick] = useState(0)
-  const first = useRef(true)
+  const settled = useRef({ text, value: Number(value) })
+  const mounted = useRef(false)
   useEffect(() => {
-    if (first.current) { first.current = false; prev.current = Number(value); return }
-    const d = Number(value) - prev.current
-    prev.current = Number(value)
-    if (Math.abs(d) < 0.005) return
-    setDelta(d); setTick((t) => t + 1)
-    const t = setTimeout(() => setDelta(null), 1100)
+    if (!mounted.current) { mounted.current = true; return }
+    const timer = setTimeout(() => {
+      const prev = settled.current
+      const idx = []
+      for (let i = 0; i < text.length; i++) if (prev.text.length !== text.length || prev.text[i] !== text[i]) idx.push(i)
+      const d = Number(value) - prev.value
+      settled.current = { text, value: Number(value) }
+      if (idx.length) setPulse((p) => ({ tick: p.tick + 1, idx }))
+      if (showDelta && Math.abs(d) >= 0.005) setDelta({ d, id: Date.now() })
+    }, 220)
+    return () => clearTimeout(timer)
+  }, [text])
+  useEffect(() => {
+    if (!delta) return
+    const t = setTimeout(() => setDelta(null), 1000)
     return () => clearTimeout(t)
-  }, [value])
+  }, [delta])
   const gap = Math.max(2, height / 7)
-  const ready = useRef(false)
-  useEffect(() => { ready.current = true }, [])
   return (
-    <span className={cn('relative inline-flex items-center', className)} style={{ gap }}>
-      {[...text].map((ch, i) => (
-        <Glyph key={`${i}-${ch}`} ch={ch} height={height} animate={ready.current} />
-      ))}
-      {showDelta && delta !== null && (
-        <span key={tick} className={cn('pointer-events-none absolute -top-5 right-0 whitespace-nowrap font-mono text-[11px]', delta > 0 ? 'text-bad' : 'text-ok')} style={{ animation: 'float-delta 1.1s var(--ease-spring) forwards' }}>
-          {delta > 0 ? '+' : '−'}{prefix}{Math.abs(delta).toFixed(decimals)}
+    <span className={cn('relative inline-flex items-center', className)} style={{ gap }} aria-label={text} role="img">
+      {[...text].map((ch, i) => <Glyph key={i} ch={ch} height={height} pulse={pulse.idx.includes(i) ? pulse.tick : 0} />)}
+      {delta && (
+        <span key={delta.id} aria-hidden className={cn('pointer-events-none absolute -top-5 right-0 whitespace-nowrap font-mono text-[11px] tabular-nums', delta.d > 0 ? 'text-bad' : 'text-ok')} style={{ animation: 'float-delta 1s var(--ease-out) forwards' }}>
+          {delta.d > 0 ? '+' : '\u2212'}{prefix}{Math.abs(delta.d).toFixed(decimals)}
         </span>
       )}
     </span>
