@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { ArrowUp, Check, Monitor, Rocket, Smartphone } from 'lucide-react'
 import * as TabsP from '@radix-ui/react-tabs'
 import * as ToggleP from '@radix-ui/react-toggle-group'
-import { Button, Dialog, DialogContent } from '../components/ui.jsx'
+import { BackLink, Button, Dialog, DialogContent } from '../components/ui.jsx'
 import { DotBar, DotField, DotText, Orb, fx } from '../builder/FxBits.jsx'
 import { useStore } from '../lib/store.jsx'
 import { cn, sleep } from '../lib/utils'
@@ -224,7 +224,7 @@ export default function Builder() {
       {/* -------------------------------- preview -------------------------------- */}
       <TabsP.Root value={tab} onValueChange={setTab} className={cn('min-h-0 min-w-0 flex-col md:flex', mview === 'preview' ? 'flex' : 'hidden')}>
         <div className="relative z-10 flex h-14 shrink-0 items-center gap-3 overflow-x-auto border-b border-white/10 bg-black/60 px-3 backdrop-blur-md sm:px-5">
-          <button onClick={() => setMview('chat')} className="shrink-0 text-[12.5px] text-white/60 md:hidden">← Chat</button>
+          <BackLink onClick={() => setMview('chat')} className="shrink-0 text-[12.5px] md:hidden">Chat</BackLink>
           <TabsP.List className="flex rounded-lg border border-white/12 p-0.5">
             {[['preview', 'Preview'], ['code', 'Code']].map(([v, l]) => (
               <TabsP.Trigger key={v} value={v} className="h-7 rounded-md px-3 text-[12.5px] text-white/55 transition-colors hover:text-white data-[state=active]:bg-white data-[state=active]:text-black">{l}</TabsP.Trigger>

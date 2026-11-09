@@ -3,9 +3,9 @@ import { useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ArrowRight, Check, Cloud, Database, Gamepad2, Globe, Mail, Menu, Server, X } from 'lucide-react'
-import { Badge, Button, Card, CardBody, IconTile, Input, Segmented } from '../components/ui.jsx'
+import { Badge, BackLink, Button, Card, CardBody, IconTile, Input, Segmented } from '../components/ui.jsx'
 import { CodeBlock, FormField, InlineAlert, OTPInput, PasswordInput, inputCls } from '../components/ui2.jsx'
-import { DotBars, DotNum } from '../components/DotViz.jsx'
+import { AnimatedPrice, DotBars, DotNum } from '../components/DotViz.jsx'
 import { DotField, DotText, Orb } from '../builder/FxBits.jsx'
 import { CATALOG, INCIDENTS } from '../lib/mock'
 import HomePage from './HomePage.jsx'
@@ -25,19 +25,65 @@ function Shell({ children }) {
   )
 }
 
+const COMPARE = ['vCPU', 'Memory', 'Storage', 'Traffic']
 function Products({ id }) {
   const nav = useNavigate()
   const c = CATALOG.find((x) => x.id === id)
   const [per, setPer] = useState('m')
+  const [hot, setHot] = useState(null)   // plan card under the pointer / focus: its column in the compare table lights up
+  const yearly = per === 'y'
   if (c) return (
-    <div className="mx-auto max-w-5xl space-y-10 px-5 py-14 md:px-10">
-      <div><button onClick={() => nav('/site/products')} className="text-[13px] text-dim hover:text-fg">← Products</button><h1 className="mt-3 text-4xl font-semibold tracking-tight">{c.name}</h1><p className="mt-3 max-w-xl text-[15px] text-mute">{c.blurb}</p></div>
-      <div className="flex items-center justify-between"><h2 className="text-lg font-semibold">Choose a plan</h2><Segmented value={per} onValueChange={(v) => v && setPer(v)} options={[['m', 'Monthly'], ['y', 'Yearly −20%']]} /></div>
-      <div className="grid gap-4 md:grid-cols-3">{PLAN_DATA.map((p) => <div key={p.id} className={cn('flex flex-col rounded-2xl border bg-card p-6', p.tag ? 'border-white/40' : 'border-line')}><div className="flex items-center gap-2 text-[13px] text-dim">{p.name}{p.tag && <Badge tone="info" dot={false}>{p.tag}</Badge>}</div><div className="mt-4 flex items-end gap-2"><DotNum text={money(p.price * (per === 'y' ? 0.8 : 1)).replace('.00', '')} height={38} animate={false} /><span className="pb-1 text-xs text-dim">/ mo</span></div><ul className="mt-6 flex-1 space-y-2.5 text-[13.5px] text-mute">{p.specs.map((s) => <li key={s} className="flex items-center gap-2.5"><Check className="size-3.5 text-fg" />{s}</li>)}</ul><Button className="mt-6" variant={p.tag ? 'default' : 'outline'} onClick={() => nav('/site/register')}>Choose {p.name}</Button></div>)}</div>
-      <div className="overflow-hidden rounded-xl border border-line"><table className="w-full text-[13.5px]"><thead><tr className="border-b border-line font-mono text-[10.5px] uppercase tracking-[.08em] text-dim"><th className="px-4 py-3 text-left font-normal">Compare</th>{PLAN_DATA.map((p) => <th key={p.id} className="px-4 py-3 text-left font-normal">{p.name}</th>)}</tr></thead><tbody>{['vCPU', 'Memory', 'Storage', 'Traffic'].map((r, i) => <tr key={r} className="border-b border-line/50 last:border-b-0"><td className="px-4 py-3 text-mute">{r}</td>{PLAN_DATA.map((p) => <td key={p.id} className="px-4 py-3 font-mono text-[12.5px]">{p.specs[i]}</td>)}</tr>)}</tbody></table></div>
+    <div key={c.id} className="anim-page mx-auto max-w-5xl space-y-10 px-5 py-14 md:px-10">
+      <div className="anim-rise" style={{ '--i': 0 }}><BackLink onClick={() => nav('/site/products')}>Products</BackLink><h1 className="mt-3 text-4xl font-semibold tracking-tight">{c.name}</h1><p className="mt-3 max-w-xl text-[15px] text-mute">{c.blurb}</p></div>
+      <div className="anim-rise flex flex-wrap items-center justify-between gap-3" style={{ '--i': 1 }}>
+        <h2 className="text-lg font-semibold">Choose a plan</h2>
+        <div className="flex items-center gap-3">
+          <span aria-hidden className={cn('font-mono text-[11px] uppercase tracking-[.06em] text-ok transition-[opacity,transform] duration-200 ease-[var(--ease-out)]', yearly ? 'translate-x-0 opacity-100' : 'translate-x-1 opacity-0')}>2 months free</span>
+          <Segmented value={per} onValueChange={(v) => v && setPer(v)} options={[['m', 'Monthly'], ['y', 'Yearly \u221220%']]} />
+        </div>
+      </div>
+      <div className="grid gap-4 md:grid-cols-3" onPointerLeave={() => setHot(null)}>
+        {PLAN_DATA.map((p, i) => {
+          const price = p.price * (yearly ? 0.8 : 1)
+          return (
+            <div key={p.id} onPointerEnter={() => setHot(p.id)} onFocus={() => setHot(p.id)} onBlur={() => setHot(null)} style={{ '--i': i + 2 }}
+              className={cn('anim-rise group flex flex-col rounded-2xl border bg-card p-6 transition-[border-color,background-color,transform] duration-200 ease-[var(--ease-out)] hover:-translate-y-0.5 hover:bg-[#161619]', p.tag ? 'border-white/40' : 'border-line hover:border-line-2')}>
+              <div className="flex items-center gap-2 text-[13px] text-dim">{p.name}{p.tag && <Badge tone="info" dot={false}>{p.tag}</Badge>}</div>
+              <div className="mt-4 flex items-end gap-2"><AnimatedPrice value={price} height={38} prefix="$" decimals={2} /><span className="pb-1 text-xs text-dim">/ mo</span></div>
+              {/* the billing line cross-fades instead of popping, and reserves its height so the card never jumps */}
+              <div className="relative mt-2 h-4 text-[12px] text-dim">
+                <span className={cn('absolute inset-0 transition-opacity duration-200', yearly ? 'opacity-0' : 'opacity-100')}>Billed monthly</span>
+                <span className={cn('absolute inset-0 transition-opacity duration-200', yearly ? 'opacity-100' : 'opacity-0')} aria-hidden={!yearly}>{money(price * 12)} billed yearly</span>
+              </div>
+              <ul className="mt-6 flex-1 space-y-2.5 text-[13.5px] text-mute">{p.specs.map((s) => <li key={s} className="flex items-center gap-2.5"><Check className="size-3.5 text-fg" />{s}</li>)}</ul>
+              <Button className="mt-6" variant={p.tag ? 'default' : 'outline'} onClick={() => nav('/site/register')}>Choose {p.name}<ArrowRight className="size-4 -translate-x-1 opacity-0 transition-[opacity,transform] duration-200 ease-[var(--ease-out)] group-hover:translate-x-0 group-hover:opacity-100" /></Button>
+            </div>
+          )
+        })}
+      </div>
+      <div className="anim-rise overflow-x-auto rounded-xl border border-line" style={{ '--i': 5 }}>
+        <table className="w-full min-w-[420px] text-[13.5px]">
+          <thead><tr className="border-b border-line font-mono text-[10.5px] uppercase tracking-[.08em] text-dim"><th className="px-4 py-3 text-left font-normal">Compare</th>{PLAN_DATA.map((p) => <th key={p.id} className={cn('px-4 py-3 text-left font-normal transition-colors duration-150', hot === p.id && 'text-fg')}>{p.name}</th>)}</tr></thead>
+          <tbody>{COMPARE.map((r, i) => <tr key={r} className="border-b border-line/50 transition-colors duration-150 last:border-b-0 hover:bg-hover"><td className="px-4 py-3 text-mute">{r}</td>{PLAN_DATA.map((p) => <td key={p.id} className={cn('px-4 py-3 font-mono text-[12.5px] transition-colors duration-150', hot === p.id ? 'bg-white/[0.04] text-fg' : 'text-mute')}>{p.specs[i]}</td>)}</tr>)}</tbody>
+        </table>
+      </div>
     </div>
   )
-  return <div className="mx-auto max-w-6xl space-y-8 px-5 py-14 md:px-10"><div><h1 className="text-4xl font-semibold tracking-tight">Products</h1><p className="mt-3 text-[15px] text-mute">Pick a category to see plans and pricing.</p></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{CATALOG.map((x) => <button key={x.id} onClick={() => nav('/site/products/' + x.id)} className="flex flex-col gap-3 rounded-xl border border-line bg-card p-5 text-left transition-colors hover:border-line-2"><IconTile><Server /></IconTile><div className="text-[15px] font-semibold">{x.name}</div><p className="text-[13px] text-mute">{x.blurb}</p><span className="mt-auto font-mono text-[11px] uppercase text-dim">From {money(x.from)} / mo</span></button>)}</div></div>
+  return (
+    <div className="anim-page mx-auto max-w-6xl space-y-8 px-5 py-14 md:px-10">
+      <div className="anim-rise" style={{ '--i': 0 }}><h1 className="text-4xl font-semibold tracking-tight">Products</h1><p className="mt-3 text-[15px] text-mute">Pick a category to see plans and pricing.</p></div>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {CATALOG.map((x, i) => (
+          <button key={x.id} onClick={() => nav('/site/products/' + x.id)} style={{ '--i': i + 1 }} className="anim-rise group relative flex flex-col gap-3 rounded-xl border border-line bg-card p-5 text-left outline-none transition-[border-color,background-color,transform] duration-200 ease-[var(--ease-out)] hover:-translate-y-0.5 hover:border-line-2 hover:bg-[#161619] focus-visible:border-white/40 active:translate-y-0">
+            <div className="flex items-start justify-between"><IconTile><Server /></IconTile><ArrowRight className="size-4 -translate-x-1 text-dim opacity-0 transition-[opacity,transform] duration-200 ease-[var(--ease-out)] group-hover:translate-x-0 group-hover:text-fg group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100" /></div>
+            <div className="flex items-center gap-2 text-[15px] font-semibold">{x.name}{x.tag && <Badge tone="info" dot={false}>{x.tag}</Badge>}</div>
+            <p className="text-[13px] text-mute">{x.blurb}</p>
+            <span className="mt-auto font-mono text-[11px] uppercase text-dim">From {money(x.from)} / mo</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 function Auth({ mode }) {

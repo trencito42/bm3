@@ -11,7 +11,7 @@ import * as TipP from '@radix-ui/react-tooltip'
 import * as MenuP from '@radix-ui/react-dropdown-menu'
 import * as ToggleP from '@radix-ui/react-toggle-group'
 import * as RadioP from '@radix-ui/react-radio-group'
-import { X, Check } from 'lucide-react'
+import { X, Check, ArrowLeft } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { DotNum } from './DotViz.jsx'
 
@@ -361,3 +361,10 @@ export const SectionHead = ({ title, count }) => (
 
 export const statusTone = { running: 'ok', stopped: 'neutral', restarting: 'warn', paid: 'ok', unpaid: 'warn', overdue: 'bad', open: 'info', answered: 'ok', closed: 'neutral', available: 'ok', taken: 'neutral', active: 'ok' }
 export const StatusBadge = ({ status }) => <Badge tone={statusTone[status] || 'neutral'}>{status[0].toUpperCase() + status.slice(1)}</Badge>
+
+/* "< Back" affordance: a real icon (not an arrow character) that nudges on hover/press */
+export const BackLink = ({ children, className, ...p }) => (
+  <button type="button" className={cn('group -ml-1 inline-flex items-center gap-1.5 rounded-md px-1 py-0.5 text-[13px] text-dim outline-none transition-colors duration-150 hover:text-fg focus-visible:text-fg focus-visible:ring-2 focus-visible:ring-white/20 active:text-fg', className)} {...p}>
+    <ArrowLeft className="size-3.5 transition-transform duration-200 ease-[var(--ease-out)] group-hover:-translate-x-0.5 group-active:-translate-x-1" />{children}
+  </button>
+)

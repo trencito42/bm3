@@ -91,12 +91,14 @@ button { cursor: pointer; }
 @keyframes mega-from-r { from { opacity: 0; transform: translateX(18px) } }
 @keyframes mega-to-l { to { opacity: 0; transform: translateX(-18px) } }
 @keyframes mega-to-r { to { opacity: 0; transform: translateX(18px) } }
+.anim-rise { animation: rise 360ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 55ms); }
+@keyframes rise { from { opacity: 0; transform: translateY(10px) } }
 .anim-collapse[data-state=open] { animation: collapse-down 200ms var(--ease-out); }
 .anim-collapse[data-state=closed] { animation: collapse-up 160ms var(--ease-in); }
 @keyframes collapse-down { from { height: 0; opacity: 0 } to { height: var(--radix-collapsible-content-height) } }
 @keyframes collapse-up { from { height: var(--radix-collapsible-content-height) } to { height: 0; opacity: 0 } }
 @media (prefers-reduced-motion: reduce) {
-  .anim-overlay, .anim-menu, .anim-pop, .anim-slide, .anim-slide-left, .anim-page, .anim-collapse, .mega-viewport, .mega-content { animation-duration: 1ms !important; }
+  .anim-overlay, .anim-menu, .anim-pop, .anim-slide, .anim-slide-left, .anim-page, .anim-collapse, .anim-rise, .mega-viewport, .mega-content { animation-duration: 1ms !important; }
   .mega-viewport { transition-duration: 1ms !important; }
 }
 

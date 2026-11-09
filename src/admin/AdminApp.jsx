@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import { NavLink, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Activity, AlertTriangle, BarChart3, Bell, BookOpen, Boxes, Cloud, CreditCard, FileText, Globe, HardDrive, LayoutDashboard, LifeBuoy, Mail, Megaphone, Package, Plus, Search, Server, Settings, Shield, ShieldAlert, Tag, Users, Workflow, ScrollText, UserCog, Cpu, Receipt, Network, X } from 'lucide-react'
-import { MobileSheet, Badge, Button, Card, CardBody, CardHeader, CardTitle, ChipTabs, Dialog, DialogContent, Input, Segmented, Separator, StatusBadge, Switch, Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui.jsx'
+import { BackLink, MobileSheet, Badge, Button, Card, CardBody, CardHeader, CardTitle, ChipTabs, Dialog, DialogContent, Input, Segmented, Separator, StatusBadge, Switch, Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui.jsx'
 import { Checkbox, DataTable, FormField, InlineAlert, Select, inputCls } from '../components/ui2.jsx'
 import { DotBars, DotNum } from '../components/DotViz.jsx'
 import { DotText } from '../builder/FxBits.jsx'
@@ -88,7 +88,7 @@ function ProductEditor({ p, onBack }) {
   const [dirty, setDirty] = useState(false)
   return (
     <div className="space-y-5 pb-20">
-      <button onClick={onBack} className="text-[13px] text-dim hover:text-fg">← Products</button>
+      <BackLink onClick={onBack}>Products</BackLink>
       <h1 className="text-xl font-semibold tracking-tight">{p.name}</h1>
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]"><div className="space-y-4"><Card><CardHeader><CardTitle>General</CardTitle></CardHeader><CardBody className="space-y-4" onChange={() => setDirty(true)}><FormField label="Name"><input defaultValue={p.name} className={inputCls()} /></FormField><FormField label="Description" optional><textarea rows={3} defaultValue="NVMe virtual server with root access." className={cn(inputCls(), 'h-auto py-2')} /></FormField></CardBody></Card><Card><CardHeader><CardTitle>Pricing</CardTitle></CardHeader><CardBody className="grid gap-3 sm:grid-cols-3" onChange={() => setDirty(true)}>{[['Monthly', p.price], ['Quarterly', +(p.price * 2.76).toFixed(2)], ['Yearly', +(p.price * 9.6).toFixed(2)]].map(([l, v]) => <FormField key={l} label={l}><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-dim">$</span><input defaultValue={v} className={cn(inputCls(), 'pl-7 font-mono')} /></div></FormField>)}</CardBody></Card></div><Card className="h-fit"><CardHeader><CardTitle>Availability</CardTitle></CardHeader><CardBody className="space-y-3">{['Frankfurt', 'Amsterdam', 'Helsinki', 'Ashburn'].map((r) => <label key={r} className="flex items-center justify-between text-[13.5px]">{r}<Switch defaultChecked={r !== 'Ashburn'} onCheckedChange={() => setDirty(true)} /></label>)}</CardBody></Card></div>
       {dirty && <div className="anim-menu fixed inset-x-0 bottom-0 z-30 flex items-center justify-center pb-4"><div className="flex items-center gap-4 rounded-xl border border-line-2 bg-[#101012] px-4 py-2.5 shadow-2xl shadow-black/60"><span className="flex items-center gap-2 text-[13px]"><i className="size-1.5 rounded-full bg-warn" />Unsaved changes</span><Button variant="ghost" size="sm" onClick={() => setDirty(false)}>Discard</Button><Button size="sm" onClick={() => { setDirty(false); toast.success('Saved (simulated)') }}>Save</Button></div></div>}

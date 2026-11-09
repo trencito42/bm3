@@ -138,3 +138,11 @@ Approach: fix behaviour first, verify in the running app (sampling real frames /
 **Fixed on the way:** NavLink's className callback passed through Radix `Slot` is stringified (links rendered without active/hover colours); footer collapsed to 1 px inside the flex column (`shrink-0`).
 **Verified:** 1280 px hover open + keyboard (Enter opens, ArrowRight moves, switching closes the previous, Esc closes and keeps focus on the trigger); 390 px accordion, navigation closes panel, Esc + focus return, scroll lock released; 11 site routes at 1280 and 9 at 390: no overflow, footer present, no console errors.
 **Not verified:** touch interaction on a real device; the 768-1024 px range was only checked at 1034 px; menu links are mock (several point at the same page).
+
+---
+## Products pages polish
+- Plan prices use `AnimatedPrice` (digit swap, settle pop, floating delta); the "billed monthly / $X billed yearly" line cross-fades in a reserved-height slot; "2 months free" slides in next to the switch.
+- Plan cards: staggered rise-in (`.anim-rise`, `--i` delay), lift + border on hover, arrow reveals on the CTA; hovering a plan lights its compare-table column. Category cards: lift, arrow reveal, tag badge. Switching category re-runs the page-in.
+- `BackLink` (ui.jsx) replaces the three text-arrow back buttons (Products, Admin product, Builder "Chat") with an icon that nudges on hover/press.
+- Verified at 1280/390 px: prices 4.00 -> 3.20 etc. with deltas, billed line opacity swap, no arrow characters left in back buttons, no overflow, all rise animations end at opacity 1.
+- Not verified: reduced-motion CSS for the new classes (added to the media rule, not emulated), real touch.
