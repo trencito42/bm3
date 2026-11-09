@@ -6,8 +6,8 @@ import '../builder/fx.js'
 import './orbs.css'
 import './orbs2.css'
 import './orbs3.css'
-import './blip.css'
-import { Code2, Gamepad2, Wand2 } from 'lucide-react'
+import './snap.css'
+import { Code2, Gamepad2, MessageCircle, Wand2 } from 'lucide-react'
 import { cn } from '../lib/utils'
 
 const fx = () => window.BlipFX
@@ -15,12 +15,16 @@ const fx = () => window.BlipFX
 const setSnap = () => { try { document.documentElement.style.setProperty('--snap', 1 / (window.devicePixelRatio || 1) + 'px') } catch {} }
 if (typeof window !== 'undefined') { setSnap(); window.addEventListener('resize', setSnap) }
 const bucket = (n) => (n <= 20 ? 'xs' : n <= 32 ? 'sm' : n <= 64 ? 'md' : 'lg')
-export const ROLES = {
-  chat: { label: 'Chat', note: 'Answers, explains, remembers the project.', icon: null },
-  builder: { label: 'Builder', note: 'Designs and ships websites from a sentence.', icon: Wand2 },
-  dev: { label: 'Dev', note: 'Reads your code, writes the fix, opens the PR.', icon: Code2 },
-  game: { label: 'Game', note: 'Watches the server, reads the crash, debugs it.', icon: Gamepad2 },
+/* The cast: four characters, one per job. Each is one of the best-made constructions below, chosen so that no two share a
+   colour, a silhouette or a temperament. `skin` is the construction, `line` finishes the sentence "<Name>, the AI that ...". */
+export const CAST = {
+  chat: { label: 'Chat', name: 'Pip', skin: 'moon', icon: MessageCircle, line: 'answers for you', tag: 'Matte pearl', note: 'Calm, warm and a little shy. Answers questions, explains your bill, remembers the project.' },
+  builder: { label: 'Builder', name: 'Forge', skin: 'prism', icon: Wand2, line: 'builds your site', tag: 'Faceted gem', note: 'Precise and a bit showy. Designs, writes and ships a website from a sentence, then keeps editing it with you.' },
+  dev: { label: 'Dev', name: 'Byte', skin: 'glass', icon: Code2, line: 'fixes your code', tag: 'Blue glass', note: 'Cool-headed and literal. Reads the stack trace, finds the line, writes the fix and opens the pull request.' },
+  game: { label: 'Game', name: 'Glitch', skin: 'jelly', icon: Gamepad2, line: 'debugs your server', tag: 'Green gel', note: 'Bouncy and curious. Watches the tick rate, reads the crash log, names the plugin that is eating your server.' },
 }
+export const CAST_IDS = Object.keys(CAST)
+export const ROLES = CAST
 const reduced = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
 /* ---------- shared face (uses the .kl-face-* CSS: blink, glance, follow-cursor, joy arcs) ---------- */
@@ -179,7 +183,6 @@ function WaveBody({ size, state, live }) {
 
 /* ---------- registry ---------- */
 const bodies = {
-  blip: () => <span className="ob ob-blip" />,
   plasma: () => <span className="ob ob-plasma"><i /><i /><i /><i /></span>,
   glass: () => <span className="ob ob-glass" />,
   nebula: () => <span className="ob ob-nebula"><span className="arm a" /><span className="arm b" /><span className="stars" /></span>,
@@ -202,7 +205,6 @@ const bodies = {
 }
 
 export const ORBS = [
-  { id: 'blip', name: 'Blip', tag: 'Blipmade', note: 'The Blipmade assistant. A dark disc with a hairline rim, a faint dot grid that rises while it works, a radar ping that leaves it, and a single red signal dot when it is busy. Face geometry is snapped to whole device pixels, so it is crisp at every size.' },
   { id: 'aurora', name: 'Aurora', tag: 'Current', note: 'Dark ball ringed by rotating colour bands, glowing white eyes. The one we started with.' },
   { id: 'plasma', name: 'Plasma', tag: 'Fluid', note: 'Four colour blobs drift and blend inside a dark glass sphere with a specular highlight. Thinking speeds the flow up; error rotates the hue.' },
   { id: 'nebula', name: 'Nebula', tag: 'Cosmic', note: 'A small galaxy: two dust arms turn in opposite directions over a field of twinkling stars. Deep and calm; the core is kept dark so the eyes stay clear.' },
@@ -226,29 +228,26 @@ export const ORBS = [
 ]
 
 /* ---------- the orb ---------- */
-export function OrbX({ id = 'blip', size = 28, state = 'idle', role, className }) {
-  const meta = ORBS.find((o) => o.id === id) || ORBS[0]
+export function OrbX({ id = 'cast', size = 28, state = 'idle', role, className }) {
+  /* "cast" means: the character of this role (chat by default); any other id is a specific construction */
+  const real = id === 'cast' ? CAST[role && CAST[role] ? role : 'chat'].skin : id
+  const meta = ORBS.find((o) => o.id === real) || ORBS[0]
   const root = useRef(null)
-  useEffect(() => { if (id === 'aurora') return; const off = fx().track(root.current); return off }, [id])
+  useEffect(() => { if (real === 'aurora') return; const off = fx().track(root.current); return off }, [real])
   usePulse(root, state)
   const live = useLive(root)
-  if (id === 'aurora') return <Aurora size={size} state={state} className={className} />
-  const blip = meta.id === 'blip'
-  const R = role && ROLES[role]
+  if (real === 'aurora') return <Aurora size={size} state={state} className={className} />
   return (
-    <span ref={root} className={cn('kl-face orbx', blip && 'blipx', meta.dark && 'face-dark', className)} data-state={state} data-s={blip ? bucket(size) : undefined} data-role={blip && role ? role : undefined} style={{ '--orb': size + 'px' }} aria-hidden="true">
-      {blip && <i className="blip-ping" />}
+    <span ref={root} className={cn('kl-face orbx snapx', meta.dark && 'face-dark', className)} data-state={state} data-s={bucket(size)} data-skin={meta.id} style={{ '--orb': size + 'px' }} aria-hidden="true">
       {bodies[meta.id]({ size, state, live })}
-      {blip && <i className="blip-sig" />}
       {!meta.noFace && <Face />}
-      {blip && R?.icon && <span className="blip-badge"><R.icon /></span>}
     </span>
   )
 }
 
 /* ---------- app-wide selection ---------- */
 const KEY = 'blipmade-orb'
-const read = () => { try { return localStorage.getItem(KEY) || 'blip' } catch { return 'blip' } }
+const read = () => { try { const v = localStorage.getItem(KEY); return !v || v === 'blip' ? 'cast' : v } catch { return 'cast' } }
 export function useOrbId() {
   const [id, setId] = useState(read)
   useEffect(() => { const f = () => setId(read()); addEventListener('orb-change', f); addEventListener('storage', f); return () => { removeEventListener('orb-change', f); removeEventListener('storage', f) } }, [])
@@ -260,6 +259,7 @@ export function Orb({ size = 28, state = 'idle', className, id, role }) {
   const [sel] = useOrbId()
   return <OrbX id={id || sel} size={size} state={state} role={role} className={className} />
 }
+
 /* the product name for it: Blips */
 export const Blip = Orb
 export const BlipX = OrbX

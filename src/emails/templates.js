@@ -3,7 +3,7 @@
    - SYSTEM mail (orders, payments, alerts, security): quiet and exact. Left aligned, one card, mono figures, no imagery, one action.
    - MARKETING mail (launches, digests, offers): louder and editorial. Centred hero with a big dot headline and a Blip,
      numbered feature rows, bigger spacing, an unsubscribe footer. */
-import { BRAND, FONT, MONO, T, blip, bar, button, card, chip, dot, eyebrow, footerMarketing, footerSystem, h1, kv, logoBar, p, rule, shell, small, spacer } from './kit.js'
+import { BRAND, FONT, MONO, T, bar, blip, button, card, castRow, chip, dot, eyebrow, footerMarketing, footerSystem, h1, kv, logoBar, p, rule, shell, signoff, small, spacer } from './kit.js'
 
 const D = T.dark
 const row = (inner) => `<tr><td>${inner}</td></tr>`
@@ -24,7 +24,7 @@ const orderConfirmation = () => {
     subject: 'Order ORD-20418 confirmed', preheader: 'Your VPS Pro and database are being set up now.',
     body: logoBar('ORD-20418') + card(
       eyebrow('Order confirmed') + h1('Thanks, {{first_name}}. Your order is in.') + p('We charged your card and started building your services. Most are ready in under a minute; we will email you again only if something needs your attention.') +
-      rule(24) + timeline + rule(24) + eyebrow('Receipt') + spacer(8) + receipt + spacer(26) + button('Open your server', '#')
+      rule(24) + timeline + rule(24) + eyebrow('Receipt') + spacer(8) + receipt + spacer(26) + button('Open your server', '#') + signoff('chat', 'Pip', 'is watching the build and will tell you the moment anything stalls.')
     ) + gap(14) + card(kv([['Payment method', 'Visa ending 6411'], ['Billing period', 'Nov 09 to Dec 09'], ['Invoice', 'INV-1048']]) , 22) + footerSystem(),
     text: 'Order ORD-20418 confirmed\n\nThanks, {{first_name}}. Your order is in.\n\nVPS Pro (fra-1)  $12.00\nManaged PostgreSQL 16  $29.00\nIPv4 address  $2.00\nTotal paid  $51.17 (incl. $8.17 VAT)\n\nOpen your server: https://blipmade.cloud/services\n',
   }
@@ -37,7 +37,8 @@ const paymentReceived = () => ({
     `<div style="margin:14px 0 0 0;font-family:${MONO};font-size:44px;line-height:48px;letter-spacing:-.03em" class="fg"><span style="color:${D.fg}">$51.17</span></div>` +
     p('Paid on Nov 09, 2026 with Visa ending 6411. Thank you, {{first_name}}.', 'margin-top:6px') + rule(22) +
     kv([['Invoice', 'INV-1048'], ['Date', 'Nov 09, 2026'], ['Description', 'VPS Pro, PostgreSQL, IPv4'], ['Subtotal', '$43.00'], ['VAT 19%', '$8.17'], ['Amount paid', '$51.17', 'ok']]) + spacer(26) +
-    `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right:8px">${button('Download invoice (PDF)', '#')}</td><td>${button('View in billing', '#', { ghost: true })}</td></tr></table>`
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right:8px">${button('Download invoice (PDF)', '#')}</td><td>${button('View in billing', '#', { ghost: true })}</td></tr></table>` +
+    signoff('chat', 'Pip', 'Need this in another format for accounting? Reply and I will send it.')
   ) + footerSystem(),
   text: 'Payment received: $51.17\n\nInvoice INV-1048 · Nov 09, 2026 · Visa ending 6411\nSubtotal $43.00, VAT 19% $8.17, paid $51.17\n\nInvoice PDF: https://blipmade.cloud/invoices/INV-1048\n',
 })
@@ -50,7 +51,8 @@ const paymentFailed = () => ({
       p('Your bank declined the payment for <b class="fg" style="color:' + D.fg + '">INV-1049 ($38.00)</b>. Nothing is wrong with your services yet. We will try again on Nov 12 and Nov 14.') + rule(22) +
       kv([['Card', 'Visa ending 6411'], ['Reason', 'Insufficient funds'], ['Next attempt', 'Nov 12, 2026'], ['Services suspended on', 'Nov 16, 2026', 'warn']]) + spacer(24) +
       `<div class="bgi" style="background-color:#1a1a1d;border-radius:10px;padding:14px 16px">${eyebrow('What you can do')}<div style="height:8px;line-height:8px;font-size:1px">&nbsp;</div><div class="mu" style="font-family:${FONT};font-size:13.5px;line-height:22px;color:${D.mute}">1. Add or switch to another card.<br>2. Top up your credit balance.<br>3. Reply to this email if you need more time.</div></div>` + spacer(26) +
-      `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right:8px">${button('Update payment method', '#')}</td><td>${button('Pay with credit', '#', { ghost: true })}</td></tr></table>`
+      `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right:8px">${button('Update payment method', '#')}</td><td>${button('Pay with credit', '#', { ghost: true })}</td></tr></table>` +
+      signoff('chat', 'Pip', 'Reply to this email and I will help you sort the card out.')
     , 28, 'rgba(248,113,113,.55)') + footerSystem(),
   text: 'Action needed: payment for INV-1049 failed\n\nYour bank declined $38.00 on Visa ending 6411 (insufficient funds). We retry on Nov 12 and Nov 14. Services are suspended on Nov 16 if unpaid.\n\nUpdate payment method: https://blipmade.cloud/billing\n',
 })
@@ -66,7 +68,8 @@ const serviceAlert = () => ({
 <td class="stack" width="33%" valign="top" style="padding-left:8px"><div class="bgi" style="background-color:#1a1a1d;border-radius:10px;padding:14px">${eyebrow('Disk')}<div class="fg" style="margin-top:8px;font-family:${MONO};font-size:22px;color:${D.fg}">63%</div><div style="margin-top:10px">${bar(63)}</div></div></td></tr></table>` + spacer(22) +
     kv([['Service', 'pg-main · PostgreSQL 16'], ['Region', 'Frankfurt (fra-1)'], ['First seen', 'Today 14:02 UTC'], ['Current size', '4 GB · $12.00 / mo']]) + spacer(24) +
     `<div class="mu" style="font-family:${FONT};font-size:13.5px;line-height:22px;color:${D.mute}"><b class="fg" style="color:${D.fg}">Suggested:</b> resize to 8 GB (about $24.00 / mo, billed from the moment you resize), or ask the Blip to find the heaviest queries.</div>` + spacer(24) +
-    `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right:8px">${button('Resize pg-main', '#')}</td><td>${button('Open metrics', '#', { ghost: true })}</td></tr></table>`
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right:8px">${button('Resize pg-main', '#')}</td><td>${button('Open metrics', '#', { ghost: true })}</td></tr></table>` +
+    signoff('dev', 'Byte', 'I can find the three heaviest queries for you. Open the metrics and press “Ask Byte”.')
   ) + footerSystem(),
   text: 'pg-main is running out of memory\n\nMemory above 85% for 10 minutes (now 91%). CPU 44%, disk 63%.\nSuggested: resize to 8 GB.\n\nOpen metrics: https://blipmade.cloud/services/pg-main\n',
 })
@@ -77,18 +80,47 @@ const securityAlert = () => ({
     eyebrow('Security') + h1('New sign-in from Frankfurt') + p('We noticed a sign-in to your account from a device we have not seen before. If it was you, there is nothing to do.') + rule(22) +
     kv([['Device', 'Chrome 131 on macOS'], ['Location', 'Frankfurt, Germany (approx.)'], ['IP address', '85.12.x.x'], ['Time', 'Nov 09, 2026 · 10:42 UTC']]) + spacer(26) +
     `<div class="mu" style="font-family:${FONT};font-size:13.5px;line-height:22px;color:${D.mute}">If this <b class="fg" style="color:${D.fg}">was not you</b>, change your password now. We will sign out every other session and ask for a new two-factor code.</div>` + spacer(22) +
-    `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right:8px">${button('Secure my account', '#')}</td><td>${button('This was me', '#', { ghost: true })}</td></tr></table>`
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right:8px">${button('Secure my account', '#')}</td><td>${button('This was me', '#', { ghost: true })}</td></tr></table>` +
+    signoff('chat', 'Pip', 'I check every sign-in so you do not have to. This one looked new.')
   ) + footerSystem(),
   text: 'New sign-in to your Blipmade account\n\nChrome 131 on macOS, Frankfurt, Nov 09 10:42 UTC.\nNot you? Secure your account: https://blipmade.cloud/account/security\n',
+})
+
+const buildFailed = () => ({
+  subject: 'Build failed on api-gateway (main · 3f9a1c2)', preheader: 'Byte found the cause and has a fix ready to review.',
+  body: logoBar('BUILD · api-gateway') + card(
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td>${eyebrow('Build failed', D.bad, 'bad')}</td><td align="right">${chip('main · 3f9a1c2', 'info')}</td></tr></table>` +
+    h1('The build stopped at step 3 of 5') + p('Your push to <b class="fg" style="color:' + D.fg + '">main</b> did not go live. The running version is untouched, so nothing is down.') + spacer(20) +
+    `<div class="bgi" style="background-color:#0a0a0c;border:1px solid ${D.line};border-radius:10px;padding:14px 16px;font-family:${MONO};font-size:12px;line-height:20px"><div class="di" style="color:${D.dim}">› Installing dependencies… ok<br>› Compiling TypeScript…</div><div class="bad" style="color:${D.bad}">src/orders.ts(42,18): error TS2532: Object is possibly 'undefined'.</div><div class="di" style="color:${D.dim}">✕ Build exited with code 2 after 38 s</div></div>` + spacer(22) +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td width="44" valign="top" style="padding-right:12px">${blip(36, 'dev')}</td><td ${'class="bgi" style="background-color:#1a1a1d;border-radius:10px;padding:14px 16px"'}><div ${'class="fg" style="font-family:' + FONT + ';font-size:13.5px;line-height:22px;color:' + D.fg + '"'}><b>Byte:</b> <span class="mu" style="color:${D.mute}">the cart can be empty on this path. One optional chain fixes it, and I checked that the three tests still pass.</span></div><div class="ok" style="margin-top:8px;font-family:${MONO};font-size:12px;color:${D.ok}">+ const total = cart?.total ?? 0</div></td></tr></table>` + spacer(24) +
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right:8px">${button('Open the pull request', '#')}</td><td>${button('See the full log', '#', { ghost: true })}</td></tr></table>`
+  ) + footerSystem(),
+  text: 'Build failed on api-gateway\n\nsrc/orders.ts(42,18): error TS2532 at step 3 of 5. The running version is untouched.\nByte prepared a one-line fix (cart?.total ?? 0): https://blipmade.cloud/services/api-gateway/builds/482\n',
+})
+
+const gameCrash = () => ({
+  subject: 'mc-survival crashed and was restarted', preheader: 'Glitch read the crash log: a plugin ran out of memory. Back online in 38 s.',
+  body: logoBar('GAME · mc-survival') + card(
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td>${eyebrow('Server crashed', D.bad, 'bad')}</td><td align="right">${chip('Back online', 'ok')}</td></tr></table>` +
+    h1('mc-survival went down at 21:07') + p('The server stopped responding, so we restarted it. It was back after <b class="fg" style="color:' + D.fg + '">38 seconds</b> and 14 players reconnected.') + spacer(20) +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="stack" width="33%" valign="top" style="padding-right:8px"><div class="bgi" style="background-color:#1a1a1d;border-radius:10px;padding:14px">${eyebrow('Downtime')}<div class="fg" style="margin-top:8px;font-family:${MONO};font-size:22px;color:${D.fg}">38 s</div></div></td>
+<td class="stack" width="33%" valign="top" style="padding:0 4px"><div class="bgi" style="background-color:#1a1a1d;border-radius:10px;padding:14px">${eyebrow('Players')}<div class="fg" style="margin-top:8px;font-family:${MONO};font-size:22px;color:${D.fg}">14 / 40</div></div></td>
+<td class="stack" width="33%" valign="top" style="padding-left:8px"><div class="bgi" style="background-color:#1a1a1d;border-radius:10px;padding:14px">${eyebrow('Memory at crash')}<div class="bad" style="margin-top:8px;font-family:${MONO};font-size:22px;color:${D.bad}">100%</div></div></td></tr></table>` + spacer(22) +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td width="44" valign="top" style="padding-right:12px">${blip(36, 'game')}</td><td ${'class="bgi" style="background-color:#1a1a1d;border-radius:10px;padding:14px 16px"'}><div ${'class="fg" style="font-family:' + FONT + ';font-size:13.5px;line-height:22px;color:' + D.fg + '"'}><b>Glitch:</b> <span class="mu" style="color:${D.mute}">I think <span class="fg" style="color:${D.fg};font-family:${MONO}">DynmapRenderer</span> caused it: it used 41% of tick time and kept growing for 6 hours. Memory ran out and the JVM stopped.</span></div></td></tr></table>` + spacer(18) +
+    kv([['Server', 'mc-survival · Paper 1.21'], ['Region', 'Frankfurt (fra-1)'], ['Crash time', 'Nov 09 · 21:07 UTC'], ['Suspect', 'DynmapRenderer 3.7', 'warn']]) + spacer(24) +
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right:8px">${button('Open the crash report', '#')}</td><td>${button('Raise memory to 8 GB', '#', { ghost: true })}</td></tr></table>`
+  ) + footerSystem(),
+  text: 'mc-survival crashed and was restarted\n\nDown for 38 s at 21:07 UTC, 14 players reconnected. Glitch suspects DynmapRenderer (41% of tick time, memory ran out).\nCrash report: https://blipmade.cloud/services/mc-survival/crashes\n',
 })
 
 /* ============================== MARKETING ============================== */
 
 const marketingTop = () => `<tr><td align="center" style="padding:0 0 22px 0"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td>${dot('wordmark', 'BLIPMADE', 120, 14, D.fg)}</td></tr></table></td></tr>`
 
-const heroCard = ({ chipText, headline, hw, hh, sub, ctaLabel, role }) => `<tr><td ${'class="bgc bd" style="background-color:' + D.card + ';border:1px solid ' + D.line + ';border-radius:20px"'}>
+const heroCard = ({ chipText, headline, hw, hh, sub, ctaLabel, role, cast }) => `<tr><td ${'class="bgc bd" style="background-color:' + D.card + ';border:1px solid ' + D.line + ';border-radius:20px"'}>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" class="pad" style="padding:44px 40px 42px 40px">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td align="center">${blip(88, role)}</td></tr></table>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td align="center">${cast ? castRow(60) : blip(88, role)}</td></tr></table>
 <div style="height:22px;line-height:22px;font-size:1px">&nbsp;</div>
 <div ${'class="bd2" style="display:inline-block;padding:4px 11px;border:1px solid ' + D.line2 + ';border-radius:999px;font-family:' + MONO + ';font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:' + D.mute + '"'}><span class="mu" style="color:${D.mute}"><span style="color:${BRAND}">●</span>&nbsp; ${chipText}</span></div>
 <div style="height:20px;line-height:20px;font-size:1px">&nbsp;</div>
@@ -100,13 +132,13 @@ const heroCard = ({ chipText, headline, hw, hh, sub, ctaLabel, role }) => `<tr><
 </td></tr></table></td></tr>`
 
 const numbered = (items) => `<tr><td style="padding:10px 4px 0 4px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${items.map(([n, t, d], i) => `<tr><td ${i ? `class="bd" style="border-top:1px solid ${D.line};padding:22px 0"` : 'style="padding:22px 0"'}><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-<td width="56" valign="top" class="di" style="font-family:${MONO};font-size:13px;letter-spacing:.06em;color:${D.dim};padding-top:3px">${n}</td>
+<td width="64" valign="top" style="padding-top:1px">${blip(44, n)}</td>
 <td valign="top"><div class="fg" style="font-family:${FONT};font-size:18px;line-height:24px;font-weight:600;letter-spacing:-.01em;color:${D.fg}">${t}</div><div class="mu" style="margin-top:6px;font-family:${FONT};font-size:14.5px;line-height:23px;color:${D.mute}">${d}</div></td></tr></table></td></tr>`).join('')}</table></td></tr>`
 
 const launch = () => ({
-  subject: 'Meet your Blips: AI that builds, codes and debugs', preheader: 'A chat assistant, a site builder, a dev agent and a game-server debugger, included in your plan.',
-  body: marketingTop() + heroCard({ chipText: 'New · Blips', headline: 'MEET THE BLIPS', hw: 430, hh: 38, sub: 'AI agents that live inside your hosting. They build your site, read your code and debug your game server, so you do not have to.', ctaLabel: 'Meet your Blips', role: '' }) + gap(26) +
-    numbered([['01', 'Builder', 'Describe a bakery in Porto with online booking. Watch the site assemble, then keep editing it by chatting. It ships to your own server.'], ['02', 'Dev', 'Connect a repository. The Dev Blip reads the stack trace, finds the line, writes the fix and opens a pull request for you to review.'], ['03', 'Game', 'Tick lag at 9 pm? The Game Blip reads the profiler, names the plugin that is eating the server, and proposes a safe config.']]) + gap(18) +
+  subject: 'Meet Pip, Forge, Byte and Glitch: AI that builds, codes and debugs', preheader: 'A chat assistant, a site builder, a dev agent and a game-server debugger, included in your plan.',
+  body: marketingTop() + heroCard({ chipText: 'New · Blips', headline: 'MEET THE BLIPS', hw: 430, hh: 38, sub: 'Four AI agents that live inside your hosting. They answer, build your site, read your code and debug your game server, so you do not have to.', ctaLabel: 'Meet your Blips', cast: true }) + gap(26) +
+    numbered([['chat', 'Pip answers', 'Ask why your bill changed, how to point a domain, or what a log line means. Pip knows your project and answers in your language.'], ['builder', 'Forge builds', 'Describe a bakery in Porto with online booking. Watch the site assemble, then keep editing it by chatting. It ships to your own server.'], ['dev', 'Byte fixes code', 'Connect a repository. Byte reads the stack trace, finds the line, writes the fix and opens a pull request for you to review.'], ['game', 'Glitch debugs servers', 'Tick lag at 9 pm? Glitch reads the profiler, names the plugin that is eating the server, and proposes a safe config.']]) + gap(18) +
     `<tr><td ${'class="bgc bd" style="background-color:' + D.card + ';border:1px solid ' + D.line + ';border-radius:16px"'}><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td class="pad" style="padding:30px 36px" align="center">
 <div class="fg" style="font-family:${FONT};font-size:19px;line-height:30px;letter-spacing:-.01em;color:${D.fg}">“It found a memory leak that three of us had missed for a month. Fix and PR were ready before the call ended.”</div>
 <div class="mu" style="margin-top:14px;font-family:${MONO};font-size:11.5px;letter-spacing:.06em;color:${D.mute}">MAYA CHEN · CTO, NORTHWIND</div></td></tr></table></td></tr>` + gap(24) +
@@ -122,7 +154,7 @@ const digest = () => {
     body: marketingTop() + `<tr><td ${'class="bgc bd" style="background-color:' + D.card + ';border:1px solid ' + D.line + ';border-radius:20px"'}><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td class="pad" style="padding:36px 36px 8px 36px">
 ${eyebrow('The monthly digest · November 2026')}
 <h1 class="h1 fg" style="margin:12px 0 0 0;font-family:${FONT};font-size:34px;line-height:40px;font-weight:600;letter-spacing:-.03em;color:${D.fg}">What shipped,<br>in five minutes.</h1>
-<p class="mu" style="margin:14px 0 0 0;font-family:${FONT};font-size:15.5px;line-height:25px;color:${D.mute}">Hi {{first_name}}, here is everything we released this month, and what is coming next.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:16px"><tr><td width="48" valign="top" style="padding-right:12px">${blip(40, 'builder')}</td><td valign="middle"><p class="mu" style="margin:0;font-family:${FONT};font-size:15.5px;line-height:25px;color:${D.mute}">Hi {{first_name}}, Forge here. This is everything we shipped this month, and what comes next.</p></td></tr></table>
 ${spacer(26)}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bd" style="border-top:1px solid ${D.line};border-bottom:1px solid ${D.line}"><tr>${stat('38%', 'Faster deploys')}${stat('4', 'Regions')}${stat('99.98%', 'Uptime')}</tr></table>
 ${spacer(10)}
@@ -165,6 +197,8 @@ export const EMAILS = [
   { id: 'failed', kind: 'system', name: 'Payment failed', build: paymentFailed },
   { id: 'alert', kind: 'system', name: 'Service alert', build: serviceAlert },
   { id: 'security', kind: 'system', name: 'New sign-in', build: securityAlert },
+  { id: 'build', kind: 'system', name: 'Build failed', build: buildFailed },
+  { id: 'crash', kind: 'system', name: 'Server crashed', build: gameCrash },
   { id: 'launch', kind: 'marketing', name: 'Product launch', build: launch },
   { id: 'digest', kind: 'marketing', name: 'Monthly digest', build: digest },
   { id: 'upgrade', kind: 'marketing', name: 'Upgrade offer', build: upgrade },

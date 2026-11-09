@@ -160,7 +160,7 @@ export default function Builder() {
       {/* -------------------------------- chat -------------------------------- */}
       <section className={cn('min-h-0 flex-col border-r border-white/10', mview === 'preview' ? 'hidden md:flex' : 'flex')}>
         <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-white/10 px-5">
-          <Orb size={26} state={headOrb} />
+          <Orb size={26} state={headOrb} role="builder" />
           <DotText text="BLIPMADE" height={12} />
           <span className="text-xs font-medium text-white/55">Site builder</span>
           <div className="ml-auto flex rounded-lg border border-white/12 p-0.5 md:hidden">{[['chat', 'Chat'], ['preview', 'Preview']].map(([v, l]) => <button key={v} onClick={() => setMview(v)} className={cn('h-7 rounded-md px-2.5 text-[12px] transition-colors', mview === v ? 'bg-white text-black' : 'text-white/60')}>{l}</button>)}</div>
@@ -169,7 +169,7 @@ export default function Builder() {
         <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 py-5">
           {empty ? (
             <div className="my-auto flex flex-col items-start gap-5">
-              <Orb size={64} state="idle" />
+              <Orb size={64} state="idle" role="builder" />
               <DotText text="DESCRIBE IT" height={28} assemble />
               <p className="max-w-xs text-[14.5px] leading-relaxed text-white/70">Tell me what you are making. I will build it on the right, section by section, while you watch.</p>
               <div className="flex flex-col items-start gap-2">
@@ -184,7 +184,7 @@ export default function Builder() {
                 <div key={m.id} className="rise ml-auto max-w-[88%] rounded-2xl rounded-br-sm border border-white/12 bg-white/[0.04] px-3.5 py-2.5 text-[14px] leading-relaxed">{m.text}</div>
               ) : (
                 <div key={m.id} className="rise flex gap-3">
-                  <Orb size={28} state={m.orb} className="mt-0.5 shrink-0" />
+                  <Orb size={28} state={m.orb} role="builder" className="mt-0.5 shrink-0" />
                   <div className="min-w-0 flex-1 text-[14px] leading-relaxed text-white/95">
                     {m.text && <p>{m.text}</p>}
                     {m.chips && (
@@ -267,7 +267,7 @@ export default function Builder() {
       <Dialog open={pub.open} onOpenChange={(o) => pub.done && setPub((s) => ({ ...s, open: o }))}>
         <DialogContent title={pub.done ? 'Your site is live' : 'Publishing…'} description={plan ? `${plan.slug}.blipmade.app` : ''}>
           <div className="grid place-items-center gap-6 py-6">
-            <Orb size={72} state={pub.done ? 'happy' : 'thinking'} />
+            <Orb size={72} state={pub.done ? 'happy' : 'thinking'} role="builder" />
             {pub.done ? (
               <>
                 <DotText text="LIVE" height={36} assemble />

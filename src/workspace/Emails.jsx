@@ -14,9 +14,16 @@ function dotUri(text, color) {
   svg.querySelectorAll('circle').forEach((c) => c.setAttribute('fill', color))
   return svgUri(svg.outerHTML)
 }
+/* preview-only drawings of the four characters (production uses exported PNGs of the real components) */
 function blipUri(size, role) {
-  const badge = role ? `<circle cx="80" cy="80" r="15" fill="#131317" stroke="rgba(255,255,255,.25)" stroke-width="1.5"/><text x="80" y="85" text-anchor="middle" font-family="monospace" font-size="${role === 'dev' ? 13 : 12}" font-weight="700" fill="#fff">${role === 'dev' ? '&lt;/&gt;' : role === 'builder' ? '✦' : '◉'}</text>` : ''
-  return svgUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${size}" height="${size}"><defs><radialGradient id="g" cx="50%" cy="-10%" r="90%"><stop offset="0" stop-color="#fff" stop-opacity=".2"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/></radialGradient></defs><circle cx="50" cy="50" r="47" fill="#0b0b0e" stroke="rgba(255,255,255,.22)" stroke-width="1.5"/><circle cx="50" cy="50" r="47" fill="url(#g)"/><rect x="36.5" y="40" width="9" height="20" rx="4.5" fill="#fff"/><rect x="54.5" y="40" width="9" height="20" rx="4.5" fill="#fff"/>${badge}</svg>`)
+  const eyes = (fill) => `<rect x="36.5" y="40" width="9" height="20" rx="4.5" fill="${fill}"/><rect x="54.5" y="40" width="9" height="20" rx="4.5" fill="${fill}"/>`
+  const art = {
+    chat: `<defs><radialGradient id="a" cx="38%" cy="30%" r="75%"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#e9e4dc"/><stop offset="1" stop-color="#b9b2a7"/></radialGradient></defs><circle cx="50" cy="50" r="47" fill="url(#a)"/>${eyes('#16161a')}`,
+    builder: `<polygon points="50,4 91,27 91,73 50,96 9,73 9,27" fill="#1b1030"/><polygon points="50,4 91,27 50,50" fill="#ff5ab8"/><polygon points="91,27 91,73 50,50" fill="#8a4dff"/><polygon points="91,73 50,96 50,50" fill="#24c6ff"/><polygon points="50,96 9,73 50,50" fill="#3f7bff"/><polygon points="9,73 9,27 50,50" fill="#ff8a3a"/><polygon points="9,27 50,4 50,50" fill="#ffd24a"/><polygon points="50,4 91,27 91,73 50,96 9,73 9,27" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.5"/>${eyes('#0b0b0e')}`,
+    dev: `<defs><radialGradient id="a" cx="36%" cy="28%" r="80%"><stop offset="0" stop-color="#9fc3ff"/><stop offset=".5" stop-color="#4a6fe0"/><stop offset="1" stop-color="#1d2a74"/></radialGradient></defs><circle cx="50" cy="50" r="47" fill="url(#a)"/><ellipse cx="38" cy="24" rx="20" ry="9" fill="rgba(255,255,255,.35)" transform="rotate(-24 38 24)"/>${eyes('#0b0b0e')}`,
+    game: `<defs><radialGradient id="a" cx="40%" cy="30%" r="75%"><stop offset="0" stop-color="#b8ffd8"/><stop offset=".5" stop-color="#2fe08a"/><stop offset="1" stop-color="#0b7a4a"/></radialGradient></defs><ellipse cx="50" cy="52" rx="47" ry="44" fill="url(#a)"/><ellipse cx="36" cy="28" rx="15" ry="7" fill="rgba(255,255,255,.4)" transform="rotate(-20 36 28)"/>${eyes('#05281a')}`,
+  }
+  return svgUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${size}" height="${size}">${art[role] || art.chat}</svg>`)
 }
 function resolve(html, theme) {
   let out = html.replace(/\{\{DOT:([^:}]+):([^:}]+):([^}]+)\}\}/g, (_, text, color) => dotUri(text, color)).replace(/\{\{BLIP:(\d+):([^}]*)\}\}/g, (_, size, role) => blipUri(+size, role))
@@ -106,7 +113,7 @@ function Rules() {
 }
 
 export default function Emails() {
-  return <Doc title="Email" lead="Eight emails in two families. System mail (orders, payments, alerts, security) is quiet and exact; marketing mail (launches, digests, offers) is louder and editorial. Same identity, different layout and energy." sections={[
+  return <Doc title="Email" lead="Ten emails in two families, signed by the four Blips. System mail (orders, payments, alerts, builds, crashes, security) is quiet and exact; marketing mail (launches, digests, offers) is louder and editorial. Same identity, different layout and energy." sections={[
     { id: 'templates', title: 'Templates', note: 'preview, mobile, dark and light, HTML and text', node: <Viewer /> },
     { id: 'difference', title: 'System vs marketing', node: <Difference /> },
     { id: 'rules', title: 'Rules', node: <Rules /> },

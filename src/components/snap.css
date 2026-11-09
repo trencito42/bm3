@@ -1,0 +1,9 @@
+/* Pixel-snapped face for every Blip character.
+   --snap is one device pixel (set from devicePixelRatio in orbs.jsx); round() snaps lengths to it. Eye width, height and gap are
+   multiples of it and both eyes are placed from the centre, so they mirror exactly at every size and zoom level. The whole face
+   does not float (a moving face is never pixel-aligned); the bodies carry the life. */
+.snapx { --ew: max(round(calc(var(--orb) * .088), var(--snap, 1px)), calc(var(--snap, 1px) * 2)); --eh: max(round(calc(var(--orb) * .2), calc(var(--snap, 1px) * 2)), calc(var(--snap, 1px) * 4)); --eg: round(calc(var(--orb) * .1), calc(var(--snap, 1px) * 2)); }
+.snapx .kl-face-eye { width: var(--ew); height: var(--eh); left: calc(50% - var(--eg) / 2 - var(--ew)); top: round(calc((var(--orb) - var(--eh)) / 2 - var(--orb) * .015), var(--snap, 1px)); }
+.snapx .kl-face-eye-r { left: calc(50% + var(--eg) / 2); }
+.snapx .kl-face-fl { animation: none; }
+.snapx[data-s=xs] .kl-face-f, .snapx[data-s=sm] .kl-face-f { filter: none; }   /* no blur at small sizes: crisp edges win */

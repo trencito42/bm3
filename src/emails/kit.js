@@ -96,3 +96,11 @@ export const footerMarketing = () => `<tr><td align="center" style="padding:30px
 <p ${cls('di', `margin:0;font-family:${FONT};font-size:11.5px;line-height:18px;color:${D.dim}`)}>You are receiving this because you signed up for product news at Blipmade.<br><a href="#" ${cls('di', `color:${D.dim};text-decoration:underline`)}>Unsubscribe</a> &nbsp;·&nbsp; <a href="#" ${cls('di', `color:${D.dim};text-decoration:underline`)}>Email preferences</a> &nbsp;·&nbsp; <a href="#" ${cls('di', `color:${D.dim};text-decoration:underline`)}>View in browser</a></p>
 <div style="height:12px;line-height:12px;font-size:1px">&nbsp;</div>
 <p ${cls('di', `margin:0;font-family:${MONO};font-size:10px;line-height:16px;letter-spacing:.04em;color:${D.dim}`)}>BLIPMADE · Example Street 1 · 10115 Berlin · Mock-up, no real company</p></td></tr>`
+
+/* the Blip that sent it: a small avatar and one line in its voice, at the foot of a system card */
+export const signoff = (role, name, text) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:22px"><tr>
+<td width="44" valign="top" style="padding-right:12px">${blip(32, role)}</td>
+<td valign="middle" ${cls('mu', `font-family:${FONT};font-size:13px;line-height:20px;color:${D.mute}`)}><b ${cls('fg', `color:${D.fg}`)}>${name}</b> &nbsp;${text}</td></tr></table>`
+
+/* all four Blips side by side (marketing hero) */
+export const castRow = (size = 56) => `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>${['chat', 'builder', 'dev', 'game'].map((r) => `<td style="padding:0 7px">${blip(size, r)}</td>`).join('')}</tr></table>`
