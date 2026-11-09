@@ -1,0 +1,15 @@
+/* ChatWidget: one element morphs between launcher and conversation */
+.chat-shell { transition: right 480ms var(--ease-out), bottom 480ms var(--ease-out), width 480ms var(--ease-out), height 480ms var(--ease-out), border-radius 480ms var(--ease-out), box-shadow 300ms; will-change: width, height; contain: layout style; }
+.chat-panel { transition: opacity 180ms ease-out; }
+.chat-launcher { transition: opacity 160ms ease-out, transform 140ms var(--ease-out); -webkit-tap-highlight-color: transparent; }
+.chat-teaser { -webkit-tap-highlight-color: transparent; }
+/* the avatar bobs very slightly while the chat is closed: it is waiting for you */
+.chat-bob { animation: chat-bob 4.2s ease-in-out infinite; }
+@keyframes chat-bob { 50% { transform: translateY(-2px); } }
+
+/* phone sheet: the page behind it does not scroll, and our own message list still does */
+.chat-lock, .chat-lock body { overflow: hidden; overscroll-behavior: none; }
+.chat-lock #root .overflow-y-auto:not(.chat-scroll), .chat-lock #root main { overflow: hidden !important; }
+.chat-scroll { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+
+@media (prefers-reduced-motion: reduce) { .chat-shell, .chat-panel, .chat-launcher { transition-duration: 1ms !important; } .chat-bob { animation: none; } }

@@ -24,6 +24,8 @@
 }
 
 html, body, #root { height: 100%; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { min-height: 100vh; min-height: 100dvh; }   /* dynamic viewport: no empty strip when the mobile URL bar collapses */
 body { background: var(--color-bg); color: var(--color-fg); font-family: var(--font-sans); font-size: 14px; -webkit-font-smoothing: antialiased; }
 * { scrollbar-width: thin; scrollbar-color: #27272a transparent; }
 ::selection { background: #fff; color: #000; }

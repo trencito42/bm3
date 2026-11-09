@@ -1,3 +1,4 @@
+import { ChatWidget } from './chat/ChatWidget.jsx'
 import { NotificationCenter } from './components/NotificationCenter.jsx'
 import { ADMIN_LINKS, APP_LINKS, NotFoundScene } from './components/NotFound.jsx'
 import { Brand } from './components/logos.jsx'
@@ -283,6 +284,7 @@ function Root() {
           </Routes>
         ) : admin ? <AdminApp /> : site ? <SiteApp /> : <Layout />}
       </div>
+      {(!ds || pathname.startsWith('/ds/product')) && !admin && !pathname.startsWith('/builder') && <ChatWidget inApp={!site && !ds} />}
     </div>
   )
 }
