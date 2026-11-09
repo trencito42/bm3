@@ -1,6 +1,6 @@
 /* Public-site chrome: mega-menu header (desktop hover/focus/keyboard via Radix NavigationMenu, mobile accordion panel)
    and the mega footer. Mock only: every link points at an existing /site route. */
-import { useEffect, useId, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import * as NM from '@radix-ui/react-navigation-menu'
 import * as Collapsible from '@radix-ui/react-collapsible'
@@ -17,7 +17,7 @@ import { cn } from '../lib/utils'
 const P = '/site/products/'
 export const MENU = [
   {
-    id: 'products', label: 'Products',
+    id: 'products', label: 'Products', width: 840,
     cols: [
       { h: 'Hosting', items: [
         { t: 'Web hosting', d: 'Managed PHP, static and Node sites.', to: P + 'web', I: Globe },
@@ -33,7 +33,7 @@ export const MENU = [
     feature: { tag: 'Popular', t: 'Web hosting', d: 'Free SSL, daily backups and a site builder that writes the first draft for you.', price: 4, to: '/site/apps', cta: 'Browse the catalog' },
   },
   {
-    id: 'solutions', label: 'Solutions',
+    id: 'solutions', label: 'Solutions', width: 800,
     cols: [
       { h: 'By team', items: [
         { t: 'Startups', d: 'Start on one VPS, grow without re-platforming.', to: '/site/products', I: Rocket },
@@ -49,7 +49,7 @@ export const MENU = [
     feature: { tag: 'New', t: 'Site builder', d: 'Chat with an assistant, watch the site assemble, ship it to your own server.', to: '/site/register', cta: 'Try it free', orb: true },
   },
   {
-    id: 'developers', label: 'Developers',
+    id: 'developers', label: 'Developers', width: 760,
     cols: [
       { h: 'Build', items: [
         { t: 'Documentation', d: 'Quick start, SSH, DNS and API guides.', to: '/site/docs', I: BookOpen },
@@ -84,8 +84,8 @@ function Feature({ f }) {
         <div className="flex items-center justify-between font-mono text-[10.5px] uppercase tracking-[.08em] text-dim">{f.tag}{f.orb && <Orb size={28} />}</div>
         <div className="mt-3 text-[15px] font-semibold tracking-tight">{f.t}</div>
         <p className={cn('mt-1.5 text-[12.5px] leading-snug text-mute', f.mono && 'rounded-md border border-line bg-black/40 p-2.5 font-mono text-[12px] text-fg')}>{f.d}</p>
-        <div className="mt-auto flex items-end justify-between pt-5">
-          {f.price ? <div className="flex items-end gap-1.5"><span className="pb-0.5 font-mono text-[10.5px] uppercase text-dim">from</span><DotNum text={'$' + f.price} height={22} animate={false} /><span className="pb-0.5 text-[11px] text-dim">/ mo</span></div> : <span />}
+        <div className="mt-auto flex flex-col gap-3 pt-5">
+          {f.price && <div className="flex items-end gap-1.5"><span className="pb-0.5 font-mono text-[10.5px] uppercase text-dim">from</span><DotNum text={'$' + f.price} height={22} animate={false} /><span className="pb-0.5 text-[11px] text-dim">/ mo</span></div>}
           <span className="flex items-center gap-1 text-[12.5px] text-fg">{f.cta}<ArrowRight className="size-3.5 transition-transform duration-150 group-hover:translate-x-0.5" /></span>
         </div>
       </NavLink>
@@ -94,22 +94,66 @@ function Feature({ f }) {
 }
 function Panel({ m }) {
   return (
-    <div className="mx-auto max-w-6xl px-10">
-      <div className="grid grid-cols-[1fr_1fr_280px] gap-8 py-7">
+    <div className="p-4">
+      <div className="grid grid-cols-[1fr_1fr_232px] gap-4">
         {m.cols.map((c, ci) => (
           <div key={c.h}>
-            <div className="mb-2 px-2.5 font-mono text-[10.5px] uppercase tracking-[.08em] text-dim">{c.h}</div>
+            <div className="mb-1.5 px-2.5 pt-1 font-mono text-[10.5px] uppercase tracking-[.08em] text-dim">{c.h}</div>
             <ul className="space-y-0.5">{c.items.map((it, ii) => <li key={it.t} data-stagger style={{ '--s': ci * 3 + ii }}><MegaLink it={it} /></li>)}</ul>
           </div>
         ))}
         <div data-stagger style={{ '--s': 2 }}><Feature f={m.feature} /></div>
       </div>
-      <div data-stagger style={{ '--s': 7 }} className="flex items-center justify-between border-t border-line py-3 text-[12.5px]">
+      <div data-stagger style={{ '--s': 7 }} className="mx-1 mt-3 flex items-center justify-between border-t border-line px-1.5 pb-1 pt-3 text-[12.5px]">
         <NM.Link asChild><NavLink to="/site/status" className="flex items-center gap-2 text-mute outline-none hover:text-fg focus-visible:text-fg"><span className="size-2 rounded-full bg-warn shadow-[0_0_8px_var(--color-warn)]" />Partial degradation · Frankfurt, Ashburn</NavLink></NM.Link>
         <NM.Link asChild><NavLink to="/site/products" className="flex items-center gap-1 text-mute outline-none hover:text-fg focus-visible:text-fg">Compare all plans<ArrowRight className="size-3.5" /></NavLink></NM.Link>
       </div>
     </div>
   )
+}
+
+/* ------------------------------ dot wave ------------------------------ */
+/* A ring of light travels across a dot grid that sits on the shared panel (the grid is the panel's own background,
+   so the wave simply lights the dots that are already there). It starts at the notch under the new trigger, so a switch
+   reads as the same panel being "re-tuned" rather than one panel replaced by another. */
+const PITCH = 14
+const reducedMotion = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
+function DotWash({ wash, vp }) {
+  const cv = useRef(null)
+  useEffect(() => {
+    const c = cv.current, el = vp.current
+    if (!wash.n || !c || !el || reducedMotion()) return
+    const W = wash.w
+    const H = parseFloat(getComputedStyle(el).getPropertyValue('--radix-navigation-menu-viewport-height')) || el.offsetHeight || 300
+    const dpr = Math.min(devicePixelRatio || 1, 2)
+    c.width = W * dpr; c.height = H * dpr
+    const ctx = c.getContext('2d')
+    const ox = wash.ox, maxR = Math.hypot(Math.max(ox, W - ox), H) + 70
+    const cols = Math.ceil(W / PITCH), rows = Math.ceil(H / PITCH)
+    const DUR = 640, BAND = 56
+    let raf = 0, t0 = 0
+    const frame = (now) => {
+      if (!t0) t0 = now
+      const t = Math.min(1, (now - t0) / DUR)
+      const R = (1 - Math.pow(1 - t, 3)) * maxR
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H)
+      for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+        const x = i * PITCH + PITCH / 2, y = j * PITCH + PITCH / 2
+        const d = Math.hypot(x - ox, y)
+        const k = (d - R) / BAND
+        const crest = Math.exp(-k * k)
+        const trail = d < R ? 0.2 * Math.exp(-(R - d) / 150) : 0
+        const a = Math.min(1, crest * 0.9 + trail) * (1 - t * 0.5)
+        if (a < 0.025) continue
+        ctx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`
+        ctx.beginPath(); ctx.arc(x, y, 0.9 + crest * 1.5, 0, 6.2832); ctx.fill()
+      }
+      if (t < 1) raf = requestAnimationFrame(frame); else ctx.clearRect(0, 0, W, H)
+    }
+    raf = requestAnimationFrame(frame)
+    return () => { cancelAnimationFrame(raf); ctx.clearRect(0, 0, W, H) }
+  }, [wash.n])
+  return <canvas ref={cv} aria-hidden className="pointer-events-none absolute z-10 rounded-2xl" style={{ left: wash.left, top: 6, width: wash.w }} />
 }
 
 /* ------------------------------ mobile panel ------------------------------ */
@@ -158,10 +202,40 @@ export function SiteHeader() {
   const { pathname } = useLocation()
   const [mob, setMob] = useState(false)
   const [val, setVal] = useState('')
+  const [pos, setPos] = useState({ left: 0, notch: 60, w: 800 })   // where the shared panel sits under the active trigger
+  const [glide, setGlide] = useState(false)                        // true when switching between menus: the panel slides, it does not jump
+  const [wash, setWash] = useState({ n: 0, ox: 0, left: 0, w: 800 })
+  const trig = useRef({})
+  const vp = useRef(null)
+  const was = useRef('')
   const btn = useRef(null)
   const head = useRef(null)
   const pid = useId()
   const close = () => setMob(false)
+  const place = useCallback((v) => {
+    const t = trig.current[v], h = head.current, m = MENU.find((x) => x.id === v)
+    if (!t || !h || !m) return null
+    const hr = h.getBoundingClientRect(), tr = t.getBoundingClientRect()
+    const center = tr.left + tr.width / 2 - hr.left
+    const w = Math.min(m.width, hr.width - 24)
+    const left = Math.max(24, Math.min(center - w / 2, hr.width - w - 24))
+    return { left, notch: Math.max(24, Math.min(center - left, w - 24)), w }
+  }, [])
+  useLayoutEffect(() => {
+    if (!val) { was.current = ''; return }
+    const p = place(val)
+    if (!p) return
+    setGlide(!!was.current)
+    setPos(p)
+    setWash((o) => ({ n: o.n + 1, ox: p.notch, left: p.left, w: p.w }))
+    was.current = val
+  }, [val, place])
+  useEffect(() => {
+    if (!val) return
+    const f = () => { const p = place(val); if (p) { setGlide(false); setPos(p) } }
+    addEventListener('resize', f)
+    return () => removeEventListener('resize', f)
+  }, [val, place])
   useEffect(() => { setMob(false); setVal('') }, [pathname])
   /* mobile panel: Esc closes (focus back on the toggle), the page behind it stops scrolling */
   useEffect(() => {
@@ -185,17 +259,21 @@ export function SiteHeader() {
         <NM.List className="flex items-center gap-0.5">
           {MENU.map((m) => (
             <NM.Item key={m.id} value={m.id}>
-              <NM.Trigger className="group flex items-center gap-1 rounded-lg px-3 py-1.5 text-[13.5px] text-mute outline-none transition-colors duration-150 hover:text-fg focus-visible:text-fg data-[state=open]:text-fg">
+              <NM.Trigger ref={(el) => { trig.current[m.id] = el }} className="group flex items-center gap-1 rounded-lg px-3 py-1.5 text-[13.5px] text-mute outline-none transition-colors duration-150 hover:text-fg focus-visible:text-fg data-[state=open]:text-fg">
                 {m.label}<ChevronDown className="size-3 text-dim transition-transform duration-200 group-data-[state=open]:rotate-180" />
               </NM.Trigger>
-              <NM.Content className="mega-content absolute inset-x-0 top-0"><Panel m={m} /></NM.Content>
+              <NM.Content className="mega-content absolute left-0 top-0" style={{ width: Math.min(m.width, 1200) }}><Panel m={m} /></NM.Content>
             </NM.Item>
           ))}
           {FLAT.map(([to, l]) => <NM.Item key={l}><NM.Link asChild><NavLink to={to} className={link(to)}>{l}</NavLink></NM.Link></NM.Item>)}
         </NM.List>
         <div aria-hidden className={cn('mega-dim pointer-events-none absolute inset-x-0 top-full h-screen bg-black/45', val ? 'opacity-100' : 'opacity-0')} />
-        <div className="absolute inset-x-0 top-full flex justify-center">
-          <NM.Viewport className="mega-viewport relative w-full overflow-hidden border-b border-line bg-[#0b0b0d] shadow-2xl shadow-black/60" />
+        <div className="pointer-events-none absolute inset-x-0 top-full">
+          {/* the notch follows the active trigger; the panel glides and resizes to the next menu instead of being replaced */}
+          <span aria-hidden className="absolute z-20 size-3 rotate-45 rounded-[3px] border-l border-t border-line-2 bg-[#0b0b0d]" style={{ top: 1, left: pos.left + pos.notch - 6, opacity: val ? 1 : 0, transition: `${glide ? 'left 380ms var(--ease-out), ' : ''}opacity 180ms` }} />
+          <NM.Viewport ref={vp} className="mega-viewport pointer-events-auto absolute overflow-hidden rounded-2xl border border-line-2 bg-[#0b0b0d] shadow-2xl shadow-black/70"
+            style={{ top: 6, left: pos.left, width: 'var(--radix-navigation-menu-viewport-width)', backgroundImage: 'linear-gradient(to bottom, rgba(11,11,13,0) 0, #0b0b0d 96%), radial-gradient(rgba(255,255,255,.1) 1px, transparent 1.3px)', backgroundSize: '100% 100%, 14px 14px', transition: `height 360ms var(--ease-out), width 360ms var(--ease-out)${glide ? ', left 380ms var(--ease-out)' : ''}` }} />
+          <DotWash wash={wash} vp={vp} />
         </div>
       </NM.Root>
       <div className="ml-auto hidden items-center gap-2 md:flex"><Button variant="ghost" onClick={() => nav('/site/login')}>Log in</Button><Button onClick={() => nav('/site/register')}>Get started</Button></div>

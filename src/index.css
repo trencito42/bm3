@@ -78,7 +78,7 @@ button { cursor: pointer; }
 @keyframes page-in { from { opacity: 0 } }
 .anim-page { animation: page-in 140ms ease-out; }
 /* public-site mega menu + mobile accordion */
-.mega-viewport { height: var(--radix-navigation-menu-viewport-height); transition: height 340ms var(--ease-out); transform-origin: 50% 0; will-change: height; }
+.mega-viewport { height: var(--radix-navigation-menu-viewport-height); transform-origin: 50% 0; will-change: height, width; }
 .mega-viewport[data-state=open] { animation: mega-in 300ms var(--ease-out); }
 .mega-viewport[data-state=closed] { animation: mega-out 200ms var(--ease-in) forwards; }
 .mega-content[data-motion=from-start] { animation: mega-from-l 320ms var(--ease-out) both; }
@@ -88,12 +88,12 @@ button { cursor: pointer; }
 /* the links inside rise in one after another, so a panel assembles instead of appearing */
 .mega-content [data-stagger] { animation: mega-rise 360ms var(--ease-out) both; animation-delay: calc(var(--s, 0) * 26ms + 50ms); }
 .mega-dim { transition: opacity 260ms var(--ease-out); }
-@keyframes mega-in { from { opacity: 0; transform: translateY(-8px); clip-path: inset(0 0 100% 0) } to { opacity: 1; transform: none; clip-path: inset(0 0 -40px 0) } }
-@keyframes mega-out { to { opacity: 0; transform: translateY(-6px); clip-path: inset(0 0 55% 0) } }
-@keyframes mega-from-l { from { opacity: 0; transform: translateX(-28px) } }
-@keyframes mega-from-r { from { opacity: 0; transform: translateX(28px) } }
-@keyframes mega-to-l { to { opacity: 0; transform: translateX(-28px) } }
-@keyframes mega-to-r { to { opacity: 0; transform: translateX(28px) } }
+@keyframes mega-in { from { opacity: 0; transform: translateY(-8px) scale(.98); clip-path: inset(0 0 100% 0 round 16px) } to { opacity: 1; transform: none; clip-path: inset(0 0 -40px 0 round 16px) } }
+@keyframes mega-out { to { opacity: 0; transform: translateY(-6px) scale(.985); clip-path: inset(0 0 55% 0 round 16px) } }
+@keyframes mega-from-l { from { opacity: 0; transform: translateX(-18px) } }
+@keyframes mega-from-r { from { opacity: 0; transform: translateX(18px) } }
+@keyframes mega-to-l { to { opacity: 0; transform: translateX(-18px) } }
+@keyframes mega-to-r { to { opacity: 0; transform: translateX(18px) } }
 @keyframes mega-rise { from { opacity: 0; transform: translateY(8px) } }
 .reveal-grid > * { opacity: 0; }
 .reveal-grid[data-seen] > * { opacity: 1; animation: rise 360ms var(--ease-out) both; }
