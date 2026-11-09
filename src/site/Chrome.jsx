@@ -162,7 +162,7 @@ function MobilePanel({ id, onClose }) {
   const [open, setOpen] = useState('products')
   const go = (to) => { onClose(); nav(to) }
   return (
-    <div id={id} role="dialog" aria-label="Site menu" className="anim-menu absolute inset-x-0 top-full flex max-h-[calc(100dvh-96px)] flex-col overflow-hidden border-b border-line bg-bg md:hidden" style={{ transformOrigin: '50% 0' }}>
+    <div id={id} role="dialog" aria-label="Site menu" className="anim-menu absolute inset-x-0 top-full flex max-h-[calc(100dvh-96px)] flex-col overflow-hidden border-b border-line bg-bg lg:hidden" style={{ transformOrigin: '50% 0' }}>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-4 pt-2">
         {MENU.map((m) => (
           <Collapsible.Root key={m.id} open={open === m.id} onOpenChange={(o) => setOpen(o ? m.id : '')} className="border-b border-line">
@@ -246,7 +246,7 @@ export function SiteHeader() {
     const k = (e) => { if (e.key === 'Escape') { setMob(false); btn.current?.focus() } }
     addEventListener('keydown', k)
     /* resizing up to the desktop layout would leave the panel logically open, so close it */
-    const mq = matchMedia('(min-width: 768px)'), f = () => mq.matches && setMob(false)
+    const mq = matchMedia('(min-width: 1024px)'), f = () => mq.matches && setMob(false)
     mq.addEventListener('change', f)
     return () => { removeEventListener('keydown', k); mq.removeEventListener('change', f); if (sc) sc.style.overflow = prev || '' }
   }, [mob])
@@ -255,7 +255,7 @@ export function SiteHeader() {
   return (
     <header ref={head} className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-6 border-b border-line bg-bg/90 px-5 backdrop-blur md:px-10">
       <NavLink to="/site" className="flex items-center gap-2" aria-label="Blipmade home"><Brand height={12} /></NavLink>
-      <NM.Root value={val} onValueChange={setVal} delayDuration={110} skipDelayDuration={450} className="static hidden md:block">
+      <NM.Root value={val} onValueChange={setVal} delayDuration={110} skipDelayDuration={450} className="static hidden lg:block">
         <NM.List className="flex items-center gap-0.5">
           {MENU.map((m) => (
             <NM.Item key={m.id} value={m.id}>
@@ -276,8 +276,8 @@ export function SiteHeader() {
           <DotWash wash={wash} vp={vp} />
         </div>
       </NM.Root>
-      <div className="ml-auto hidden items-center gap-2 md:flex"><Button variant="ghost" onClick={() => nav('/site/login')}>Log in</Button><Button onClick={() => nav('/site/register')}>Get started</Button></div>
-      <button ref={btn} className="ml-auto grid size-9 place-items-center rounded-lg text-mute outline-none transition-colors hover:text-fg focus-visible:text-fg md:hidden" onClick={() => setMob((o) => !o)} aria-label={mob ? 'Close menu' : 'Open menu'} aria-expanded={mob} aria-controls={pid}>
+      <div className="ml-auto hidden items-center gap-2 lg:flex"><Button variant="ghost" onClick={() => nav('/site/login')}>Log in</Button><Button onClick={() => nav('/site/register')}>Get started</Button></div>
+      <button ref={btn} className="ml-auto grid size-9 place-items-center rounded-lg text-mute outline-none transition-colors hover:text-fg focus-visible:text-fg lg:hidden" onClick={() => setMob((o) => !o)} aria-label={mob ? 'Close menu' : 'Open menu'} aria-expanded={mob} aria-controls={pid}>
         <span className="relative grid size-5 place-items-center"><Menu className={cn('absolute size-5 transition-[opacity,transform] duration-150', mob ? 'rotate-90 scale-50 opacity-0' : 'opacity-100')} /><X className={cn('absolute size-5 transition-[opacity,transform] duration-150', mob ? 'opacity-100' : '-rotate-90 scale-50 opacity-0')} /></span>
       </button>
       {mob && <MobilePanel id={pid} onClose={close} />}
@@ -428,9 +428,10 @@ function useSeenOnce(ref, margin = '0px 0px -6% 0px') {
     io.observe(el)
     let raf = 0
     const check = () => { raf = 0; if (el.getBoundingClientRect().top < innerHeight * 0.95) setSeen(true) }
-    const onScroll = () => { if (!raf) raf = requestAnimationFrame(check) }
+    /* a timeout, not rAF: animation frames do not run in a background tab, and the content must still appear */
+    const onScroll = () => { if (!raf) raf = window.setTimeout(check, 50) }
     addEventListener('scroll', onScroll, { capture: true, passive: true })
-    return () => { io.disconnect(); cancelAnimationFrame(raf); removeEventListener('scroll', onScroll, { capture: true }) }
+    return () => { io.disconnect(); clearTimeout(raf); removeEventListener('scroll', onScroll, { capture: true }) }
   }, [seen])
   return seen
 }

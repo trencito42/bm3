@@ -9,7 +9,7 @@ import { cn } from '../lib/utils'
 
 /* seen: flips to true once the element scrolls into view (and stays). live: true only while it is on screen and the tab is
    visible, so the tickers below stop re-rendering when nobody can see them. */
-function useSeen(ref, margin = '0px 0px -8% 0px') {
+function useSeen(ref, margin = '0px 0px 12% 0px') {
   const [seen, setSeen] = useState(typeof IntersectionObserver === 'undefined')
   useEffect(() => {
     const el = ref.current
@@ -19,10 +19,11 @@ function useSeen(ref, margin = '0px 0px -8% 0px') {
     /* a fast scrollbar drag can jump past an element between two frames, so IntersectionObserver never reports it:
        a throttled scroll check also reveals anything that is now at or above the fold */
     let raf = 0
-    const check = () => { raf = 0; if (el.getBoundingClientRect().top < innerHeight * 0.95) setSeen(true) }
-    const onScroll = () => { if (!raf) raf = requestAnimationFrame(check) }
+    const check = () => { raf = 0; if (el.getBoundingClientRect().top < innerHeight * 1.08) setSeen(true) }
+    /* a timeout, not rAF: animation frames do not run in a background tab, and the content must still appear */
+    const onScroll = () => { if (!raf) raf = window.setTimeout(check, 50) }
     addEventListener('scroll', onScroll, { capture: true, passive: true })
-    return () => { io.disconnect(); cancelAnimationFrame(raf); removeEventListener('scroll', onScroll, { capture: true }) }
+    return () => { io.disconnect(); clearTimeout(raf); removeEventListener('scroll', onScroll, { capture: true }) }
   }, [seen])
   return seen
 }
@@ -44,7 +45,7 @@ function useLive(ref) {
 /* scroll reveal: fades/rises once when first seen; `i` staggers siblings */
 const RevealGrid = ({ className, children }) => {
   const ref = useRef(null)
-  const seen = useSeen(ref, '0px 0px -6% 0px')
+  const seen = useSeen(ref, '0px 0px 12% 0px')
   return <div ref={ref} data-seen={seen || undefined} className={cn('reveal-grid', className)}>{children}</div>
 }
 const Reveal = ({ i = 0, className, children, as: T = 'div', ...p }) => {
@@ -186,9 +187,9 @@ function Faq() {
 
 function Stats() {
   const ref = useRef(null)
-  const seen = useSeen(ref, '0px 0px -15% 0px')
+  const seen = useSeen(ref, '0px 0px -10% 0px')
   return (
-    <div ref={ref} className="border-y border-line bg-black/30"><div className="mx-auto grid max-w-6xl gap-px px-5 py-16 sm:grid-cols-4 md:px-10">{[['99.98%', 'Uptime, 90 days'], ['<40S', 'Median deploy'], ['6 MIN', 'First reply'], ['4', 'Regions']].map(([n, l], i) => (
+    <div ref={ref} className="border-y border-line bg-black/30"><div className="mx-auto grid max-w-6xl gap-px px-5 py-16 sm:grid-cols-4 md:px-10">{[['99.98%', 'Uptime, 90 days'], ['40S', 'Median deploy'], ['6 MIN', 'First reply'], ['4', 'Regions']].map(([n, l], i) => (
       <div key={l} className="space-y-3 py-4 text-center">
         <div className="flex h-9 justify-center">{seen && <DotNum text={n} height={36} animate />}</div>
         <div className={cn('text-[13px] text-dim transition-opacity duration-500', seen ? 'opacity-100' : 'opacity-0')} style={{ transitionDelay: seen ? `${300 + i * 80}ms` : '0ms' }}>{l}</div>

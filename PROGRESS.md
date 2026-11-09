@@ -177,3 +177,10 @@ Dot grid (16 px) behind the footer: the pointer lights it like a torch, a ring o
 The oversized BLIPMADE is now drawn on a canvas from the same dot glyphs (read from a hidden DotText svg): letters rise out of the bottom edge column by column when the footer is first seen, a soft band of light passes through every 9 s, and the pointer pushes dots apart while the nearest ones turn brand red (single-accent rule). Loop is idle until the footer has been seen and off-screen/hidden-tab; static under reduced motion. Verified: 129 dots drawn at 1280 and 390, red pixels present under a real hover, 3 routes without overflow or console errors. Not verified: how the rise/band look frame by frame.
 
 Footer wordmark: pointer reaction (push + red) removed on request, it was too much. It keeps the rise-in and the passing light band.
+
+## Homepage verification pass (found and fixed)
+- **Header overflowed at 768 px** (six nav links + buttons did not fit; the whole site scrolled sideways by 42 px). The desktop header now starts at 1024 px; below it the hamburger panel is used. Re-checked 8 site routes at 768 and 4 at 1024: 0 overflow, no console errors.
+- **"<40S" stat** rendered as "405": the dot font has no "<" glyph. Now "40S".
+- **Reveal robustness:** the fallback scroll check used requestAnimationFrame, which does not run in background tabs; it is a timeout now. Reveal also starts slightly before an element enters the viewport (12% margin), so a fast scroll does not show an empty screen.
+- Real scroll inputs at 1280 and 390 px through every homepage section (hero, bento, configurator, stats, testimonials, FAQ, footer): layout fine. Sliders change the price, FAQ opens one at a time, all CTAs present, no console errors.
+- Still not verified: real touch, reduced-motion CSS, frame-by-frame smoothness.
