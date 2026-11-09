@@ -14,6 +14,7 @@ const SECTIONS = [
   ['08', 'States & mobile', '/ds/states', (p) => p.startsWith('/ds/states')],
   ['09', 'Logo lab', '/ds/logos', (p) => p.startsWith('/ds/logos')],
   ['10', 'Blip lab', '/ds/orbs', (p) => p.startsWith('/ds/orbs')],
+  ['11', 'Email', '/ds/emails', (p) => p.startsWith('/ds/emails')],
 ]
 
 export default function WorkspaceBar() {
