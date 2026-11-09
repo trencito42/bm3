@@ -50,7 +50,7 @@ function Products({ id }) {
             <div key={p.id} onPointerEnter={() => setHot(p.id)} onFocus={() => setHot(p.id)} onBlur={() => setHot(null)} style={{ '--i': i + 2 }}
               className={cn('anim-rise group flex flex-col rounded-2xl border bg-card p-6 transition-[border-color,background-color,transform] duration-200 ease-[var(--ease-out)] hover:-translate-y-0.5 hover:bg-[#161619]', p.tag ? 'border-white/40' : 'border-line hover:border-line-2')}>
               <div className="flex items-center gap-2 text-[13px] text-dim">{p.name}{p.tag && <Badge tone="info" dot={false}>{p.tag}</Badge>}</div>
-              <div className="mt-4 flex items-end gap-2"><AnimatedPrice value={price} height={38} prefix="$" decimals={2} /><span className="pb-1 text-xs text-dim">/ mo</span></div>
+              <div className="mt-4 flex items-end gap-2"><AnimatedPrice value={price} height={38} prefix="$" decimals={2} /><span className="shrink-0 whitespace-nowrap pb-1 text-xs text-dim">/ mo</span></div>
               {/* the billing line cross-fades instead of popping, and reserves its height so the card never jumps */}
               <div className="relative mt-2 h-4 text-[12px] text-dim">
                 <span className={cn('absolute inset-0 transition-opacity duration-200', yearly ? 'opacity-0' : 'opacity-100')}>Billed monthly</span>

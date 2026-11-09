@@ -292,7 +292,7 @@ export function DataTable({ columns, rows, sortKey, sortDir, onSort, selectable,
           {rows.map((r) => (
             <tr key={r.id} onClick={() => onRowClick?.(r)} className={cn('transition-colors duration-100 hover:bg-hover active:bg-white/[0.09] [&:last-child_td]:border-b-0', onRowClick && 'cursor-pointer', selected.includes(r.id) && 'bg-white/[0.05] [&>td:first-child]:shadow-[inset_2px_0_0_var(--color-fg)]')}>
               {selectable && <td className="border-b border-line/60 px-4" onClick={(e) => e.stopPropagation()}><Checkbox checked={selected.includes(r.id)} onCheckedChange={(v) => onSelect(v ? [...selected, r.id] : selected.filter((x) => x !== r.id))} aria-label="Select row" /></td>}
-              {columns.map((c) => <td key={c.key} className={cn('whitespace-nowrap border-b border-line/60 px-4 text-mute', dense ? 'py-2' : 'py-3.5', c.align === 'right' && 'text-right', c.cell && 'text-fg')}>{c.cell ? c.cell(r) : r[c.key]}</td>)}
+              {columns.map((c) => <td key={c.key} className={cn('whitespace-nowrap border-b border-line/60 px-4 text-mute', dense ? 'py-2' : 'py-3.5', c.align === 'right' && 'text-right', c.cell && 'text-fg', c.className)}>{c.cell ? c.cell(r) : r[c.key]}</td>)}
             </tr>
           ))}
         </tbody>

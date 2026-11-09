@@ -85,7 +85,7 @@ function Feature({ f }) {
         <div className="mt-3 text-[15px] font-semibold tracking-tight">{f.t}</div>
         <p className={cn('mt-1.5 text-[12.5px] leading-snug text-mute', f.mono && 'rounded-md border border-line bg-black/40 p-2.5 font-mono text-[12px] text-fg')}>{f.d}</p>
         <div className="mt-auto flex flex-col gap-3 pt-5">
-          {f.price && <div className="flex items-end gap-1.5"><span className="pb-0.5 font-mono text-[10.5px] uppercase text-dim">from</span><DotNum text={'$' + f.price} height={22} animate={false} /><span className="pb-0.5 text-[11px] text-dim">/ mo</span></div>}
+          {f.price && <div className="flex items-end gap-1.5"><span className="pb-0.5 font-mono text-[10.5px] uppercase text-dim">from</span><DotNum text={'$' + f.price} height={22} animate={false} /><span className="shrink-0 whitespace-nowrap pb-0.5 text-[11px] text-dim">/ mo</span></div>}
           <span className="flex items-center gap-1 text-[12.5px] text-fg">{f.cta}<ArrowRight className="size-3.5 transition-transform duration-150 group-hover:translate-x-0.5" /></span>
         </div>
       </NavLink>

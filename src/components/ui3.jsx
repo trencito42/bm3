@@ -219,8 +219,8 @@ export function AccessPermissions() {
   return (
     <div className="overflow-x-auto rounded-xl border border-line bg-card">
       <div className="min-w-[520px]">
-        <div className="grid grid-cols-[1fr_repeat(4,72px)] border-b border-line px-4 py-2.5 font-mono text-[10.5px] uppercase tracking-[.08em] text-dim"><span>Collaborator</span>{P.map((p) => <span key={p} className="text-center">{p}</span>)}</div>
-        {users.map((u, i) => <div key={u.n} className="grid grid-cols-[1fr_repeat(4,72px)] items-center border-b border-line/50 px-4 py-3 text-[13px] last:border-b-0"><div><div className="font-medium">{u.n}</div><div className="text-xs text-dim">{u.r}</div></div>{P.map((p) => <div key={p} className="grid place-items-center"><Switch checked={u.p[p]} onCheckedChange={(v) => setUsers(users.map((x, j) => (j === i ? { ...x, p: { ...x.p, [p]: v } } : x)))} aria-label={`${u.n} ${p}`} /></div>)}</div>)}
+        <div className="grid grid-cols-[minmax(0,1fr)_repeat(4,48px)] sm:grid-cols-[1fr_repeat(4,72px)] border-b border-line px-4 py-2.5 font-mono text-[10.5px] uppercase tracking-[.08em] text-dim"><span>Collaborator</span>{P.map((p) => <span key={p} className="text-center">{p}</span>)}</div>
+        {users.map((u, i) => <div key={u.n} className="grid grid-cols-[minmax(0,1fr)_repeat(4,48px)] sm:grid-cols-[1fr_repeat(4,72px)] items-center border-b border-line/50 px-4 py-3 text-[13px] last:border-b-0"><div><div className="font-medium">{u.n}</div><div className="text-xs text-dim">{u.r}</div></div>{P.map((p) => <div key={p} className="grid place-items-center"><Switch checked={u.p[p]} onCheckedChange={(v) => setUsers(users.map((x, j) => (j === i ? { ...x, p: { ...x.p, [p]: v } } : x)))} aria-label={`${u.n} ${p}`} /></div>)}</div>)}
       </div>
     </div>
   )

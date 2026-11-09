@@ -127,14 +127,14 @@ function Summary({ app, ed, ram, cpu, disk, region, yearly, setYearly, price, de
   const r = REGIONS.find((x) => x[0] === region)
   if (bar) return (
     <div className="sticky bottom-0 z-10 -mx-5 flex items-center justify-between gap-4 border-t border-line bg-bg/90 px-5 py-3 backdrop-blur lg:hidden" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
-      <div className="flex items-end gap-1.5"><AnimatedPrice value={price} height={26} showDelta={false} /><span className="pb-0.5 text-[11px] text-dim">/ mo</span></div>
+      <div className="flex items-end gap-1.5"><AnimatedPrice value={price} height={26} showDelta={false} /><span className="shrink-0 whitespace-nowrap pb-0.5 text-[11px] text-dim">/ mo</span></div>
       <Button loading={deploying} disabled={app.soon} onClick={onDeploy}>{app.soon ? 'Notify me' : 'Deploy'}</Button>
     </div>
   )
   return (
     <aside aria-label="Order summary" className="rounded-2xl border border-line-2 bg-card p-6 lg:sticky lg:top-32">
       <div className={eyebrow}>Your {app.name}{ed ? ` · ${ed.label}` : ''}</div>
-      <div className="mt-4 flex items-end gap-2"><AnimatedPrice value={price} height={42} /><span className="pb-1 text-xs text-dim">/ mo</span></div>
+      <div className="mt-4 flex items-end gap-2"><AnimatedPrice value={price} height={42} /><span className="shrink-0 whitespace-nowrap pb-1 text-xs text-dim">/ mo</span></div>
       <div className="relative mt-2 h-4 text-[12px] text-dim">
         <span className={cn('absolute inset-0 transition-opacity duration-200', yearly ? 'opacity-0' : 'opacity-100')}>Billed hourly, capped monthly</span>
         <span className={cn('absolute inset-0 transition-opacity duration-200', yearly ? 'opacity-100' : 'opacity-0')} aria-hidden={!yearly}>{money(price * 12)} billed yearly</span>

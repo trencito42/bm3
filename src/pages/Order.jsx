@@ -57,7 +57,7 @@ export default function Order() {
             {PLANS.map((p) => (
               <RadioCard key={p.id} value={p.id}>
                 <div className="flex items-center gap-2 text-[13px] text-dim">{p.name}{p.tag && <Badge tone="info" dot={false}>{p.tag}</Badge>}</div>
-                <div className="mt-4 flex items-end gap-2"><DotNum text={money(p.price * disc).replace('.00', '')} height={36} animate={false} /><span className="pb-1 text-[12px] text-dim">/ mo</span></div>
+                <div className="mt-4 flex items-end gap-2"><DotNum text={money(p.price * disc).replace('.00', '')} height={36} animate={false} /><span className="shrink-0 whitespace-nowrap pb-1 text-[12px] text-dim">/ mo</span></div>
                 <ul className="mt-5 space-y-2 text-[13px] text-mute">{p.specs.map((s) => <li key={s} className="flex items-center gap-2"><span className="size-1 rounded-full bg-dim" />{s}</li>)}</ul>
               </RadioCard>
             ))}

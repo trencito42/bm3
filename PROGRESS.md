@@ -184,3 +184,9 @@ Footer wordmark: pointer reaction (push + red) removed on request, it was too mu
 - **Reveal robustness:** the fallback scroll check used requestAnimationFrame, which does not run in background tabs; it is a timeout now. Reveal also starts slightly before an element enters the viewport (12% margin), so a fast scroll does not show an empty screen.
 - Real scroll inputs at 1280 and 390 px through every homepage section (hero, bento, configurator, stats, testimonials, FAQ, footer): layout fine. Sliders change the price, FAQ opens one at a time, all CTAs present, no console errors.
 - Still not verified: real touch, reduced-motion CSS, frame-by-frame smoothness.
+
+## QA pass on /ds/components, /ds/patterns, /ds/product, /, /admin, /site, /ds/states
+Method: overflow + console audit of all 7 routes at 1280, 768 and 390 px; a text-wrap detector (short labels that break onto two lines) at 800/1280/390; visual checks of every page; patterns table interactions (filter, search, empty, sort, pagination).
+Found and fixed: BulkActionToolbar "3 selected" wrapping in narrow cards; server cards truncating names to "api-g..." (header now wraps, grid is auto-fill 230 px); "/ mo" price suffix wrapping under the dot price (Order, plans, apps, menu feature card); staff permission matrices squeezing names to 58 px on phones (narrower tick columns); admin "Recent orders" scrolling sideways on phones (customer folded under the order id, `className` on DataTable columns now applies to cells too); snapshot list kind badge hidden on phones; "blipmade-prod · live" label wrapping.
+Result: 0 overflow and 0 console errors on all 7 routes at 1280/768/390.
+Not verified: reduced-motion CSS, real touch, every Radix overlay re-opened in this pass (covered in earlier passes).

@@ -17,9 +17,9 @@ export function ServerCard({ app, onOpen }) {
   const on = app.status === 'running'
   return (
     <button onClick={onOpen} className="group flex w-full flex-col gap-3 rounded-xl border border-line bg-card p-4 text-left transition-colors hover:border-line-2">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <IconTile><Server /></IconTile>
-        <div className="min-w-0 flex-1"><div className="truncate text-[14px] font-semibold">{app.name}</div><div className="text-[12.5px] text-mute">{app.kind} {app.ver} · {app.region}</div></div>
+        <div className="min-w-[7.5rem] flex-1"><div className="truncate text-[14px] font-semibold">{app.name}</div><div className="truncate text-[12.5px] text-mute">{app.kind} {app.ver} · {app.region}</div></div>
         <StatusBadge status={app.status} />
       </div>
       <div className="grid grid-cols-3 gap-3 text-[12px] text-dim">
@@ -308,8 +308,8 @@ export const SnapshotList = () => (
     {SNAPSHOTS.map((s) => (
       <div key={s.id} className="flex items-center gap-3 px-4 py-3">
         <IconTile><Archive /></IconTile>
-        <div className="min-w-0 flex-1"><div className="truncate text-[13.5px] font-medium">{s.name}</div><div className="text-xs text-dim">{s.when} · {s.size}</div></div>
-        <Badge dot={false}>{s.kind}</Badge>
+        <div className="min-w-0 flex-1"><div className="truncate text-[13.5px] font-medium">{s.name}</div><div className="truncate text-xs text-dim">{s.when} · {s.size}</div></div>
+        <span className="hidden sm:inline-flex"><Badge dot={false}>{s.kind}</Badge></span>
         <Confirm title={`Restore ${s.name}?`} description="The server is stopped, its disk is replaced with this snapshot, then started again. Changes since the snapshot are lost." confirmLabel="Restore" danger onConfirm={() => toast.success('Restore simulated')} requireText="restore" trigger={<Button variant="outline" size="sm">Restore</Button>} />
       </div>
     ))}
@@ -347,7 +347,7 @@ export function PlanSelector({ value, onChange, yearly }) {
       {PLAN_DATA.map((p) => (
         <RadioCard key={p.id} value={p.id} className="p-4">
           <div className="flex items-center gap-2 text-[13px] text-dim">{p.name}{p.tag && <Badge tone="info" dot={false}>{p.tag}</Badge>}</div>
-          <div className="mt-3 flex items-end gap-2"><DotNum text={money(p.price * (yearly ? 0.8 : 1)).replace('.00', '')} height={30} animate={false} /><span className="pb-0.5 text-[11.5px] text-dim">/ mo</span></div>
+          <div className="mt-3 flex items-end gap-2"><DotNum text={money(p.price * (yearly ? 0.8 : 1)).replace('.00', '')} height={30} animate={false} /><span className="shrink-0 whitespace-nowrap pb-0.5 text-[11.5px] text-dim">/ mo</span></div>
           <ul className="mt-4 space-y-1.5 text-[12.5px] text-mute">{p.specs.map((s) => <li key={s} className="flex items-center gap-2"><span className="size-1 rounded-full bg-dim" />{s}</li>)}</ul>
         </RadioCard>
       ))}
