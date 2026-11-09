@@ -54,6 +54,34 @@ const Reveal = ({ i = 0, className, children, as: T = 'div', ...p }) => {
   return <T ref={ref} className={cn(seen ? 'anim-rise' : 'opacity-0', className)} style={{ '--i': i }} {...p}>{children}</T>
 }
 
+/* one listener for every .torch card on the page: it only writes two CSS variables on the card under the pointer */
+function useTorch() {
+  useEffect(() => {
+    let raf = 0, last = null
+    const apply = () => {
+      raf = 0
+      if (!last) return
+      const card = last.target.closest?.('.torch')
+      if (!card) return
+      const r = card.getBoundingClientRect()
+      card.style.setProperty('--mx', last.x - r.left + 'px')
+      card.style.setProperty('--my', last.y - r.top + 'px')
+    }
+    const move = (e) => {
+      if (e.pointerType === 'touch') return
+      last = { target: e.target, x: e.clientX, y: e.clientY }
+      if (!raf) raf = requestAnimationFrame(apply)
+    }
+    document.addEventListener('pointermove', move, { passive: true })
+    return () => { document.removeEventListener('pointermove', move); cancelAnimationFrame(raf) }
+  }, [])
+}
+const DotRule = () => {
+  const ref = useRef(null)
+  const seen = useSeen(ref, '0px 0px -10% 0px')
+  return <div className="mx-auto max-w-6xl px-5 md:px-10"><div ref={ref} aria-hidden data-seen={seen || undefined} className="dotrule" /></div>
+}
+
 const eyebrow = 'font-mono text-[11px] uppercase tracking-[.1em] text-dim'
 const Section = ({ id, eyebrowText, title, sub, children, className }) => (
   <section id={id} className={cn('mx-auto max-w-6xl px-5 py-20 md:px-10 md:py-28', className)}>
@@ -168,9 +196,9 @@ function Configurator() {
   const [cpu, setCpu] = useState([2]); const [ram, setRam] = useState([4]); const [disk, setDisk] = useState([80])
   const price = cpu[0] * 2.5 + ram[0] * 1.25 + disk[0] * 0.03
   return (
-    <div className="grid gap-8 rounded-2xl border border-line-2 bg-card p-6 md:grid-cols-[1fr_300px] md:p-8">
+    <div className="torch grid gap-8 rounded-2xl border border-line-2 bg-card p-6 md:grid-cols-[1fr_300px] md:p-8">
       <div className="space-y-7"><SliderRow l="vCPU" v={cpu} u="cores" st={1} min={1} max={16} set={setCpu} /><SliderRow l="Memory" v={ram} u="GB" st={1} min={1} max={64} set={setRam} /><SliderRow l="NVMe storage" v={disk} u="GB" st={10} min={20} max={1000} set={setDisk} /></div>
-      <div className="flex flex-col justify-between rounded-xl border border-line bg-black/40 p-5"><div><div className={eyebrow}>Your server</div><div className="mt-4"><AnimatedPrice value={price} height={38} /></div><div className="mt-2 text-xs text-dim">per month · billed hourly</div></div><Button size="lg" className="mt-6 w-full" onClick={() => nav('/site/register')}>Deploy this server <ArrowRight /></Button></div>
+      <div className="torch flex flex-col justify-between rounded-xl border border-line bg-black/40 p-5"><div><div className={eyebrow}>Your server</div><div className="mt-4"><AnimatedPrice value={price} height={38} /></div><div className="mt-2 text-xs text-dim">per month · billed hourly</div></div><Button size="lg" className="mt-6 w-full" onClick={() => nav('/site/register')}>Deploy this server <ArrowRight /></Button></div>
     </div>
   )
 }
@@ -178,7 +206,7 @@ function Configurator() {
 const FAQ = [['Where are my servers located?', 'Frankfurt, Amsterdam, Helsinki and Ashburn. You choose the region when you deploy, and can move later with a snapshot.'], ['Can I try it without a card?', 'Yes. New accounts start with demo credit, and no payment details are required to explore.'], ['How fast does support reply?', 'The median first reply is about six minutes, from real engineers, not a script.'], ['Is there a contract?', 'No. Billing is hourly or monthly, you can cancel any time, and unused credit stays on your account.']]
 function Faq() {
   const [open, setOpen] = useState(0)
-  return <Reveal className="divide-y divide-line overflow-hidden rounded-2xl border border-line-2 bg-card">{FAQ.map(([q, a], i) => (
+  return <Reveal className="torch divide-y divide-line overflow-hidden rounded-2xl border border-line-2 bg-card">{FAQ.map(([q, a], i) => (
     <Collapsible.Root key={q} open={open === i} onOpenChange={(o) => setOpen(o ? i : -1)}>
       <Collapsible.Trigger className="group flex w-full items-center justify-between gap-4 px-6 py-5 text-left text-[15px] font-medium outline-none transition-colors duration-150 hover:bg-white/[0.02] focus-visible:bg-white/[0.04] active:bg-white/[0.04]">{q}<ChevronDown className={cn('size-4 shrink-0 text-dim transition-[transform,color] duration-300 ease-[var(--ease-out)] group-hover:text-fg', open === i && 'rotate-180 text-fg')} /></Collapsible.Trigger>
       <Collapsible.Content className="anim-collapse overflow-hidden"><p className="px-6 pb-5 text-[14px] leading-relaxed text-mute">{a}</p></Collapsible.Content>
@@ -197,11 +225,12 @@ function Stats() {
   )
 }
 
-const BENTO = 'rounded-2xl border border-line bg-card p-6 transition-[border-color,background-color] duration-200 hover:border-line-2 hover:bg-[#161619]'
+const BENTO = 'torch rounded-2xl border border-line bg-card p-6 transition-[border-color,background-color] duration-200 hover:border-line-2 hover:bg-[#161619]'
 const LOGOS = ['NODE.JS', 'PYTHON', 'PHP', 'GO', 'RUST', 'DOCKER', 'POSTGRES', 'REDIS', 'NEXT.JS', 'LARAVEL', 'MINECRAFT']
 
 export default function HomePage() {
   const nav = useNavigate()
+  useTorch()
   return (
     <>
       {/* ------------ hero ------------ */}
@@ -220,7 +249,7 @@ export default function HomePage() {
             </div>
           </div>
           {/* product window */}
-          <div className="relative mx-auto mt-16 max-w-5xl overflow-hidden rounded-2xl border border-line-2 bg-[#0a0a0c] shadow-[0_40px_120px_rgba(0,0,0,.8)]">
+          <div className="torch relative mx-auto mt-16 max-w-5xl overflow-hidden rounded-2xl border border-line-2 bg-[#0a0a0c] shadow-[0_40px_120px_rgba(0,0,0,.8)]">
             <div className="flex items-center gap-2 border-b border-line px-4 py-2.5"><span className="flex gap-1.5">{[0, 1, 2].map((i) => <i key={i} className="size-2.5 rounded-full bg-white/15" />)}</span><span className="mx-auto font-mono text-[11px] text-dim">console.blipmade.cloud</span></div>
             <div className="grid md:grid-cols-[1.1fr_1fr]"><div className="border-b border-line p-6 md:border-b-0 md:border-r"><div className="mb-3 flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[.08em] text-dim"><TermIcon className="size-3.5" />Deploy</div><AutoTerminal /></div><div className="p-6"><LiveMetrics /></div></div>
           </div>
@@ -247,13 +276,19 @@ export default function HomePage() {
       {/* ------------ configurator ------------ */}
       <Section eyebrowText="Pricing" title="Build the server you need. Pay for exactly that." sub="Drag the sliders. The price updates instantly, and hourly billing means you never pay for a month you did not use."><Configurator /></Section>
 
+      <DotRule />
+
       {/* ------------ stats ------------ */}
       <Stats />
+
+      <DotRule />
 
       {/* ------------ testimonials ------------ */}
       <Section eyebrowText="Customers" title="People who stopped thinking about hosting." sub="Quotes below are sample copy for this design mock-up.">
         <RevealGrid className="grid gap-4 md:grid-cols-3">{[['We moved 40 services over a weekend. The panel is the first one my whole team actually likes.', 'Maya Chen', 'CTO, Northwind'], ['Support fixed a firewall issue before I finished writing the second message.', 'Jonas Weber', 'Indie developer'], ['The builder shipped our landing page while we were still on the kickoff call.', 'Elena Rossi', 'Founder, Studio Rossi']].map(([q, n, r]) => <figure key={n} className={cn(BENTO, 'flex flex-col justify-between gap-6')}><blockquote className="text-[15px] leading-relaxed">“{q}”</blockquote><figcaption className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-full border border-line-2 bg-white/5 text-sm">{n[0]}</span><span className="text-[13px]"><b className="block font-medium">{n}</b><span className="text-dim">{r}</span></span></figcaption></figure>)}</RevealGrid>
       </Section>
+
+      <DotRule />
 
       {/* ------------ FAQ ------------ */}
       <Section id="faq" eyebrowText="FAQ" title="Good questions." className="max-w-3xl"><Faq /></Section>

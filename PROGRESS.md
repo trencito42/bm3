@@ -190,3 +190,9 @@ Method: overflow + console audit of all 7 routes at 1280, 768 and 390 px; a text
 Found and fixed: BulkActionToolbar "3 selected" wrapping in narrow cards; server cards truncating names to "api-g..." (header now wraps, grid is auto-fill 230 px); "/ mo" price suffix wrapping under the dot price (Order, plans, apps, menu feature card); staff permission matrices squeezing names to 58 px on phones (narrower tick columns); admin "Recent orders" scrolling sideways on phones (customer folded under the order id, `className` on DataTable columns now applies to cells too); snapshot list kind badge hidden on phones; "blipmade-prod · live" label wrapping.
 Result: 0 overflow and 0 console errors on all 7 routes at 1280/768/390.
 Not verified: reduced-motion CSS, real touch, every Radix overlay re-opened in this pass (covered in earlier passes).
+
+## Homepage: the header/footer language, without the cost
+- **Dot torch on cards** (`.torch`): hero console window, all bento cards, the configurator and its price panel, testimonials, FAQ. A dot grid that exists only under the pointer, revealed through a radial CSS mask plus a faint spotlight. No canvas, no animation loop: one delegated `pointermove` listener (rAF-coalesced) writes `--mx/--my` on the card under the pointer. Disabled on touch (`hover: hover`) and for reduced motion.
+- **Dot rules** between stats / testimonials / FAQ: a row of dots a ring of light crosses once when first seen (CSS only, 1.5 s, then nothing runs).
+- Measured: 400 synthetic pointermoves cost 6.8 ms in total; 0 requestAnimationFrame calls while idle; 13 torch cards, 3 rules; 0 overflow and 0 console errors at 390 px.
+- Not verified: how it feels frame by frame (preview throttles), real touch devices.

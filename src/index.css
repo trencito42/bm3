@@ -95,6 +95,21 @@ button { cursor: pointer; }
 @keyframes mega-to-l { to { opacity: 0; transform: translateX(-18px) } }
 @keyframes mega-to-r { to { opacity: 0; transform: translateX(18px) } }
 @keyframes mega-rise { from { opacity: 0; transform: translateY(8px) } }
+/* "torch": a dot grid that only exists under the pointer. No canvas and no loops: one delegated pointermove writes
+   --mx/--my on the hovered card, the dots are a CSS background revealed through a radial mask. */
+.torch { position: relative; isolation: isolate; }
+.torch::before, .torch::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity 260ms var(--ease-out); z-index: -1; }
+.torch::before { background-image: radial-gradient(rgba(255,255,255,.95) 1px, transparent 1.35px); background-size: 16px 16px; background-position: 8px 8px;
+  -webkit-mask-image: radial-gradient(190px circle at var(--mx, 50%) var(--my, 50%), #000 0, transparent 72%); mask-image: radial-gradient(190px circle at var(--mx, 50%) var(--my, 50%), #000 0, transparent 72%); }
+.torch::after { background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,.055), transparent 70%); }
+@media (hover: hover) { .torch:hover::before { opacity: .5; } .torch:hover::after { opacity: 1; } }  /* touch screens have no pointer to follow */
+/* a row of dots that a ring of light crosses once, when it is first seen */
+.dotrule { position: relative; height: 14px; overflow: hidden; background-image: radial-gradient(rgba(255,255,255,.13) 1px, transparent 1.3px); background-size: 14px 14px; background-position: 7px 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent); mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent); }
+.dotrule::after { content: ''; position: absolute; inset: 0; opacity: 0; background-image: radial-gradient(rgba(255,255,255,.95) 1.1px, transparent 1.5px); background-size: 14px 14px; background-position: 7px 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 9%, transparent 18%); mask-image: linear-gradient(90deg, transparent 0, #000 9%, transparent 18%); mask-size: 400% 100%; -webkit-mask-size: 400% 100%; }
+.dotrule[data-seen]::after { animation: dotrule-sweep 1500ms var(--ease-out) both; }
+@keyframes dotrule-sweep { from { opacity: 1; -webkit-mask-position: 0% 0; mask-position: 0% 0; } 85% { opacity: 1; } to { opacity: 0; -webkit-mask-position: 100% 0; mask-position: 100% 0; } }
 .reveal-grid > * { opacity: 0; }
 .reveal-grid[data-seen] > * { opacity: 1; animation: rise 360ms var(--ease-out) both; }
 .reveal-grid[data-seen] > *:nth-child(2) { animation-delay: 60ms; }
@@ -114,6 +129,7 @@ button { cursor: pointer; }
   .anim-overlay, .anim-menu, .anim-pop, .anim-slide, .anim-slide-left, .anim-page, .anim-collapse, .anim-rise, .reveal-grid > *, .mega-viewport, .mega-content, .mega-content [data-stagger] { animation-duration: 1ms !important; }
   .mega-viewport { transition-duration: 1ms !important; }
   .marquee { animation: none !important; }
+  .torch::before, .torch::after, .dotrule::after { display: none; }
 }
 
 /* one focus language for everything keyboard-reachable (inputs use border + soft ring instead) */
