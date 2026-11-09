@@ -96,15 +96,15 @@ function Panel({ m }) {
   return (
     <div className="mx-auto max-w-6xl px-10">
       <div className="grid grid-cols-[1fr_1fr_280px] gap-8 py-7">
-        {m.cols.map((c) => (
+        {m.cols.map((c, ci) => (
           <div key={c.h}>
             <div className="mb-2 px-2.5 font-mono text-[10.5px] uppercase tracking-[.08em] text-dim">{c.h}</div>
-            <ul className="space-y-0.5">{c.items.map((it) => <li key={it.t}><MegaLink it={it} /></li>)}</ul>
+            <ul className="space-y-0.5">{c.items.map((it, ii) => <li key={it.t} data-stagger style={{ '--s': ci * 3 + ii }}><MegaLink it={it} /></li>)}</ul>
           </div>
         ))}
-        <Feature f={m.feature} />
+        <div data-stagger style={{ '--s': 2 }}><Feature f={m.feature} /></div>
       </div>
-      <div className="flex items-center justify-between border-t border-line py-3 text-[12.5px]">
+      <div data-stagger style={{ '--s': 7 }} className="flex items-center justify-between border-t border-line py-3 text-[12.5px]">
         <NM.Link asChild><NavLink to="/site/status" className="flex items-center gap-2 text-mute outline-none hover:text-fg focus-visible:text-fg"><span className="size-2 rounded-full bg-warn shadow-[0_0_8px_var(--color-warn)]" />Partial degradation · Frankfurt, Ashburn</NavLink></NM.Link>
         <NM.Link asChild><NavLink to="/site/products" className="flex items-center gap-1 text-mute outline-none hover:text-fg focus-visible:text-fg">Compare all plans<ArrowRight className="size-3.5" /></NavLink></NM.Link>
       </div>
@@ -181,7 +181,7 @@ export function SiteHeader() {
   return (
     <header ref={head} className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-6 border-b border-line bg-bg/90 px-5 backdrop-blur md:px-10">
       <NavLink to="/site" className="flex items-center gap-2" aria-label="Blipmade home"><Brand height={12} /></NavLink>
-      <NM.Root value={val} onValueChange={setVal} delayDuration={80} skipDelayDuration={300} className="static hidden md:block">
+      <NM.Root value={val} onValueChange={setVal} delayDuration={110} skipDelayDuration={450} className="static hidden md:block">
         <NM.List className="flex items-center gap-0.5">
           {MENU.map((m) => (
             <NM.Item key={m.id} value={m.id}>
@@ -193,6 +193,7 @@ export function SiteHeader() {
           ))}
           {FLAT.map(([to, l]) => <NM.Item key={l}><NM.Link asChild><NavLink to={to} className={link(to)}>{l}</NavLink></NM.Link></NM.Item>)}
         </NM.List>
+        <div aria-hidden className={cn('mega-dim pointer-events-none absolute inset-x-0 top-full h-screen bg-black/45', val ? 'opacity-100' : 'opacity-0')} />
         <div className="absolute inset-x-0 top-full flex justify-center">
           <NM.Viewport className="mega-viewport relative w-full overflow-hidden border-b border-line bg-[#0b0b0d] shadow-2xl shadow-black/60" />
         </div>

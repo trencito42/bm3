@@ -78,19 +78,23 @@ button { cursor: pointer; }
 @keyframes page-in { from { opacity: 0 } }
 .anim-page { animation: page-in 140ms ease-out; }
 /* public-site mega menu + mobile accordion */
-.mega-viewport { height: var(--radix-navigation-menu-viewport-height); transition: height 220ms var(--ease-out); transform-origin: 50% 0; }
-.mega-viewport[data-state=open] { animation: mega-in 180ms var(--ease-out); }
-.mega-viewport[data-state=closed] { animation: mega-out 120ms var(--ease-in) forwards; }
-.mega-content[data-motion=from-start] { animation: mega-from-l 220ms var(--ease-out); }
-.mega-content[data-motion=from-end] { animation: mega-from-r 220ms var(--ease-out); }
-.mega-content[data-motion=to-start] { animation: mega-to-l 160ms var(--ease-in) forwards; }
-.mega-content[data-motion=to-end] { animation: mega-to-r 160ms var(--ease-in) forwards; }
-@keyframes mega-in { from { opacity: 0; transform: translateY(-4px) } }
-@keyframes mega-out { to { opacity: 0; transform: translateY(-4px) } }
-@keyframes mega-from-l { from { opacity: 0; transform: translateX(-18px) } }
-@keyframes mega-from-r { from { opacity: 0; transform: translateX(18px) } }
-@keyframes mega-to-l { to { opacity: 0; transform: translateX(-18px) } }
-@keyframes mega-to-r { to { opacity: 0; transform: translateX(18px) } }
+.mega-viewport { height: var(--radix-navigation-menu-viewport-height); transition: height 340ms var(--ease-out); transform-origin: 50% 0; will-change: height; }
+.mega-viewport[data-state=open] { animation: mega-in 300ms var(--ease-out); }
+.mega-viewport[data-state=closed] { animation: mega-out 200ms var(--ease-in) forwards; }
+.mega-content[data-motion=from-start] { animation: mega-from-l 320ms var(--ease-out) both; }
+.mega-content[data-motion=from-end] { animation: mega-from-r 320ms var(--ease-out) both; }
+.mega-content[data-motion=to-start] { animation: mega-to-l 200ms var(--ease-in) forwards; }
+.mega-content[data-motion=to-end] { animation: mega-to-r 200ms var(--ease-in) forwards; }
+/* the links inside rise in one after another, so a panel assembles instead of appearing */
+.mega-content [data-stagger] { animation: mega-rise 360ms var(--ease-out) both; animation-delay: calc(var(--s, 0) * 26ms + 50ms); }
+.mega-dim { transition: opacity 260ms var(--ease-out); }
+@keyframes mega-in { from { opacity: 0; transform: translateY(-8px); clip-path: inset(0 0 100% 0) } to { opacity: 1; transform: none; clip-path: inset(0 0 -40px 0) } }
+@keyframes mega-out { to { opacity: 0; transform: translateY(-6px); clip-path: inset(0 0 55% 0) } }
+@keyframes mega-from-l { from { opacity: 0; transform: translateX(-28px) } }
+@keyframes mega-from-r { from { opacity: 0; transform: translateX(28px) } }
+@keyframes mega-to-l { to { opacity: 0; transform: translateX(-28px) } }
+@keyframes mega-to-r { to { opacity: 0; transform: translateX(28px) } }
+@keyframes mega-rise { from { opacity: 0; transform: translateY(8px) } }
 .reveal-grid > * { opacity: 0; }
 .reveal-grid[data-seen] > * { opacity: 1; animation: rise 360ms var(--ease-out) both; }
 .reveal-grid[data-seen] > *:nth-child(2) { animation-delay: 60ms; }
@@ -107,7 +111,7 @@ button { cursor: pointer; }
 @keyframes collapse-down { from { height: 0; opacity: 0 } to { height: var(--radix-collapsible-content-height) } }
 @keyframes collapse-up { from { height: var(--radix-collapsible-content-height) } to { height: 0; opacity: 0 } }
 @media (prefers-reduced-motion: reduce) {
-  .anim-overlay, .anim-menu, .anim-pop, .anim-slide, .anim-slide-left, .anim-page, .anim-collapse, .anim-rise, .reveal-grid > *, .mega-viewport, .mega-content { animation-duration: 1ms !important; }
+  .anim-overlay, .anim-menu, .anim-pop, .anim-slide, .anim-slide-left, .anim-page, .anim-collapse, .anim-rise, .reveal-grid > *, .mega-viewport, .mega-content, .mega-content [data-stagger] { animation-duration: 1ms !important; }
   .mega-viewport { transition-duration: 1ms !important; }
   .marquee { animation: none !important; }
 }
