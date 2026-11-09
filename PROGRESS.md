@@ -130,3 +130,11 @@ Approach: fix behaviour first, verify in the running app (sampling real frames /
 - Native clipboard success; real touch/pointer-leave on charts; real keyboard-modality focus rings; CSS `prefers-reduced-motion` rules (only the JS paths were forced, the media query itself cannot be emulated here); safe-area/virtual keyboard on devices.
 - The preview pane reports `document.hidden = true` and throttles rAF/transitions, so timing-dependent checks used state/inline styles rather than computed values.
 - Builder / More / Product mock timeouts (status restarts, orb idle resets) are not cancelled on unmount; harmless in React 18 but untidy.
+
+---
+## Public site chrome: mega menu + mega footer (`src/site/Chrome.jsx`)
+**Header (desktop):** Radix NavigationMenu, three mega panels (Products, Solutions, Developers) with two link columns, a feature card and a status/compare strip; hover-intent and skip-delay between panels, directional slide, height-animated shared viewport, Esc/Enter/Arrow keys. **Header (mobile):** toggle morphs menu/close, full-width panel with Collapsible accordion sections (one open at a time), sticky Log in / Get started, Esc closes and returns focus, page behind stops scrolling, closes on navigation and when resized to desktop.
+**Footer:** CTA band (skipped on the home page, which has its own), brand + newsletter (inline validation) + status pill, five link columns, legal bar, and an oversized dot-matrix wordmark spanning the full width and cropped so only its top half shows (fading out at the bottom edge).
+**Fixed on the way:** NavLink's className callback passed through Radix `Slot` is stringified (links rendered without active/hover colours); footer collapsed to 1 px inside the flex column (`shrink-0`).
+**Verified:** 1280 px hover open + keyboard (Enter opens, ArrowRight moves, switching closes the previous, Esc closes and keeps focus on the trigger); 390 px accordion, navigation closes panel, Esc + focus return, scroll lock released; 11 site routes at 1280 and 9 at 390: no overflow, footer present, no console errors.
+**Not verified:** touch interaction on a real device; the 768-1024 px range was only checked at 1034 px; menu links are mock (several point at the same page).

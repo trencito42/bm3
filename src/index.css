@@ -77,8 +77,27 @@ button { cursor: pointer; }
 /* route / tab content: opacity only, never a rise on every navigation */
 @keyframes page-in { from { opacity: 0 } }
 .anim-page { animation: page-in 140ms ease-out; }
+/* public-site mega menu + mobile accordion */
+.mega-viewport { height: var(--radix-navigation-menu-viewport-height); transition: height 220ms var(--ease-out); transform-origin: 50% 0; }
+.mega-viewport[data-state=open] { animation: mega-in 180ms var(--ease-out); }
+.mega-viewport[data-state=closed] { animation: mega-out 120ms var(--ease-in) forwards; }
+.mega-content[data-motion=from-start] { animation: mega-from-l 220ms var(--ease-out); }
+.mega-content[data-motion=from-end] { animation: mega-from-r 220ms var(--ease-out); }
+.mega-content[data-motion=to-start] { animation: mega-to-l 160ms var(--ease-in) forwards; }
+.mega-content[data-motion=to-end] { animation: mega-to-r 160ms var(--ease-in) forwards; }
+@keyframes mega-in { from { opacity: 0; transform: translateY(-4px) } }
+@keyframes mega-out { to { opacity: 0; transform: translateY(-4px) } }
+@keyframes mega-from-l { from { opacity: 0; transform: translateX(-18px) } }
+@keyframes mega-from-r { from { opacity: 0; transform: translateX(18px) } }
+@keyframes mega-to-l { to { opacity: 0; transform: translateX(-18px) } }
+@keyframes mega-to-r { to { opacity: 0; transform: translateX(18px) } }
+.anim-collapse[data-state=open] { animation: collapse-down 200ms var(--ease-out); }
+.anim-collapse[data-state=closed] { animation: collapse-up 160ms var(--ease-in); }
+@keyframes collapse-down { from { height: 0; opacity: 0 } to { height: var(--radix-collapsible-content-height) } }
+@keyframes collapse-up { from { height: var(--radix-collapsible-content-height) } to { height: 0; opacity: 0 } }
 @media (prefers-reduced-motion: reduce) {
-  .anim-overlay, .anim-menu, .anim-pop, .anim-slide, .anim-slide-left, .anim-page { animation-duration: 1ms !important; }
+  .anim-overlay, .anim-menu, .anim-pop, .anim-slide, .anim-slide-left, .anim-page, .anim-collapse, .mega-viewport, .mega-content { animation-duration: 1ms !important; }
+  .mega-viewport { transition-duration: 1ms !important; }
 }
 
 /* one focus language for everything keyboard-reachable (inputs use border + soft ring instead) */

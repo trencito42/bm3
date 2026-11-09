@@ -9,25 +9,18 @@ import { DotBars, DotNum } from '../components/DotViz.jsx'
 import { DotField, DotText, Orb } from '../builder/FxBits.jsx'
 import { CATALOG, INCIDENTS } from '../lib/mock'
 import HomePage from './HomePage.jsx'
+import { SiteFooter, SiteHeader } from './Chrome.jsx'
 import { PLAN_DATA } from '../components/product.jsx'
 import { cn, money } from '../lib/utils'
 
-const LINKS = [['', 'Home'], ['products', 'Products'], ['docs', 'Docs'], ['status', 'Status']]
-
 function Shell({ children }) {
-  const [open, setOpen] = useState(false)
-  const nav = useNavigate()
+  const { pathname } = useLocation()
+  const home = /^\/site\/?$/.test(pathname)
   return (
     <div className="flex h-full flex-col overflow-y-auto bg-bg">
-      <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-6 border-b border-line bg-bg/90 px-5 backdrop-blur md:px-10">
-        <NavLink to="/site" className="flex items-center gap-2"><Brand height={12} /></NavLink>
-        <nav className="hidden items-center gap-1 md:flex">{LINKS.map(([to, l]) => <NavLink key={l} end to={'/site' + (to ? '/' + to : '')} className={({ isActive }) => cn('rounded-lg px-3 py-1.5 text-[13.5px] transition-colors', isActive ? 'text-fg' : 'text-mute hover:text-fg')}>{l}</NavLink>)}</nav>
-        <div className="ml-auto hidden items-center gap-2 md:flex"><Button variant="ghost" onClick={() => nav('/site/login')}>Log in</Button><Button onClick={() => nav('/site/register')}>Get started</Button></div>
-        <button className="ml-auto grid size-9 place-items-center rounded-lg text-mute md:hidden" onClick={() => setOpen(!open)} aria-label="Menu">{open ? <X className="size-5" /> : <Menu className="size-5" />}</button>
-      </header>
-      {open && <div className="anim-menu border-b border-line bg-bg p-4 md:hidden">{[...LINKS, ['login', 'Log in']].map(([to, l]) => <NavLink key={l} to={'/site' + (to ? '/' + to : '')} onClick={() => setOpen(false)} className="flex h-11 items-center text-[15px] text-mute">{l}</NavLink>)}</div>}
+      <SiteHeader />
       <div className="flex-1">{children}</div>
-      <footer className="border-t border-line px-5 py-10 md:px-10"><div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-4"><div><Brand height={12} /><p className="mt-3 max-w-xs text-[13px] text-dim">Hosting that stays out of your way.</p></div>{[['Product', ['VPS', 'Web hosting', 'Databases', 'Email']], ['Company', ['About', 'Status', 'Careers']], ['Legal', ['Terms', 'Privacy', 'SLA']]].map(([h, ls]) => <div key={h}><div className="mb-3 font-mono text-[10.5px] uppercase tracking-[.08em] text-dim">{h}</div><div className="space-y-2 text-[13px] text-mute">{ls.map((l) => <NavLink key={l} to={l === 'Status' ? '/site/status' : l === 'Terms' || l === 'Privacy' || l === 'SLA' ? '/site/legal' : '/site/products'} className="block hover:text-fg">{l}</NavLink>)}</div></div>)}</div></footer>
+      <SiteFooter cta={!home} />
     </div>
   )
 }
