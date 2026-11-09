@@ -355,6 +355,81 @@ const FooterDots = forwardRef(function FooterDots(_, ref) {
   return <canvas ref={cv} aria-hidden className="pointer-events-none absolute inset-0 z-0 size-full" />
 })
 
+/* The oversized wordmark is drawn from the same dot glyphs as every other dot-matrix text, but on a canvas so it can
+   move: the letters rise out of the bottom edge one column after another when the footer is first seen, a soft band of
+   light passes through every few seconds, and the pointer pushes the dots apart while turning the ones nearest to it
+   brand red. Only the top half of the word shows (the rest is cropped), so it always reads as "more below". */
+function DotWordmark({ ptr, seen }) {
+  const box = useRef(null), cv = useRef(null), host = useRef(null)
+  const st = useRef({ pts: [], w: 0, h: 0, dpr: 1, t0: 0, raf: 0, on: true, seen: false })
+  st.current.seen = seen
+  useEffect(() => {
+    const c = cv.current, b = box.current, s = st.current
+    if (!c || !b) return
+    /* read the glyph dots out of the (hidden) DotText svg: positions are in its viewBox units */
+    const svg = host.current?.querySelector('svg')
+    const vb = (svg?.getAttribute('viewBox') || '-0.5 -0.5 45 7').split(' ').map(Number)
+    const raw = svg ? [...svg.querySelectorAll('circle')].map((n) => [+n.getAttribute('cx'), +n.getAttribute('cy')]) : []
+    s.vb = vb; s.raw = raw
+    const reduce = reducedMotion()
+    const place = () => {
+      s.dpr = Math.min(devicePixelRatio || 1, 2); s.w = b.clientWidth
+      s.h = s.w * (vb[3] / vb[2])            // the canvas holds the whole word; the box crops it to half
+      c.width = s.w * s.dpr; c.height = s.h * s.dpr; c.style.height = s.h + 'px'
+      const u = s.w / vb[2]
+      const old = s.pts
+      s.pts = raw.map(([cx, cy], i) => ({ x: (cx - vb[0]) * u, y: (cy - vb[1]) * u, col: cx, ox: old[i]?.ox || 0, oy: old[i]?.oy || 0 }))
+      s.r = 0.4 * u
+    }
+    place()
+    const draw = (now) => {
+      s.raf = 0
+      const ctx = c.getContext('2d')
+      ctx.setTransform(s.dpr, 0, 0, s.dpr, 0, 0); ctx.clearRect(0, 0, s.w, s.h)
+      if (!s.seen) return   // idle until the footer has been seen; the effect on `seen` restarts the loop
+      if (!s.t0) s.t0 = now
+      const el = now - s.t0
+      const rect = ptr.current.on && !reduce ? c.getBoundingClientRect() : null
+      const px = rect ? ptr.current.x - rect.left : -1e4, py = rect ? ptr.current.y - rect.top : -1e4
+      const R = s.w * 0.15
+      const bx = (((now / 1000) % 9) / 9) * s.w * 1.5 - s.w * 0.25
+      for (const p of s.pts) {
+        const k = reduce ? 1 : Math.min(1, Math.max(0, (el - p.col * 24) / 700))
+        const e = 1 - Math.pow(1 - k, 3)
+        if (e <= 0) continue
+        let a = 0.17 * e, f = 0, tx = 0, ty = 0
+        if (!reduce) {
+          const dx = p.x - px, dy = p.y - py, d = Math.hypot(dx, dy)
+          if (d < R) { f = Math.pow(1 - d / R, 2); tx = (dx / (d || 1)) * f * 12; ty = (dy / (d || 1)) * f * 12 }
+          const band = Math.exp(-Math.pow((p.x - bx) / (s.w * 0.07), 2)) * 0.13
+          a += band * e
+        }
+        p.ox += (tx - p.ox) * 0.18; p.oy += (ty - p.oy) * 0.18
+        a = Math.min(1, a + f * 0.75)
+        const m = Math.min(1, Math.max(0, (f - 0.3) / 0.5))   // 0 white .. 1 brand red
+        ctx.fillStyle = `rgba(255,${Math.round(255 - 210 * m)},${Math.round(255 - 201 * m)},${a.toFixed(3)})`
+        ctx.beginPath()
+        ctx.arc(p.x + p.ox, p.y + p.oy + (1 - e) * s.h * 0.4, s.r * (1 + f * 0.45), 0, 6.2832)
+        ctx.fill()
+      }
+      if (s.on && !reduce) s.raf = requestAnimationFrame(draw)
+    }
+    const kick = () => { if (!s.raf) s.raf = requestAnimationFrame(draw) }
+    s.kick = kick
+    kick()
+    const ro = new ResizeObserver(() => { place(); kick() }); ro.observe(b)
+    const io = new IntersectionObserver(([e]) => { s.on = e.isIntersecting && !document.hidden; if (s.on) kick() }); io.observe(b)
+    return () => { ro.disconnect(); io.disconnect(); cancelAnimationFrame(s.raf); s.raf = 0 }
+  }, [ptr])
+  useEffect(() => { st.current.kick?.() }, [seen])
+  return (
+    <div ref={box} aria-hidden="true" className="pointer-events-none relative mt-2 aspect-[90/7] w-full select-none overflow-hidden px-3 md:px-6 [mask-image:linear-gradient(to_bottom,#000_35%,transparent)]">
+      <div ref={host} hidden><DotText text="BLIPMADE" height={80} /></div>
+      <canvas ref={cv} className="absolute left-0 top-0 w-full" />
+    </div>
+  )
+}
+
 /* true once the element has been on screen; a throttled scroll check backs up IntersectionObserver for fast drags */
 function useSeenOnce(ref, margin = '0px 0px -6% 0px') {
   const [seen, setSeen] = useState(typeof IntersectionObserver === 'undefined')
@@ -427,6 +502,7 @@ export function SiteFooter({ cta = true }) {
   const dots = useRef(null)
   const seen = useSeenOnce(root)
   const fired = useRef(false)
+  const ptr = useRef({ x: 0, y: 0, on: false })   // shared with the wordmark so it can react to the pointer too
   /* the first time the footer is seen, a ring of light sweeps in from the lower left */
   useEffect(() => {
     if (!seen || fired.current) return
@@ -437,7 +513,7 @@ export function SiteFooter({ cta = true }) {
   const rise = (i) => ({ className: seen ? 'anim-rise' : 'opacity-0', style: { '--i': i } })
   const top = () => { const sc = root.current?.closest('.overflow-y-auto'); sc?.scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' }) }
   return (
-    <footer ref={root} onPointerMove={(e) => e.pointerType !== 'touch' && dots.current?.move(e.clientX, e.clientY)} onPointerLeave={() => dots.current?.leave()} className="relative shrink-0 overflow-hidden border-t border-line bg-bg">
+    <footer ref={root} onPointerMove={(e) => { if (e.pointerType === 'touch') return; ptr.current = { x: e.clientX, y: e.clientY, on: true }; dots.current?.move(e.clientX, e.clientY) }} onPointerLeave={() => { ptr.current.on = false; dots.current?.leave() }} className="relative shrink-0 overflow-hidden border-t border-line bg-bg">
       <FooterDots ref={dots} />
       <div className="relative z-10">
         {cta && <div className="border-b border-line px-5 py-12 md:px-10 md:py-16">
@@ -481,11 +557,7 @@ export function SiteFooter({ cta = true }) {
             </div>
           </div>
         </div>
-        {/* oversized wordmark: spans the full width and is cropped at the bottom edge, so only its top half shows
-            (viewBox is 45x7, so half the glyph height is an aspect of 90 / 7) */}
-        <div aria-hidden="true" className="pointer-events-none relative mt-2 aspect-[90/7] w-full select-none overflow-hidden px-3 opacity-[.2] md:px-6 [mask-image:linear-gradient(to_bottom,#000_35%,transparent)]">
-          <DotText text="BLIPMADE" height={80} className="!flex !w-full [&_svg]:!h-auto [&_svg]:!w-full [&_svg]:!max-w-none" />
-        </div>
+        <DotWordmark ptr={ptr} seen={seen} />
       </div>
     </footer>
   )
