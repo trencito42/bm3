@@ -1,15 +1,16 @@
 /* Blipmade Product Components — hosting-native pieces built on the shared primitives. All data is MOCK. */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { Inbox, ArrowLeft, MailOpen } from 'lucide-react'
 import {
   Archive, ArrowUp, Check, ChevronRight, Download, File as FileIcon, Folder, Globe, KeyRound, Lock, Mail, MoreHorizontal, Paperclip, Pencil, Play, Plus, Power, RefreshCw, Search, Send, Server, Shield, ShieldCheck, Square, Terminal, Trash2, Upload, X, Star, Reply, CircleAlert, Loader2, CheckCircle2, Circle, Cpu, HardDrive,
 } from 'lucide-react'
-import { Badge, Button, Card, CardBody, CardHeader, CardTitle, Input, Progress, Switch, Textarea, StatusBadge, IconTile, RadioGroup, RadioCard, Segmented, Separator } from './ui.jsx'
+import { Badge, Button, Card, CardBody, CardHeader, CardTitle, Input, Progress, Switch, Textarea, StatusBadge, IconTile, RadioGroup, RadioCard, Segmented, Separator, Tooltip } from './ui.jsx'
 import { Combobox, ContextContent, ContextItem, ContextMenu, ContextSep, ContextTrigger, CopyValue, Confirm, FormField, Select, Skeleton, inputCls, InlineAlert, Checkbox } from './ui2.jsx'
 import { AnimatedPrice, DotBars, DotGauge, DotNum } from './DotViz.jsx'
 import { Orb } from '../builder/FxBits.jsx'
 import { cn, money, sleep } from '../lib/utils'
-import { DNS, FILES, FIREWALL, LOGS, MAILBOXES, MESSAGES, SNAPSHOTS, SSH_KEYS } from '../lib/mock'
+import { DNS, EXTRA_MESSAGES, FILES, FIREWALL, LOGS, MAILBOXES, MESSAGES, SNAPSHOTS, SSH_KEYS } from '../lib/mock'
 
 /* ============================ Server & app management ============================ */
 export function ServerCard({ app, onOpen }) {
@@ -110,55 +111,146 @@ export function TerminalPanel({ status = 'running', height = 260, dense }) {
 }
 
 /* ============================ File manager ============================ */
+const fmtSize = (n) => (n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : (n / 1048576).toFixed(1) + ' MB')
+/* File manager (simulated): inline rename (F2 / menu), delete with undo, upload by button or drag-and-drop with
+   progress, new folder that opens straight into rename, keyboard selection. Nothing leaves the browser. */
 export function FileExplorer({ compact }) {
-  const [sel, setSel] = useState(['server.js'])
+  const [files, setFiles] = useState(() => FILES.map((f, i) => ({ ...f, id: 'f' + i })))
+  const [sel, setSel] = useState(['f5'])
   const [q, setQ] = useState('')
-  const rows = FILES.filter((f) => f.n.toLowerCase().includes(q.toLowerCase()))
-  const one = sel.length === 1 ? FILES.find((f) => f.n === sel[0]) : null
+  const [renaming, setRenaming] = useState(null)
+  const [prog, setProg] = useState({})
+  const [drag, setDrag] = useState(false)
+  const input = useRef(null)
+  const depth = useRef(0)
+  const rows = files.filter((f) => f.n.toLowerCase().includes(q.toLowerCase()))
+  const one = sel.length === 1 ? files.find((f) => f.id === sel[0]) : null
+  const nameTaken = (n, id) => files.some((f) => f.n === n && f.id !== id)
+
+  const commitRename = (id, raw) => {
+    const n = raw.trim()
+    const cur = files.find((f) => f.id === id)
+    if (!n || n === cur.n) { setRenaming(null); return true }
+    if (/[\\/]/.test(n)) { toast.error('Names cannot contain / or \\'); return false }
+    if (nameTaken(n, id)) { toast.error(`“${n}” already exists here`); return false }
+    setFiles((fs) => fs.map((f) => (f.id === id ? { ...f, n, m: 'Just now' } : f)))
+    setRenaming(null)
+    toast(`Renamed to ${n}`)
+    return true
+  }
+  const remove = (ids) => {
+    if (!ids.length) return
+    const removed = files.map((f, i) => ({ f, i })).filter(({ f }) => ids.includes(f.id))
+    setFiles((fs) => fs.filter((f) => !ids.includes(f.id)))
+    setSel([])
+    toast(`Deleted ${removed.length === 1 ? removed[0].f.n : removed.length + ' items'}`, {
+      action: { label: 'Undo', onClick: () => setFiles((fs) => { const out = [...fs]; removed.forEach(({ f, i }) => out.splice(Math.min(i, out.length), 0, f)); return out }) },
+    })
+  }
+  const newFolder = () => {
+    let n = 'new-folder', k = 1
+    while (nameTaken(n)) n = `new-folder-${++k}`
+    const id = 'n' + Date.now()
+    setFiles((fs) => [{ id, n, t: 'dir', s: '—', m: 'Just now', p: 'drwxr-xr-x' }, ...fs])
+    setSel([id]); setRenaming(id)
+  }
+  const upload = (list) => {
+    const arr = [...list]
+    if (!arr.length) return
+    const added = arr.map((file, i) => {
+      let n = file.name, k = 0
+      while (files.some((f) => f.n === n) || arr.slice(0, i).some((o) => o.name === n)) n = file.name.replace(/(\.[^.]*)?$/, ` (${++k})$1`)
+      return { id: 'u' + Date.now() + i, n, t: 'file', s: fmtSize(file.size), m: 'Just now', p: '-rw-r--r--', size: file.size }
+    })
+    setFiles((fs) => [...added, ...fs])
+    setSel(added.map((x) => x.id))
+    setProg((p) => ({ ...p, ...Object.fromEntries(added.map((x) => [x.id, 0])) }))
+    added.forEach((x, i) => {
+      let v = 0
+      const t = setInterval(() => {
+        v = Math.min(100, v + 6 + Math.random() * 14)
+        setProg((p) => ({ ...p, [x.id]: v }))
+        if (v >= 100) { clearInterval(t); setTimeout(() => setProg((p) => { const { [x.id]: _, ...rest } = p; return rest }), 350); if (i === added.length - 1) toast.success(added.length === 1 ? `Uploaded ${x.n}` : `Uploaded ${added.length} files`) }
+      }, 110)
+    })
+  }
+  const dragProps = {
+    onDragEnter: (e) => { if (e.dataTransfer?.types?.includes('Files')) { e.preventDefault(); depth.current++; setDrag(true) } },
+    onDragOver: (e) => { if (e.dataTransfer?.types?.includes('Files')) e.preventDefault() },
+    onDragLeave: () => { depth.current = Math.max(0, depth.current - 1); if (!depth.current) setDrag(false) },
+    onDrop: (e) => { e.preventDefault(); depth.current = 0; setDrag(false); upload(e.dataTransfer.files) },
+  }
+  const onKey = (e) => {
+    if (renaming) return
+    const box = e.currentTarget
+    const i = rows.findIndex((f) => f.id === sel[sel.length - 1])
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault()
+      const n = rows[Math.min(rows.length - 1, Math.max(0, i < 0 ? 0 : i + (e.key === 'ArrowDown' ? 1 : -1)))]
+      if (!n) return
+      setSel(e.shiftKey ? [...new Set([...sel, n.id])] : [n.id])
+      requestAnimationFrame(() => box.querySelector(`[data-id="${n.id}"]`)?.scrollIntoView({ block: 'nearest' }))
+    } else if (e.key === ' ' && i >= 0) { e.preventDefault(); setSel((s) => (s.includes(rows[i].id) ? s.filter((x) => x !== rows[i].id) : [...s, rows[i].id])) }
+    else if (e.key === 'F2' && one && !(one.id in prog)) { e.preventDefault(); setRenaming(one.id) }
+    else if ((e.key === 'Delete' || e.key === 'Backspace') && sel.length) { e.preventDefault(); remove(sel.filter((id) => !(id in prog))) }
+    else if (e.key === 'Escape') setSel([])
+    else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') { e.preventDefault(); setSel(rows.map((f) => f.id)) }
+  }
+
   return (
-    <div className="grid overflow-hidden rounded-xl border border-line-2 bg-card md:grid-cols-[1fr_auto]">
+    <div className="relative grid overflow-hidden rounded-xl border border-line-2 bg-card md:grid-cols-[1fr_auto]" {...dragProps}>
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2 border-b border-line px-3 py-2">
           <nav className="flex items-center gap-1 font-mono text-[12px] text-dim"><span className="hover:text-fg">/home</span><ChevronRight className="size-3" /><span className="hover:text-fg">container</span><ChevronRight className="size-3" /><span className="text-fg">api-gateway</span></nav>
           <div className="ml-auto flex items-center gap-1">
-            {!compact && <div className="relative mr-1 w-40"><Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-dim" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search files" aria-label="Search files" className="h-7 w-full rounded-md border border-line bg-transparent pl-8 pr-2 text-[12px] outline-none placeholder:text-dim focus:border-line-2" /></div>}
-            <Button variant="outline" size="sm" className="h-7" onClick={() => toast('Upload simulated')}><Upload />Upload</Button>
-            <Button variant="outline" size="sm" className="h-7" onClick={() => toast('New folder simulated')}><Plus />New</Button>
+            {!compact && <div className="relative mr-1 w-40"><Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-dim" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search files" aria-label="Search files" className="h-7 w-full rounded-md border border-line bg-transparent pl-8 pr-2 text-[12px] outline-none transition-colors placeholder:text-dim hover:border-line-2 focus:border-line-2" /></div>}
+            <input ref={input} type="file" multiple hidden onChange={(e) => { upload(e.target.files); e.target.value = '' }} />
+            <Button variant="outline" size="sm" className="h-7" onClick={() => input.current?.click()}><Upload />Upload</Button>
+            <Button variant="outline" size="sm" className="h-7" onClick={newFolder}><Plus />New</Button>
           </div>
         </div>
-        {sel.length > 1 && <div className="flex items-center gap-2 border-b border-line bg-white/[0.04] px-3 py-1.5 text-[12.5px]"><span>{sel.length} selected</span><Button size="sm" variant="ghost" className="h-6" onClick={() => toast('Archive simulated')}><Archive />Compress</Button><Button size="sm" variant="ghost" className="h-6 text-bad" onClick={() => toast('Delete simulated')}><Trash2 />Delete</Button><button className="ml-auto text-dim hover:text-fg" onClick={() => setSel([])}>Clear</button></div>}
-        <div className="max-h-[340px] overflow-y-auto outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/20" role="listbox" aria-multiselectable="true" aria-label="Files" tabIndex={0}
-          onKeyDown={(e) => {
-            const box = e.currentTarget
-            const i = rows.findIndex((f) => f.n === sel[sel.length - 1])
-            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-              e.preventDefault()
-              const n = rows[Math.min(rows.length - 1, Math.max(0, i < 0 ? 0 : i + (e.key === 'ArrowDown' ? 1 : -1)))]
-              if (!n) return
-              setSel(e.shiftKey ? [...new Set([...sel, n.n])] : [n.n])
-              requestAnimationFrame(() => box.querySelector(`[data-name="${n.n}"]`)?.scrollIntoView({ block: 'nearest' }))
-            } else if (e.key === ' ' && i >= 0) { e.preventDefault(); setSel((s) => (s.includes(rows[i].n) ? s.filter((x) => x !== rows[i].n) : [...s, rows[i].n])) }
-            else if (e.key === 'Escape') setSel([])
-            else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') { e.preventDefault(); setSel(rows.map((f) => f.n)) }
-          }}>
-          {rows.map((f) => (
-            <ContextMenu key={f.n}>
-              <ContextTrigger asChild>
-                <div data-name={f.n} role="option" aria-selected={sel.includes(f.n)} onClick={(e) => setSel((s) => (e.metaKey || e.ctrlKey ? (s.includes(f.n) ? s.filter((x) => x !== f.n) : [...s, f.n]) : [f.n]))} className={cn('flex cursor-pointer items-center gap-3 border-b border-line/50 px-3 py-2 text-[13px] transition-colors last:border-b-0 hover:bg-hover', sel.includes(f.n) && 'bg-white/[0.06]')}>
-                  <Checkbox checked={sel.includes(f.n)} onCheckedChange={(v) => setSel((s) => (v ? [...s, f.n] : s.filter((x) => x !== f.n)))} onClick={(e) => e.stopPropagation()} aria-label={`Select ${f.n}`} />
-                  {f.t === 'dir' ? <Folder className="size-4 text-info" /> : <FileIcon className="size-4 text-dim" />}
-                  <span className="min-w-0 flex-1 truncate">{f.n}</span>
-                  {!compact && <span className="hidden font-mono text-[11px] text-dim lg:block">{f.p}</span>}
-                  <span className="w-16 text-right font-mono text-[11.5px] text-dim">{f.s}</span>
-                  {!compact && <span className="hidden w-28 text-right text-[12px] text-dim md:block">{f.m}</span>}
-                </div>
-              </ContextTrigger>
-              <ContextContent>
-                <ContextItem><Pencil />Rename</ContextItem><ContextItem><Download />Download</ContextItem><ContextItem><Archive />Compress</ContextItem><ContextItem><Lock />Permissions</ContextItem><ContextSep /><ContextItem danger><Trash2 />Delete</ContextItem>
-              </ContextContent>
-            </ContextMenu>
-          ))}
-          {rows.length === 0 && <div className="py-10 text-center text-dim">No files match.</div>}
+        {sel.length > 1 && <div className="flex items-center gap-2 border-b border-line bg-white/[0.04] px-3 py-1.5 text-[12.5px]"><span>{sel.length} selected</span><Button size="sm" variant="ghost" className="h-6" onClick={() => toast('Archive simulated')}><Archive />Compress</Button><Button size="sm" variant="ghost" className="h-6 text-bad" onClick={() => remove(sel.filter((id) => !(id in prog)))}><Trash2 />Delete</Button><button className="ml-auto text-dim hover:text-fg" onClick={() => setSel([])}>Clear</button></div>}
+        <div className="max-h-[340px] min-h-[120px] overflow-y-auto outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/20" role="listbox" aria-multiselectable="true" aria-label="Files" tabIndex={0} onKeyDown={onKey}>
+          {rows.map((f) => {
+            const busy = f.id in prog
+            return (
+              <ContextMenu key={f.id}>
+                <ContextTrigger asChild>
+                  <div data-id={f.id} data-name={f.n} role="option" aria-selected={sel.includes(f.id)} onClick={(e) => setSel((s) => (e.metaKey || e.ctrlKey ? (s.includes(f.id) ? s.filter((x) => x !== f.id) : [...s, f.id]) : [f.id]))} onDoubleClick={() => !busy && setRenaming(f.id)} className={cn('flex cursor-pointer items-center gap-3 border-b border-line/50 px-3 py-2 text-[13px] transition-colors duration-100 last:border-b-0 hover:bg-hover', sel.includes(f.id) && 'bg-white/[0.06] shadow-[inset_2px_0_0_var(--color-fg)]')}>
+                    <Checkbox checked={sel.includes(f.id)} onCheckedChange={(v) => setSel((s) => (v ? [...s, f.id] : s.filter((x) => x !== f.id)))} onClick={(e) => e.stopPropagation()} aria-label={`Select ${f.n}`} />
+                    {f.t === 'dir' ? <Folder className="size-4 shrink-0 text-info" /> : <FileIcon className="size-4 shrink-0 text-dim" />}
+                    <div className="min-w-0 flex-1">
+                      {renaming === f.id ? (
+                        <input autoFocus defaultValue={f.n} aria-label="New name" onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}
+                          onFocus={(e) => { const dot = f.t === 'dir' ? -1 : f.n.lastIndexOf('.'); e.target.setSelectionRange(0, dot > 0 ? dot : f.n.length) }}
+                          onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); commitRename(f.id, e.currentTarget.value) } else if (e.key === 'Escape') setRenaming(null) }}
+                          onBlur={(e) => { if (renaming === f.id && !commitRename(f.id, e.currentTarget.value)) { e.currentTarget.focus() } }}
+                          className="h-6 w-full rounded border border-white/40 bg-black px-1.5 text-[13px] outline-none ring-2 ring-white/10" />
+                      ) : <span className="block truncate">{f.n}</span>}
+                      {busy && <span className="mt-1.5 block h-[3px] overflow-hidden rounded-full bg-white/10"><i className="block h-full rounded-full bg-fg transition-[width] duration-100" style={{ width: prog[f.id] + '%' }} /></span>}
+                    </div>
+                    {!compact && <span className="hidden font-mono text-[11px] text-dim lg:block">{f.p}</span>}
+                    <span className="w-16 text-right font-mono text-[11.5px] text-dim">{busy ? Math.round(prog[f.id]) + '%' : f.s}</span>
+                    {!compact && <span className="hidden w-28 text-right text-[12px] text-dim md:block">{f.m}</span>}
+                  </div>
+                </ContextTrigger>
+                <ContextContent>
+                  <ContextItem disabled={busy} onSelect={() => setRenaming(f.id)}><Pencil />Rename<span className="ml-auto font-mono text-[10.5px] text-dim">F2</span></ContextItem>
+                  <ContextItem onSelect={() => toast('Download simulated')}><Download />Download</ContextItem>
+                  <ContextItem onSelect={() => toast('Compress simulated')}><Archive />Compress</ContextItem>
+                  <ContextItem onSelect={() => toast('Permissions are in the inspector')}><Lock />Permissions</ContextItem>
+                  <ContextSep />
+                  <ContextItem danger disabled={busy} onSelect={() => remove(sel.includes(f.id) ? sel : [f.id])}><Trash2 />Delete<span className="ml-auto font-mono text-[10.5px] text-dim">Del</span></ContextItem>
+                </ContextContent>
+              </ContextMenu>
+            )
+          })}
+          {rows.length === 0 && (
+            <div className="grid place-items-center gap-2 px-6 py-10 text-center text-[13px] text-dim">
+              <Upload className="size-5" />
+              {q ? <>No files match “{q}”</> : <>This folder is empty. Drop files here, or <button className="text-fg underline underline-offset-4" onClick={() => input.current?.click()}>choose files</button>.</>}
+            </div>
+          )}
         </div>
       </div>
       {!compact && (
@@ -166,10 +258,11 @@ export function FileExplorer({ compact }) {
           {one ? (<><div className="mb-3 flex items-center gap-2 font-medium">{one.t === 'dir' ? <Folder className="size-4 text-info" /> : <FileIcon className="size-4 text-dim" />}<span className="truncate">{one.n}</span></div>
             <dl className="space-y-2 text-[12.5px]">{[['Size', one.s], ['Modified', one.m], ['Mode', one.p]].map(([k, v]) => <div key={k} className="flex justify-between"><dt className="text-dim">{k}</dt><dd className="font-mono">{v}</dd></div>)}</dl>
             {one.n.endsWith('.js') && <pre className="mt-4 overflow-hidden rounded-lg border border-line bg-black p-3 font-mono text-[11px] leading-5 text-fg/70">{`import http from 'http'\nconst port = 3000\nhttp.createServer((q, r) => {\n  r.end('ok')\n}).listen(port)`}</pre>}
-            <div className="mt-4 flex gap-2"><Button size="sm" variant="outline" className="flex-1"><Pencil />Edit</Button><Button size="sm" variant="outline" className="flex-1"><Download />Get</Button></div></>)
-            : <div className="grid h-full min-h-40 place-items-center text-center text-[12.5px] text-dim">Select a single file to preview.</div>}
+            <div className="mt-4 flex gap-2"><Button size="sm" variant="outline" className="flex-1" onClick={() => setRenaming(one.id)}><Pencil />Rename</Button><Button size="sm" variant="outline" className="flex-1" onClick={() => toast('Download simulated')}><Download />Get</Button></div></>)
+            : <div className="grid h-full min-h-40 place-items-center text-center text-[12.5px] text-dim">{sel.length > 1 ? `${sel.length} items selected` : 'Select a single file to preview.'}</div>}
         </aside>
       )}
+      <div aria-hidden className={cn('pointer-events-none absolute inset-0 z-20 grid place-items-center rounded-xl border-2 border-dashed border-white/50 bg-black/70 text-[13px] font-medium backdrop-blur-[2px] transition-opacity duration-150', drag ? 'opacity-100' : 'opacity-0')}><span className="flex items-center gap-2"><Upload className="size-4" />Drop to upload</span></div>
     </div>
   )
 }
@@ -307,61 +400,158 @@ export const MailboxTable = () => (
     ))}
   </div>
 )
+/* Webmail (simulated): folders, search, toolbar actions with undo, keyboard shortcuts (e archive, # delete,
+   s star, u unread, c compose, arrows), compose with validation and a Sent copy. Layout adapts to its own
+   width: 3 panes (folders | list | reader), 2 panes with a folder chip row, or one pane at a time. */
+/* module-level on purpose: a component declared inside Webmail would remount on every render */
+const Tb = ({ label, icon: I, onClick, disabled, active }) => (
+  <Tooltip content={label}><Button variant="ghost" size="icon" className={cn('size-8', active && 'text-warn')} aria-label={label} disabled={disabled} onClick={onClick}><I className={cn(active && 'fill-current')} /></Button></Tooltip>
+)
+const FOLDERS = [['inbox', 'Inbox', Inbox], ['starred', 'Starred', Star], ['sent', 'Sent', Send], ['archive', 'Archive', Archive], ['trash', 'Trash', Trash2]]
 export function Webmail({ height = 460, mobile: forceMobile }) {
   const box = useRef(null)
-  const [narrow, setNarrow] = useState(false)
-  const picked = useRef(false)
-  /* in a narrow container the inbox opens on the LIST (like a phone), not on a pre-selected message */
-  useLayoutEffect(() => { const n = box.current.clientWidth < 640; setNarrow(n); if (n && !picked.current) setSel(null); const ro = new ResizeObserver(([e]) => setNarrow(e.contentRect.width < 640)); ro.observe(box.current); return () => ro.disconnect() }, [])
-  const mobile = forceMobile || narrow
-  const [msgs, setMsgs] = useState(MESSAGES)
-  const [sel, setSel] = useState(forceMobile ? null : 1)
+  const [w, setW] = useState(900)
+  const [msgs, setMsgs] = useState(() => [...MESSAGES.map((m) => ({ ...m, folder: 'inbox', starred: false })), ...EXTRA_MESSAGES.map((m) => ({ starred: false, ...m }))])
+  const [folder, setFolder] = useState('inbox')
+  const [q, setQ] = useState('')
+  const [sel, setSel] = useState(1)
   const [compose, setCompose] = useState(false)
-  const m = msgs.find((x) => x.id === sel)
+  const [draft, setDraft] = useState({ to: '', subj: '', body: '' })
+  const [draftErr, setDraftErr] = useState('')
+  const picked = useRef(false)
+  useLayoutEffect(() => {
+    const measure = () => setW(box.current.clientWidth)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(box.current)
+    return () => ro.disconnect()
+  }, [])
+  const wide = !forceMobile && w >= 860
+  const single = forceMobile || w < 640
+  useLayoutEffect(() => { if (single && !picked.current) setSel(null) }, [single])
+
+  const inFolder = (m, f) => (f === 'starred' ? m.starred && m.folder !== 'trash' : m.folder === f)
+  const list = msgs.filter((m) => inFolder(m, folder) && (m.from + m.subj + m.prev + m.mail).toLowerCase().includes(q.toLowerCase()))
+  const count = (f) => msgs.filter((m) => inFolder(m, f) && (f === 'inbox' ? m.unread : true)).length
+  const cur = msgs.find((m) => m.id === sel)
   const open = (id) => { picked.current = true; setSel(id); setMsgs((a) => a.map((x) => (x.id === id ? { ...x, unread: false } : x))) }
+  const nextAfter = (id) => { const i = list.findIndex((m) => m.id === id); return (list[i + 1] || list[i - 1] || {}).id ?? null }
+  const patch = (id, fn) => setMsgs((a) => a.map((x) => (x.id === id ? fn(x) : x)))
+
+  const moveTo = (id, to, label) => {
+    const m = msgs.find((x) => x.id === id)
+    if (!m) return
+    const prev = { folder: m.folder, unread: m.unread }
+    const nxt = nextAfter(id)
+    patch(id, (x) => ({ ...x, folder: to }))
+    setSel(single ? null : nxt)
+    toast(label, { action: { label: 'Undo', onClick: () => patch(id, (x) => ({ ...x, ...prev })) } })
+  }
+  const remove = (id) => {
+    const m = msgs.find((x) => x.id === id)
+    if (!m) return
+    if (m.folder === 'trash') {
+      const at = msgs.indexOf(m), nxt = nextAfter(id)
+      setMsgs((a) => a.filter((x) => x.id !== id)); setSel(single ? null : nxt)
+      toast('Deleted permanently', { action: { label: 'Undo', onClick: () => setMsgs((a) => { const o = [...a]; o.splice(Math.min(at, o.length), 0, m); return o }) } })
+    } else moveTo(id, 'trash', 'Moved to Trash')
+  }
+  const toggleStar = (id) => patch(id, (x) => ({ ...x, starred: !x.starred }))
+  const markUnread = (id) => { patch(id, (x) => ({ ...x, unread: true })); if (single) setSel(null); toast('Marked as unread') }
+
+  const send = () => {
+    if (!/^\S+@\S+\.\S+$/.test(draft.to.trim())) { setDraftErr('Enter a valid recipient address'); return }
+    const id = Date.now()
+    setMsgs((a) => [{ id, folder: 'sent', starred: false, from: 'You', mail: 'to: ' + draft.to.trim(), subj: draft.subj.trim() || '(no subject)', prev: draft.body.slice(0, 80) || '(empty)', time: 'now', unread: false, body: draft.body, att: [] }, ...a])
+    setCompose(false); setDraft({ to: '', subj: '', body: '' }); setDraftErr('')
+    toast.success('Sent (simulated)', { action: { label: 'View', onClick: () => { setFolder('sent'); setSel(id) } } })
+  }
+  const onKey = (e) => {
+    if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return
+    const id = cur?.id
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault()
+      const i = list.findIndex((m) => m.id === (document.activeElement?.dataset?.id ? +document.activeElement.dataset.id : sel))
+      const n = list[Math.min(list.length - 1, Math.max(0, i + (e.key === 'ArrowDown' ? 1 : -1)))]
+      const root = e.currentTarget
+      if (n) { open(n.id); requestAnimationFrame(() => root.querySelector(`[data-id="${n.id}"]`)?.focus()) }
+    } else if (e.key === 'c') { e.preventDefault(); setCompose(true) }
+    else if (id && e.key === 'e') { e.preventDefault(); moveTo(id, 'archive', 'Archived') }
+    else if (id && (e.key === '#' || e.key === 'Delete')) { e.preventDefault(); remove(id) }
+    else if (id && e.key === 's') { e.preventDefault(); toggleStar(id) }
+    else if (id && e.key === 'u') { e.preventDefault(); markUnread(id) }
+    else if (e.key === 'Escape' && single && sel) setSel(null)
+  }
+  const renderFolders = (rail) => (
+    <nav aria-label="Folders" className={cn(rail ? 'flex flex-col gap-0.5 p-2' : 'flex gap-1 overflow-x-auto border-b border-line p-2 [scrollbar-width:none]')}>
+      {FOLDERS.map(([id, label, I]) => (
+        <button key={id} onClick={() => { setFolder(id); setSel(null); picked.current = true }} aria-current={folder === id} className={cn('flex shrink-0 items-center gap-2.5 rounded-lg text-[13px] transition-colors duration-150', rail ? 'h-8 px-2.5' : 'h-8 px-3', folder === id ? 'bg-white/[0.08] text-fg' : 'text-mute hover:bg-hover hover:text-fg')}>
+          <I className="size-4" />{label}
+          {count(id) > 0 && <span className={cn('font-mono text-[10.5px]', rail && 'ml-auto', id === 'inbox' ? 'text-fg' : 'text-dim')}>{count(id)}</span>}
+        </button>
+      ))}
+    </nav>
+  )
+
+  const showList = !single || !cur
+  const showReader = !single || !!cur
+  /* single pane swaps the list out, which drops focus to <body>; keep it inside so Esc / shortcuts still work */
+  useEffect(() => { if (single && cur && !box.current?.contains(document.activeElement)) box.current?.focus({ preventScroll: true }) }, [single, cur?.id])
   return (
-    <div ref={box} style={{ height }} className="relative overflow-hidden rounded-xl border border-line-2 bg-card">
-      <div className={cn('grid h-full', mobile ? 'grid-cols-1' : 'grid-cols-[300px_1fr]')}>
-        {(!mobile || !m) && (
-          <div className="flex min-h-0 flex-col border-r border-line">
-            <div className="flex items-center gap-2 border-b border-line p-3"><Button size="sm" onClick={() => setCompose(true)}><Plus />Compose</Button><span className="ml-auto font-mono text-[10.5px] uppercase tracking-[.06em] text-dim">Inbox · {msgs.filter((x) => x.unread).length}</span></div>
-            <div className="min-h-0 flex-1 overflow-y-auto" role="listbox" aria-label="Messages" onKeyDown={(e) => {
-              if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
-              e.preventDefault()
-              const box = e.currentTarget
-              const cur = document.activeElement?.dataset?.id ? +document.activeElement.dataset.id : sel
-              const i = msgs.findIndex((x) => x.id === cur)
-              const n = msgs[Math.min(msgs.length - 1, Math.max(0, i + (e.key === 'ArrowDown' ? 1 : -1)))]
-              if (n) { open(n.id); requestAnimationFrame(() => box.querySelector(`[data-id="${n.id}"]`)?.focus()) }
-            }}>
-              {msgs.map((x) => (
-                <button key={x.id} data-id={x.id} role="option" aria-selected={sel === x.id} onClick={() => open(x.id)} className={cn('w-full border-b border-line/50 px-4 py-3 text-left transition-colors hover:bg-hover', sel === x.id && 'bg-white/[0.06]')}>
-                  <div className="flex items-center gap-2"><span className={cn('size-1.5 shrink-0 rounded-full transition-colors duration-300', x.unread ? 'bg-[var(--brand)]' : 'bg-transparent')} /><span className={cn('min-w-0 flex-1 truncate text-[13px]', x.unread ? 'font-semibold' : 'text-mute')}>{x.from}</span><span className="text-[11px] text-dim">{x.time}</span></div>
+    <div ref={box} tabIndex={-1} style={{ height }} onKeyDown={onKey} className="relative overflow-hidden rounded-xl border border-line-2 bg-card outline-none">
+      <div className={cn('grid h-full', wide ? 'grid-cols-[168px_300px_minmax(0,1fr)]' : single ? 'grid-cols-1' : 'grid-cols-[300px_minmax(0,1fr)]')}>
+        {wide && <div className="border-r border-line">{renderFolders(true)}</div>}
+        {showList && (
+          <div className="flex min-h-0 min-w-0 flex-col border-r border-line">
+            {!wide && renderFolders(false)}
+            <div className="flex items-center gap-2 border-b border-line p-2.5">
+              <div className="relative min-w-0 flex-1"><Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-dim" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search mail" aria-label="Search mail" className="h-8 w-full rounded-lg border border-line bg-transparent pl-8 pr-2 text-[12.5px] outline-none transition-colors placeholder:text-dim hover:border-line-2 focus:border-white/30" /></div>
+              <Button size="sm" onClick={() => setCompose(true)}><Plus />Compose</Button>
+            </div>
+            <div key={folder + q} className="anim-page min-h-0 flex-1 overflow-y-auto" role="listbox" aria-label="Messages">
+              {list.length === 0 && <div className="grid h-full min-h-40 place-items-center px-6 text-center text-[13px] text-dim"><div><Inbox className="mx-auto mb-2 size-5" />{q ? <>No mail matches “{q}”</> : <>Nothing in {FOLDERS.find((f) => f[0] === folder)[1]}</>}</div></div>}
+              {list.map((x) => (
+                <button key={x.id} data-id={x.id} role="option" aria-selected={sel === x.id} onClick={() => open(x.id)} className={cn('w-full border-b border-line/50 px-4 py-3 text-left transition-colors duration-100 hover:bg-hover', sel === x.id && 'bg-white/[0.06] shadow-[inset_2px_0_0_var(--color-fg)]')}>
+                  <div className="flex items-center gap-2"><span className={cn('size-1.5 shrink-0 rounded-full transition-colors duration-300', x.unread ? 'bg-[var(--brand)]' : 'bg-transparent')} /><span className={cn('min-w-0 flex-1 truncate text-[13px]', x.unread ? 'font-semibold' : 'text-mute')}>{x.from}</span>{x.starred && <Star className="size-3 shrink-0 fill-current text-warn" />}<span className="text-[11px] text-dim">{x.time}</span></div>
                   <div className="mt-0.5 truncate pl-3.5 text-[12.5px]">{x.subj}</div><div className="truncate pl-3.5 text-[12px] text-dim">{x.prev}</div>
                 </button>
               ))}
             </div>
           </div>
         )}
-        {(!mobile || m) && (
-          <div className="min-h-0 overflow-y-auto">
-            {m ? (
-              <div className="p-5">
-                {mobile && <button onClick={() => setSel(null)} className="mb-3 text-[13px] text-dim hover:text-fg">← Inbox</button>}
-                <h3 className="text-base font-semibold leading-snug">{m.subj}</h3>
-                <div className="mt-3 flex items-center gap-3"><span className="grid size-8 place-items-center rounded-full border border-line-2 bg-white/5 text-xs">{m.from[0]}</span><div className="text-[13px]"><div className="font-medium">{m.from}</div><div className="text-xs text-dim">{m.mail}</div></div><div className="ml-auto flex gap-1"><Button variant="ghost" size="icon" aria-label="Reply" onClick={() => setCompose(true)}><Reply /></Button><Button variant="ghost" size="icon" aria-label="Star"><Star /></Button><Button variant="ghost" size="icon" aria-label="Delete" onClick={() => { setMsgs(msgs.filter((x) => x.id !== m.id)); setSel(null); toast('Moved to trash (simulated)') }}><Trash2 /></Button></div></div>
-                <p className="mt-5 whitespace-pre-wrap text-[13.5px] leading-relaxed text-fg/85">{m.body}</p>
-                {m.att.length > 0 && <div className="mt-5 flex flex-wrap gap-2">{m.att.map((a) => <span key={a} className="inline-flex h-8 items-center gap-2 rounded-lg border border-line-2 px-3 text-[12.5px]"><Paperclip className="size-3.5 text-dim" />{a}</span>)}</div>}
-              </div>
-            ) : <div className="grid h-full place-items-center text-dim"><div className="text-center"><Mail className="mx-auto mb-2 size-5" />Select a message</div></div>}
+        {showReader && (
+          <div className="flex min-h-0 min-w-0 flex-col">
+            <div className="flex items-center gap-0.5 border-b border-line px-2 py-1.5">
+              {single && cur && <Button variant="ghost" size="sm" className="mr-1 h-8" onClick={() => setSel(null)}><ArrowLeft />Back</Button>}
+              <Tb label="Archive (e)" icon={Archive} disabled={!cur || cur.folder === 'archive'} onClick={() => moveTo(cur.id, 'archive', 'Archived')} />
+              <Tb label={cur?.folder === 'trash' ? 'Delete forever (#)' : 'Move to Trash (#)'} icon={Trash2} disabled={!cur} onClick={() => remove(cur.id)} />
+              <Tb label="Mark as unread (u)" icon={MailOpen} disabled={!cur} onClick={() => markUnread(cur.id)} />
+              <Tb label={cur?.starred ? 'Unstar (s)' : 'Star (s)'} icon={Star} active={cur?.starred} disabled={!cur} onClick={() => toggleStar(cur.id)} />
+              <span className={cn('ml-auto hidden whitespace-nowrap px-2 font-mono text-[10px] uppercase tracking-[.06em] text-dim', wide && 'sm:block')}>e archive · # delete · s star · c compose</span>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              {cur ? (
+                <div key={cur.id} className="anim-page p-5">
+                  <h3 className="text-base font-semibold leading-snug">{cur.subj}</h3>
+                  <div className="mt-3 flex items-center gap-3"><span className="grid size-8 place-items-center rounded-full border border-line-2 bg-white/5 text-xs">{cur.from[0]}</span><div className="min-w-0 text-[13px]"><div className="font-medium">{cur.from}</div><div className="truncate text-xs text-dim">{cur.mail}</div></div><span className="ml-auto text-xs text-dim">{cur.time}</span></div>
+                  <p className="mt-5 whitespace-pre-wrap text-[13.5px] leading-relaxed text-fg/85">{cur.body}</p>
+                  {cur.att.length > 0 && <div className="mt-5 flex flex-wrap gap-2">{cur.att.map((a) => <span key={a} className="inline-flex h-8 items-center gap-2 rounded-lg border border-line-2 px-3 text-[12.5px]"><Paperclip className="size-3.5 text-dim" />{a}</span>)}</div>}
+                  <div className="mt-6"><Button variant="outline" size="sm" onClick={() => { setDraft({ to: cur.mail.replace(/^to: /, ''), subj: 'Re: ' + cur.subj.replace(/^Re: /, ''), body: '' }); setCompose(true) }}><Reply />Reply</Button></div>
+                </div>
+              ) : <div className="grid h-full min-h-40 place-items-center text-dim"><div className="text-center"><Mail className="mx-auto mb-2 size-5" />Select a message</div></div>}
+            </div>
           </div>
         )}
       </div>
       {compose && (
         <div className="anim-menu absolute bottom-3 right-3 z-10 w-[min(420px,calc(100%-1.5rem))] rounded-xl border border-line-2 bg-[#101012] shadow-2xl shadow-black/60" style={{ transformOrigin: '100% 100%' }} role="dialog" aria-label="New message" onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); setCompose(false) } }}>
-          <div className="flex items-center justify-between border-b border-line px-4 py-2.5 text-[13px] font-medium">New message<button aria-label="Close" onClick={() => setCompose(false)} className="text-dim hover:text-fg"><X className="size-4" /></button></div>
-          <div className="space-y-2 p-3"><input autoFocus placeholder="To" className={inputCls()} aria-label="To" /><input placeholder="Subject" className={inputCls()} aria-label="Subject" /><Textarea rows={5} placeholder="Write something…" /></div>
-          <div className="flex items-center justify-between border-t border-line px-3 py-2.5"><Button variant="ghost" size="icon" aria-label="Attach"><Paperclip /></Button><Button onClick={() => { setCompose(false); toast.success('Sent (simulated)') }}><Send />Send</Button></div>
+          <div className="flex items-center justify-between border-b border-line px-4 py-2.5 text-[13px] font-medium">New message<button aria-label="Close" onClick={() => setCompose(false)} className="text-dim transition-colors hover:text-fg"><X className="size-4" /></button></div>
+          <div className="space-y-2 p-3">
+            <div><input autoFocus value={draft.to} onChange={(e) => { setDraft({ ...draft, to: e.target.value }); setDraftErr('') }} placeholder="To" aria-invalid={!!draftErr || undefined} className={inputCls(!!draftErr)} aria-label="To" />{draftErr && <p className="mt-1 text-[12px] text-bad">{draftErr}</p>}</div>
+            <input value={draft.subj} onChange={(e) => setDraft({ ...draft, subj: e.target.value })} placeholder="Subject" className={inputCls()} aria-label="Subject" />
+            <Textarea rows={5} value={draft.body} onChange={(e) => setDraft({ ...draft, body: e.target.value })} placeholder="Write something…" />
+          </div>
+          <div className="flex items-center justify-between border-t border-line px-3 py-2.5"><Button variant="ghost" size="icon" aria-label="Attach"><Paperclip /></Button><Button onClick={send}><Send />Send</Button></div>
         </div>
       )}
     </div>

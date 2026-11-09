@@ -5,6 +5,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import '../builder/fx.js'
 import './orbs.css'
 import './orbs2.css'
+import './orbs3.css'
 import { cn } from '../lib/utils'
 
 const fx = () => window.BlipFX
@@ -157,6 +158,10 @@ const bodies = {
   goo: () => <GooBody />,
   jelly: () => <span className="ob ob-jelly" />,
   eclipse: () => <span className="ob ob-eclipse" />,
+  prism: () => <span className="ob ob-prism"><i className="gem" /><i className="spark" /></span>,
+  sonar: () => <span className="ob ob-sonar"><i /><i /><i /></span>,
+  cloud: () => <span className="ob ob-cloud"><i /><i /><i /></span>,
+  marble: () => <span className="ob ob-marble"><span className="ob-marble-shine" /></span>,
   mercury: () => <span className="ob ob-mercury" />,
   ember: () => <span className="ob ob-ember"><i /><i /><i /><i /><i /></span>,
   mono: () => <span className="ob ob-mono"><span className="orbit" /></span>,
@@ -177,6 +182,10 @@ export const ORBS = [
   { id: 'mercury', name: 'Mercury', tag: 'Liquid metal', dark: true, note: 'A chrome blob whose outline slowly morphs, with a sweeping sheen. Heavy and expensive-looking; works best large.' },
   { id: 'moon', name: 'Moon', tag: 'Matte pearl', dark: true, note: 'A matte pearl lit from one side; the light source drifts around it so the shading is always slowly moving. Quiet and soft.' },
   { id: 'eclipse', name: 'Eclipse', tag: 'Corona', note: 'A black disc with a thin bright rim and a faintly turning corona of rays. High contrast, very graphic.' },
+  { id: 'prism', name: 'Prism', tag: 'Faceted gem', dark: true, note: 'A six-facet gem whose colours sweep slowly around, with one sparkle that flashes now and then. The only orb that is not round, so it reads instantly at small sizes.' },
+  { id: 'sonar', name: 'Sonar', tag: 'Ripples', note: 'A dark core sending out cyan ripples. Thinking speeds the pings up; error shifts them to a warning hue. Feels like something is listening.' },
+  { id: 'cloud', name: 'Cloud', tag: 'Soft', dark: true, note: 'Pale blue puffs drifting over a soft sphere, with dark eyes. The gentlest, most approachable option, especially on light backgrounds.' },
+  { id: 'marble', name: 'Marble', tag: 'Glass swirl', dark: true, note: 'A glass marble with a colour swirl rolling inside and a hard highlight. Toy-like and glossy, and it still holds up at 22 px.' },
   { id: 'ember', name: 'Ember', tag: 'Warm', note: 'A glowing coal that flickers, with sparks rising off it. The warm counterpart to the cool orbs; hue-rotates to a cold tone on error.' },
   { id: 'dsphere', name: 'Dot sphere', tag: 'On-brand', note: 'A rotating sphere of dots drawn on canvas. Same language as the dot-matrix type; the back of the sphere dims so the eyes stay legible.' },
   { id: 'led', name: 'LED matrix', tag: 'Pixel face', noFace: true, note: 'An 11\u00d711 dot display where the entire face (eyes, blink, smile, frown) is made of lit pixels. No overlay: the expression is the display.' },

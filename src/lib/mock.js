@@ -130,3 +130,11 @@ export const CATALOG = [
   { id: 'dom', name: 'Domains', from: 3, blurb: 'Register and transfer domains with free WHOIS privacy.', tag: '' },
 ]
 export const REVENUE = [18, 22, 21, 27, 31, 29, 36, 41, 39, 46, 52, 58]
+
+export const EXTRA_MESSAGES = [
+  { id: 5, folder: 'sent', from: 'You', mail: 'to: maya@northwind.io', subj: 'Migration plan v2', prev: 'Attached the updated plan with the Friday cutover window.', time: 'Mon', unread: false, body: 'Hi Maya,\n\nAttached the updated plan with the Friday cutover window and rollback steps.\n\nStefan', att: ['migration-plan-v2.pdf'] },
+  { id: 6, folder: 'sent', from: 'You', mail: 'to: jonas@weber.dev', subj: 'Re: Staging credentials', prev: 'Thanks, received. I rotated the password already.', time: 'Sun', unread: false, body: 'Thanks, received. I rotated the password already.', att: [] },
+  { id: 7, folder: 'archive', from: 'Blipmade Billing', mail: 'billing@blipmade.cloud', subj: 'Receipt for INV-1046', prev: 'Payment received: $41.00. Thank you.', time: 'Oct 02', unread: false, body: 'Payment received: $41.00 for INV-1046. Thank you.\n\n(This is a simulated message.)', att: ['receipt-1046.pdf'] },
+  { id: 8, folder: 'archive', from: 'Elena Rossi', mail: 'elena@rossi.it', subj: 'Kickoff notes', prev: 'Notes from today: three services to migrate first…', time: 'Sep 18', unread: false, body: 'Notes from today: three services to migrate first, then DNS, then email.', att: [] },
+  { id: 9, folder: 'trash', from: 'Promo Digest', mail: 'news@deals.example', subj: 'You will not believe these offers', prev: 'Limited time only…', time: 'Oct 29', unread: false, body: 'Limited time only. (Simulated spam.)', att: [] },
+]

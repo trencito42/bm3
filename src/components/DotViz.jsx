@@ -36,45 +36,73 @@ export function DotGauge({ value, size = 104, label, n = 44 }) {
 
 /* column chart made of dots */
 /* Column chart made of dots.
-   The reveal is staggered once per dataset; after that hover has no delay, so the highlighted column responds
-   instantly. The tooltip snaps to the top dot of the hovered column and glides between columns. */
-export function DotBars({ values, rows = 11, unit = 'GB' }) {
-  const [on, setOn] = useState(false)
-  const [revealed, setRevealed] = useState(false)
+   - Fixed 150-unit viewBox: switching between 14 / 30 / 60 columns never changes the chart's height and
+     dots stay round (their radius shrinks when columns get dense).
+   - First mount: staggered reveal. Dataset change: the previous dots cross-fade out while the new set fades
+     in already lit, so the data stays readable during the transition.
+   - Hover has no delay; the hovered column stays bright, others dim (the crosshair). The tooltip snaps to the
+     column's top dot and glides between columns. */
+const W = 150, P = 5
+function BarsLayer({ values, rows, unit, reveal, interactive, leaving }) {
+  const [on, setOn] = useState(!reveal)
+  const [revealed, setRevealed] = useState(!reveal)
   const [tip, setTip] = useState(null)
   const [show, setShow] = useState(false)
   const [hoverCol, setHoverCol] = useState(null)
   useEffect(() => {
-    setOn(false); setRevealed(false)
+    if (!reveal) return
     const r = requestAnimationFrame(() => requestAnimationFrame(() => setOn(true)))
     const t = setTimeout(() => setRevealed(true), values.length * 14 + rows * 10 + 340)
     return () => { cancelAnimationFrame(r); clearTimeout(t) }
-  }, [values])
-  const P = 5
+  }, [])
+  const px = W / values.length
+  const rad = Math.min(1.55, px * 0.31)
   const max = Math.max(...values) * 1.05
-  const point = (e, c, v, g) => {
+  const point = (c, v, g) => {
     const top = g.querySelector('[data-top="true"]')?.getBoundingClientRect()
     if (!top) return
     setTip({ x: top.left + top.width / 2, y: top.top, t: `Day ${c + 1} \u00b7 ${Math.round(v)} ${unit}` })
     setShow(true); setHoverCol(c)
   }
   return (
-    <div className="relative" onPointerLeave={() => { setShow(false); setHoverCol(null) }}>
-      <svg viewBox={`0 0 ${values.length * P} ${rows * P}`} className="block h-auto w-full" role="img" aria-label={`Bar chart, ${values.length} values`}>
+    <div className={leaving ? 'pointer-events-none absolute inset-0' : 'relative'} style={{ animation: leaving ? 'fade-out 220ms ease-out forwards' : reveal ? undefined : 'fade-in 220ms ease-out' }} onPointerLeave={() => { setShow(false); setHoverCol(null) }} aria-hidden={leaving || undefined}>
+      <svg viewBox={`0 0 ${W} ${rows * P}`} className="block h-auto w-full" role="img" aria-label={`Bar chart, ${values.length} values`}>
         {values.map((v, c) => {
           const n = Math.max(1, Math.round((v / max) * rows))
           return (
-            <g key={c} className="group" onPointerEnter={(e) => point(e, c, v, e.currentTarget)} onPointerMove={(e) => point(e, c, v, e.currentTarget)}>
-              <rect x={c * P} y="0" width={P} height={rows * P} fill="transparent" />
+            <g key={c} onPointerEnter={interactive ? (e) => point(c, v, e.currentTarget) : undefined} onPointerMove={interactive ? (e) => point(c, v, e.currentTarget) : undefined}>
+              <rect x={c * px} y="0" width={px} height={rows * P} fill="transparent" />
               {Array.from({ length: rows }, (_, r) => {
                 const lit = on && r < n
-                return <circle key={r} data-top={r === n - 1} cx={c * P + P / 2} cy={(rows - 1 - r) * P + P / 2} r={1.55} className="fill-white transition-[opacity,fill] duration-150 group-hover:[fill:var(--brand)]" style={{ opacity: lit ? (r === n - 1 ? 1 : 0.8) * (hoverCol !== null && hoverCol !== c ? 0.42 : 1) : 0.1, transitionDuration: revealed ? '120ms' : '300ms', transitionDelay: revealed ? '0ms' : `${c * 14 + r * 10}ms` }} />
+                const hot = hoverCol === c && lit
+                return <circle key={r} data-top={r === n - 1} cx={(c + 0.5) * px} cy={(rows - 1 - r) * P + P / 2} r={rad} style={{ fill: hot ? 'var(--brand)' : '#fff', opacity: lit ? (r === n - 1 ? 1 : 0.8) * (hoverCol !== null && hoverCol !== c ? 0.42 : 1) : 0.1, transition: `opacity ${revealed ? 120 : 300}ms, fill 120ms`, transitionDelay: revealed ? '0ms' : `${c * 14 + r * 10}ms` }} />
               })}
             </g>
           )
         })}
       </svg>
-      {tip && <div className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-[calc(100%+8px)] whitespace-nowrap rounded-md border border-line-2 bg-card px-2.5 py-1.5 font-mono text-[11px] tabular-nums" style={{ left: tip.x, top: tip.y, opacity: show ? 1 : 0, transition: 'left 100ms var(--ease-out), top 100ms var(--ease-out), opacity 120ms' }}>{tip.t}</div>}
+      {interactive && tip && <div className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-[calc(100%+8px)] whitespace-nowrap rounded-md border border-line-2 bg-card px-2.5 py-1.5 font-mono text-[11px] tabular-nums" style={{ left: tip.x, top: tip.y, opacity: show ? 1 : 0, transition: 'left 100ms var(--ease-out), top 100ms var(--ease-out), opacity 120ms' }}>{tip.t}</div>}
+    </div>
+  )
+}
+/* `live` streams (a sliding window) update the dots in place instead of cross-fading a new layer every tick */
+export function DotBars({ values, rows = 11, unit = 'GB', live = false }) {
+  const key = values.join(',')
+  const [layers, setLayers] = useState([{ id: 0, values, key, reveal: true }])
+  const seq = useRef(0)
+  useEffect(() => {
+    if (live) { setLayers((L) => [{ ...L[L.length - 1], values, key }]); return }
+    setLayers((L) => {
+      if (L[L.length - 1].key === key) return L
+      seq.current += 1
+      return [...L.map((l) => ({ ...l, leaving: true })), { id: seq.current, values, key, reveal: false }]
+    })
+    const t = setTimeout(() => setLayers((L) => L.filter((l) => !l.leaving)), 260)
+    return () => clearTimeout(t)
+  }, [key])
+  return (
+    <div className="relative">
+      {layers.map((l) => <BarsLayer key={l.id} values={l.values} rows={rows} unit={unit} reveal={l.reveal} leaving={l.leaving} interactive={!l.leaving} />)}
     </div>
   )
 }

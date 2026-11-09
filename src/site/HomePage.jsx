@@ -75,7 +75,7 @@ function LiveMetrics() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between"><span className={eyebrow}>blipmade-prod · live</span><span className="flex items-center gap-1.5 font-mono text-[10.5px] uppercase text-ok"><i className="size-1.5 animate-pulse rounded-full bg-ok" />streaming</span></div>
-      <DotBars values={vals} rows={9} unit="Mbps" />
+      <DotBars values={vals} rows={9} unit="Mbps" live />
       <div className="flex justify-around pt-1"><DotGauge value={cpu} label="CPU" size={88} n={36} /><DotGauge value={58} label="RAM" size={88} n={36} /><DotGauge value={41} label="DISK" size={88} n={36} /></div>
     </div>
   )

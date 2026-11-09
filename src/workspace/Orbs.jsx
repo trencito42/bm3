@@ -83,7 +83,7 @@ function Spec() {
 }
 
 export default function Orbs() {
-  return <Doc title="Orb lab" lead="Sixteen constructions of the same assistant character. Pick one and it becomes the orb in the site builder, chat, support and everywhere else the assistant appears." sections={[
+  return <Doc title="Orb lab" lead="Twenty constructions of the same assistant character. Pick one and it becomes the orb in the site builder, chat, support and everywhere else the assistant appears." sections={[
     { id: 'gallery', title: 'Styles', note: 'click “Use this orb” to apply everywhere', node: <Gallery /> },
     { id: 'context', title: 'In context', node: <InContext /> },
     { id: 'spec', title: 'How they work', node: <Spec /> },

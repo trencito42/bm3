@@ -1,0 +1,33 @@
+/* =================== ORB STYLES (batch 3) =================== */
+
+/* ---- PRISM: a faceted gem, hue sweeping slowly through its facets, one sparkle ---- */
+.ob-prism { overflow: visible; background: none; border-radius: 0; filter: drop-shadow(0 calc(var(--orb) * .05) calc(var(--orb) * .12) rgba(130,100,255,.5)); }
+.ob-prism .gem { position: absolute; inset: 2%; clip-path: polygon(50% 0, 94% 24%, 94% 76%, 50% 100%, 6% 76%, 6% 24%); background: conic-gradient(from 20deg at 50% 50%, #7a4dff, #2bb8ff, #3be8a0, #ffd24a, #ff5ab8, #7a4dff); animation: pr-hue calc(10s / var(--spd)) linear infinite; }
+.ob-prism .gem::before { content: ""; position: absolute; inset: 0; background: conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,.42) 0 60deg, rgba(0,0,0,.28) 60deg 120deg, rgba(255,255,255,.12) 120deg 180deg, rgba(0,0,0,.38) 180deg 240deg, rgba(255,255,255,.3) 240deg 300deg, rgba(0,0,0,.16) 300deg 360deg); }
+.ob-prism .gem::after { content: ""; position: absolute; inset: 14%; clip-path: polygon(50% 0, 94% 24%, 94% 76%, 50% 100%, 6% 76%, 6% 24%); background: rgba(255,255,255,.12); }
+.ob-prism .spark { position: absolute; left: 24%; top: 16%; width: 14%; height: 14%; background: #fff; clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); animation: pr-spark calc(3.4s / var(--spd)) ease-in-out infinite; }
+@keyframes pr-hue { from { filter: hue-rotate(0deg) } to { filter: hue-rotate(360deg) } }
+@keyframes pr-spark { 0%,60%,100% { opacity: 0; transform: scale(.4) rotate(0) } 75% { opacity: 1; transform: scale(1) rotate(45deg) } }
+.orbx[data-state=error] .ob-prism .gem { animation: none; filter: hue-rotate(160deg) saturate(1.2); }
+
+/* ---- SONAR: dark core, ripples radiating outward ---- */
+.ob-sonar { overflow: visible; background: radial-gradient(circle, #07161d 0, #020608 100%); box-shadow: inset 0 0 calc(var(--orb) * .16) rgba(90,225,255,.28), 0 0 calc(var(--orb) * .26) rgba(60,200,255,.32); filter: hue-rotate(var(--hue)); transition: filter .6s; }
+.ob-sonar i { position: absolute; inset: 0; border-radius: 50%; border: max(1px, calc(var(--orb) * .012)) solid rgba(100,228,255,.85); opacity: 0; animation: so-ping calc(3s / var(--spd)) cubic-bezier(.2,.6,.3,1) infinite; }
+.ob-sonar i:nth-child(2) { animation-delay: calc(1s / var(--spd)); }
+.ob-sonar i:nth-child(3) { animation-delay: calc(2s / var(--spd)); }
+@keyframes so-ping { 0% { transform: scale(.45); opacity: .9 } 100% { transform: scale(1.22); opacity: 0 } }
+
+/* ---- CLOUD: soft puffs, dark eyes, drifting texture ---- */
+.ob-cloud { background: radial-gradient(circle at 50% 36%, #ffffff 0, #d6e4ff 62%, #a9bfff 100%); box-shadow: 0 0 calc(var(--orb) * .3) rgba(160,190,255,.5), inset 0 calc(var(--orb) * -.08) calc(var(--orb) * .14) rgba(110,140,230,.55); filter: hue-rotate(var(--hue)); transition: filter .6s; }
+.ob-cloud i { position: absolute; border-radius: 50%; background: rgba(255,255,255,.95); filter: blur(calc(var(--orb) * .05)); }
+.ob-cloud i:nth-child(1) { width: 46%; height: 46%; left: -6%; top: 6%; animation: cl-a calc(9s / var(--spd)) ease-in-out infinite; }
+.ob-cloud i:nth-child(2) { width: 52%; height: 52%; right: -8%; top: -4%; animation: cl-b calc(11s / var(--spd)) ease-in-out infinite; }
+.ob-cloud i:nth-child(3) { width: 58%; height: 40%; left: 20%; bottom: -8%; background: rgba(190,208,255,.9); animation: cl-a calc(13s / var(--spd)) ease-in-out infinite reverse; }
+@keyframes cl-a { 0%,100% { transform: translate(0,0) scale(1) } 50% { transform: translate(14%,10%) scale(1.12) } }
+@keyframes cl-b { 0%,100% { transform: translate(0,0) scale(1) } 50% { transform: translate(-12%,14%) scale(.92) } }
+
+/* ---- MARBLE: a glass marble with a colour swirl rolling inside ---- */
+.ob-marble { background: conic-gradient(from 0deg at 50% 50%, #ff5ab8, #8a4dff, #2bb8ff, #3be8a0, #ffd24a, #ff5ab8); box-shadow: inset 0 calc(var(--orb) * -.12) calc(var(--orb) * .2) rgba(0,0,0,.45), inset 0 calc(var(--orb) * .04) calc(var(--orb) * .08) rgba(255,255,255,.55), 0 calc(var(--orb) * .14) calc(var(--orb) * .28) -3px rgba(90,60,210,.55); animation: ne-spin calc(18s / var(--spd)) linear infinite; filter: hue-rotate(var(--hue)); }
+.ob-marble::before { content: ""; position: absolute; inset: -6%; background: conic-gradient(from 180deg at 40% 60%, transparent 0 30%, rgba(255,255,255,.5) 40%, transparent 52%, transparent 78%, rgba(0,0,0,.35) 88%, transparent 96%); filter: blur(calc(var(--orb) * .04)); animation: ne-spin calc(7s / var(--spd)) linear infinite reverse; }
+.ob-marble-shine { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 32% 24%, rgba(255,255,255,.9) 0, rgba(255,255,255,0) 20%); }
+@media (prefers-reduced-motion: reduce) { .ob-prism *, .ob-sonar i, .ob-cloud i, .ob-marble, .ob-marble::before { animation: none !important } }

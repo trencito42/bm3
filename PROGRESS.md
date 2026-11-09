@@ -93,3 +93,13 @@ Approach: fix behaviour first, verify in the running app (sampling real frames /
 - File manager rename/upload choreography, drag-and-drop; webmail folders/toolbars (not built), compose attachments.
 - Site builder panel-to-panel continuity on resize, publish dialog choreography.
 - Virtual keyboard / safe-area on real devices; the preview pane intermittently throttles animations while hidden, so frame-timing numbers were taken with it awake.
+
+---
+## Craft pass 3 (more orbs, chart transitions, file manager, webmail)
+**Orbs:** +4 (Prism, Sonar, Cloud, Marble) -> 20 styles, same face/6 states/cursor-follow/pulse contract. **Charts:** `DotBars` cross-fades between datasets (old layer fades out while the new one fades in lit; height constant at 215 px; layers collapse to one after ~260 ms); `live` streams (homepage throughput) update in place.
+**File manager:** inline rename (F2 / double-click / menu, extension excluded from selection, duplicate and slash validation keeps editing), delete with Undo (restores original index), new folder opens in rename, upload button + drag-and-drop with progress and "(1)" de-duplication.
+**Webmail:** Inbox/Starred/Sent/Archive/Trash with counts, search + empty state, archive/trash/delete-forever/unread/star with Undo, compose validation and Sent copy, shortcuts e # s u c, arrows, Esc. Layout by container width: 3 panes / chip row + 2 panes / single pane with Back. Fixed in single-pane: focus now stays in the widget so Esc returns to the list; shortcut hint no longer wraps at mid widths.
+**QA:** 23-route overflow/error audit at 390 px and 1280 px: 0 findings. Webmail checked at 960 / 760 / 390 px.
+
+**Still open**
+- Real keyboard-modality focus ring; real pointer-leave/touch on charts; toast progress variants; site-builder panel continuity and publish choreography; virtual keyboard/safe-area on devices; attachments in compose.
