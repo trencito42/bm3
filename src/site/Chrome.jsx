@@ -1,11 +1,11 @@
 /* Public-site chrome: mega-menu header (desktop hover/focus/keyboard via Radix NavigationMenu, mobile accordion panel)
    and the mega footer. Mock only: every link points at an existing /site route. */
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { forwardRef, useCallback, useEffect, useId, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import * as NM from '@radix-ui/react-navigation-menu'
 import * as Collapsible from '@radix-ui/react-collapsible'
 import { toast } from 'sonner'
-import { ArrowRight, BookOpen, Boxes, ChevronDown, Cloud, Code2, Database, Gamepad2, GitBranch, Globe, LifeBuoy, Mail, Menu, Rocket, Server, ShieldCheck, Terminal, Users, X, Zap } from 'lucide-react'
+import { ArrowRight, ArrowUp, BookOpen, Boxes, Check, ChevronDown, Cloud, Code2, Database, Gamepad2, GitBranch, Globe, LifeBuoy, Mail, Menu, Rocket, Server, ShieldCheck, Terminal, Users, X, Zap } from 'lucide-react'
 import { Brand } from '../components/logos.jsx'
 import { Button } from '../components/ui.jsx'
 import { inputCls } from '../components/ui2.jsx'
@@ -286,6 +286,92 @@ export function SiteHeader() {
 }
 
 /* ------------------------------ footer ------------------------------ */
+/* The footer shares the header's language: a faint dot grid that the pointer lights up like a torch, a ring of light
+   that sweeps across it when the footer first scrolls into view and whenever you subscribe, and links that
+   assemble one after another. Everything stops when the footer is off screen and under reduced motion. */
+const FPITCH = 16
+const FooterDots = forwardRef(function FooterDots(_, ref) {
+  const cv = useRef(null)
+  const st = useRef({ w: 0, h: 0, mx: -1e4, my: -1e4, k: 0, waves: [], raf: 0, on: true, dpr: 1 })
+  const draw = useCallback((now) => {
+    const s = st.current, c = cv.current
+    if (!c || !s.w) { s.raf = 0; return }
+    const ctx = c.getContext('2d')
+    ctx.setTransform(s.dpr, 0, 0, s.dpr, 0, 0); ctx.clearRect(0, 0, s.w, s.h)
+    s.waves = s.waves.filter((w) => now - w.t0 < w.dur)
+    s.k = s.hover ? Math.min(1, s.k + 0.12) : Math.max(0, s.k - 0.05)
+    const cols = Math.ceil(s.w / FPITCH), rows = Math.ceil(s.h / FPITCH)
+    for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+      const x = i * FPITCH + FPITCH / 2, y = j * FPITCH + FPITCH / 2
+      let a = 0.055, r = 0.9
+      if (s.k > 0.01) {
+        const d = Math.hypot(x - s.mx, y - s.my)
+        if (d < 170) { const f = Math.pow(1 - d / 170, 2) * s.k; a += f * 0.5; r += f * 1.1 }
+      }
+      for (const w of s.waves) {
+        const e = now - w.t0, R = e * w.speed, k = (Math.hypot(x - w.x, y - w.y) - R) / 70
+        const crest = Math.exp(-k * k) * (1 - e / w.dur)
+        if (crest > 0.01) { a += crest * 0.65; r += crest * 1.3 }
+      }
+      ctx.fillStyle = `rgba(255,255,255,${Math.min(a, 0.9).toFixed(3)})`
+      ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832); ctx.fill()
+    }
+    s.raf = s.on && (s.waves.length || s.k > 0.01 || s.hover) ? requestAnimationFrame(draw) : 0
+  }, [])
+  const kick = useCallback(() => { const s = st.current; if (!s.raf && s.on) s.raf = requestAnimationFrame(draw) }, [draw])
+  useImperativeHandle(ref, () => ({
+    /* a ring of light from a point in client coordinates */
+    pulse(cx, cy, dur = 1100) {
+      const c = cv.current
+      if (!c || reducedMotion()) return
+      const r = c.getBoundingClientRect()
+      st.current.waves.push({ x: cx - r.left, y: cy - r.top, t0: performance.now(), dur, speed: 1.15 })
+      kick()
+    },
+    move(cx, cy) {
+      const c = cv.current
+      if (!c || reducedMotion()) return
+      const r = c.getBoundingClientRect(), s = st.current
+      s.mx = cx - r.left; s.my = cy - r.top; s.hover = true; kick()
+    },
+    leave() { st.current.hover = false; kick() },
+  }), [kick])
+  useEffect(() => {
+    const c = cv.current, p = c?.parentElement
+    if (!c || !p) return
+    const s = st.current
+    const size = () => {
+      s.dpr = Math.min(devicePixelRatio || 1, 2); s.w = p.clientWidth; s.h = p.clientHeight
+      c.width = s.w * s.dpr; c.height = s.h * s.dpr
+      kick()
+    }
+    size()
+    const ro = new ResizeObserver(size); ro.observe(p)
+    /* idle when off screen or in a hidden tab */
+    const io = new IntersectionObserver(([e]) => { s.on = e.isIntersecting && !document.hidden; if (s.on) kick() })
+    io.observe(p)
+    return () => { ro.disconnect(); io.disconnect(); cancelAnimationFrame(s.raf); s.raf = 0 }
+  }, [kick])
+  return <canvas ref={cv} aria-hidden className="pointer-events-none absolute inset-0 z-0 size-full" />
+})
+
+/* true once the element has been on screen; a throttled scroll check backs up IntersectionObserver for fast drags */
+function useSeenOnce(ref, margin = '0px 0px -6% 0px') {
+  const [seen, setSeen] = useState(typeof IntersectionObserver === 'undefined')
+  useEffect(() => {
+    const el = ref.current
+    if (!el || seen) return
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) setSeen(true) }, { rootMargin: margin })
+    io.observe(el)
+    let raf = 0
+    const check = () => { raf = 0; if (el.getBoundingClientRect().top < innerHeight * 0.95) setSeen(true) }
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(check) }
+    addEventListener('scroll', onScroll, { capture: true, passive: true })
+    return () => { io.disconnect(); cancelAnimationFrame(raf); removeEventListener('scroll', onScroll, { capture: true }) }
+  }, [seen])
+  return seen
+}
+
 const COLS = [
   ['Hosting', [['Web hosting', P + 'web'], ['VPS', P + 'vps'], ['Game servers', '/site/apps'], ['Databases', P + 'db'], ['Email hosting', P + 'mail'], ['Domains', P + 'dom']]],
   ['Solutions', [['Startups', '/site/products'], ['Agencies', '/site/products'], ['Game communities', P + 'game'], ['Migrations', '/site/docs'], ['Site builder', '/site/register']]],
@@ -293,71 +379,113 @@ const COLS = [
   ['Company', [['About', '/site'], ['Careers', '/site'], ['Support', '/site/login'], ['Contact', '/site/login'], ['Client area', '/site/login']]],
   ['Legal', [['Terms of service', '/site/legal'], ['Privacy policy', '/site/legal'], ['Acceptable use', '/site/legal'], ['SLA', '/site/legal'], ['DPA', '/site/legal']]],
 ]
-function Newsletter() {
+
+/* idle -> sending -> done: the button itself reports the result, and a ring of light leaves it */
+function Newsletter({ onSent }) {
   const [v, setV] = useState('')
   const [touched, setTouched] = useState(false)
+  const [phase, setPhase] = useState('idle')
+  const btn = useRef(null)
+  const timer = useRef(0)
+  useEffect(() => () => clearTimeout(timer.current), [])
   const bad = touched && !/^\S+@\S+\.\S+$/.test(v.trim())
   const submit = (e) => {
     e.preventDefault(); setTouched(true)
-    if (!/^\S+@\S+\.\S+$/.test(v.trim())) return
-    toast.success('Subscribed (simulated)'); setV(''); setTouched(false)
+    if (phase !== 'idle' || !/^\S+@\S+\.\S+$/.test(v.trim())) return
+    setPhase('sending')
+    timer.current = setTimeout(() => {
+      setPhase('done')
+      const r = btn.current?.getBoundingClientRect()
+      if (r) onSent(r.left + r.width / 2, r.top + r.height / 2)
+      timer.current = setTimeout(() => { setPhase('idle'); setV(''); setTouched(false) }, 2600)
+    }, 900)
   }
+  const done = phase === 'done'
   return (
     <form onSubmit={submit} noValidate className="w-full max-w-sm">
       <label htmlFor="nl" className="mb-2 block font-mono text-[10.5px] uppercase tracking-[.08em] text-dim">Changelog &amp; incident digest</label>
       <div className="flex gap-2">
-        <input id="nl" type="email" value={v} onChange={(e) => setV(e.target.value)} onBlur={() => v && setTouched(true)} placeholder="you@example.com" aria-invalid={bad || undefined} aria-describedby={bad ? 'nl-err' : undefined} className={cn(inputCls(bad), 'min-w-0 flex-1')} />
-        <Button type="submit" variant="outline">Subscribe</Button>
+        <input id="nl" type="email" value={v} disabled={phase !== 'idle'} onChange={(e) => setV(e.target.value)} onBlur={() => v && setTouched(true)} placeholder="you@example.com" aria-invalid={bad || undefined} aria-describedby={bad ? 'nl-err' : undefined} className={cn(inputCls(bad), 'min-w-0 flex-1 transition-opacity duration-200', done && 'opacity-60')} />
+        <span ref={btn} className="relative">
+          <Button type="submit" variant="outline" loading={phase === 'sending'} className={cn('min-w-[108px] transition-[border-color,color] duration-200', done && 'border-ok/50 text-ok')}>
+            <span className="relative grid place-items-center">
+              <span className={cn('transition-[opacity,transform] duration-200', done ? 'scale-75 opacity-0' : 'opacity-100')}>Subscribe</span>
+              <span aria-hidden className={cn('absolute inline-flex items-center gap-1.5 transition-[opacity,transform] duration-200', done ? 'opacity-100' : 'scale-75 opacity-0')}><Check className="size-4" />Done</span>
+            </span>
+          </Button>
+        </span>
       </div>
-      <p id="nl-err" className={cn('mt-1.5 h-4 text-[12px] text-bad transition-opacity duration-150', bad ? 'opacity-100' : 'opacity-0')} aria-live="polite">{bad ? 'Enter a valid email address' : ''}</p>
+      <p id="nl-err" className={cn('mt-1.5 h-4 text-[12px] transition-[opacity,color] duration-150', bad ? 'text-bad opacity-100' : done ? 'text-ok opacity-100' : 'opacity-0')} aria-live="polite">{bad ? 'Enter a valid email address' : done ? 'Subscribed. Check your inbox (simulated).' : ''}</p>
     </form>
   )
 }
+
 /* `cta`: the home page ends with its own call to action, so it skips the footer's band */
 export function SiteFooter({ cta = true }) {
   const nav = useNavigate()
+  const root = useRef(null)
+  const dots = useRef(null)
+  const seen = useSeenOnce(root)
+  const fired = useRef(false)
+  /* the first time the footer is seen, a ring of light sweeps in from the lower left */
+  useEffect(() => {
+    if (!seen || fired.current) return
+    fired.current = true
+    const r = root.current?.getBoundingClientRect()
+    if (r) dots.current?.pulse(r.left + r.width * 0.12, r.bottom - 40, 1500)
+  }, [seen])
+  const rise = (i) => ({ className: seen ? 'anim-rise' : 'opacity-0', style: { '--i': i } })
+  const top = () => { const sc = root.current?.closest('.overflow-y-auto'); sc?.scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' }) }
   return (
-    <footer className="relative shrink-0 overflow-hidden border-t border-line bg-bg">
-      {/* call to action band */}
-      {cta && <div className="border-b border-line px-5 py-12 md:px-10 md:py-16">
-        <div className="mx-auto flex max-w-6xl flex-col gap-8 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-5">
-            <Orb size={56} className="shrink-0" />
-            <div><h2 className="text-2xl font-semibold tracking-tight md:text-3xl">Ship something today.</h2><p className="mt-1.5 text-[14px] text-mute">Free to start. No card required. Cancel from the client area.</p></div>
+    <footer ref={root} onPointerMove={(e) => e.pointerType !== 'touch' && dots.current?.move(e.clientX, e.clientY)} onPointerLeave={() => dots.current?.leave()} className="relative shrink-0 overflow-hidden border-t border-line bg-bg">
+      <FooterDots ref={dots} />
+      <div className="relative z-10">
+        {cta && <div className="border-b border-line px-5 py-12 md:px-10 md:py-16">
+          <div className="mx-auto flex max-w-6xl flex-col gap-8 md:flex-row md:items-center md:justify-between">
+            <div {...rise(0)}><div className="flex items-center gap-5">
+              <Orb size={56} className="shrink-0" />
+              <div><h2 className="text-2xl font-semibold tracking-tight md:text-3xl">Ship something today.</h2><p className="mt-1.5 text-[14px] text-mute">Free to start. No card required. Cancel from the client area.</p></div>
+            </div></div>
+            <div {...rise(1)}><div className="flex flex-col gap-2 sm:flex-row"><Button size="lg" onClick={() => nav('/site/register')}>Get started</Button><Button size="lg" variant="outline" onClick={() => nav('/site/products')}>Compare plans</Button></div></div>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row"><Button size="lg" onClick={() => nav('/site/register')}>Get started</Button><Button size="lg" variant="outline" onClick={() => nav('/site/products')}>Compare plans</Button></div>
-        </div>
-      </div>}
-      {/* link grid */}
-      <div className="px-5 py-12 md:px-10">
-        <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1.25fr_3fr]">
-          <div className="space-y-6">
-            <Brand height={12} />
-            <p className="max-w-xs text-[13px] leading-relaxed text-dim">Hosting that stays out of your way. VPS, web, databases, email and domains from one client area.</p>
-            <Newsletter />
-            <NavLink to="/site/status" className="inline-flex items-center gap-2 rounded-full border border-line-2 px-3 py-1.5 text-[12.5px] text-mute outline-none transition-colors hover:border-white/25 hover:text-fg focus-visible:border-white/40"><span className="size-2 rounded-full bg-warn shadow-[0_0_8px_var(--color-warn)]" />Partial degradation</NavLink>
+        </div>}
+        <div className="px-5 py-12 md:px-10">
+          <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1.25fr_3fr]">
+            <div className="space-y-6">
+              <div {...rise(0)}><Brand height={12} /></div>
+              <p {...rise(1)} className={cn('max-w-xs text-[13px] leading-relaxed text-dim', rise(1).className)}>Hosting that stays out of your way. VPS, web, databases, email and domains from one client area.</p>
+              <div {...rise(2)}><Newsletter onSent={(x, y) => dots.current?.pulse(x, y, 1300)} /></div>
+              <div {...rise(3)}><NavLink to="/site/status" className="group inline-flex items-center gap-2 rounded-full border border-line-2 px-3 py-1.5 text-[12.5px] text-mute outline-none transition-colors hover:border-white/25 hover:text-fg focus-visible:border-white/40">
+                <span className="relative grid size-2 place-items-center"><span className="absolute size-2 animate-ping rounded-full bg-warn/60 [animation-duration:2.4s]" /><span className="relative size-2 rounded-full bg-warn shadow-[0_0_8px_var(--color-warn)]" /></span>Partial degradation<ArrowRight className="-ml-1 size-3 w-0 opacity-0 transition-[width,opacity,margin] duration-200 ease-[var(--ease-out)] group-hover:ml-0 group-hover:w-3 group-hover:opacity-100" />
+              </NavLink></div>
+            </div>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-9 sm:grid-cols-3 md:grid-cols-5 lg:gap-x-4">
+              {COLS.map(([h, ls], ci) => (
+                <nav key={h} aria-label={h} {...rise(ci + 1)}>
+                  <div className="mb-3 font-mono text-[10.5px] uppercase tracking-[.08em] text-dim">{h}</div>
+                  <ul className="space-y-2 text-[13px]">{ls.map(([l, to]) => (
+                    <li key={l}><NavLink to={to} className="group relative inline-block rounded py-0.5 text-mute outline-none transition-[color,transform] duration-200 ease-[var(--ease-out)] hover:translate-x-0.5 hover:text-fg focus-visible:text-fg">
+                      {l}<span aria-hidden className="absolute -bottom-px left-0 h-px w-full origin-left scale-x-0 bg-fg/50 transition-transform duration-300 ease-[var(--ease-out)] group-hover:scale-x-100 group-focus-visible:scale-x-100" />
+                    </NavLink></li>
+                  ))}</ul>
+                </nav>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-9 sm:grid-cols-3 md:grid-cols-5 lg:gap-x-4">
-            {COLS.map(([h, ls]) => (
-              <nav key={h} aria-label={h}>
-                <div className="mb-3 font-mono text-[10.5px] uppercase tracking-[.08em] text-dim">{h}</div>
-                <ul className="space-y-2 text-[13px]">{ls.map(([l, to]) => <li key={l}><NavLink to={to} className="block rounded text-mute outline-none transition-colors duration-150 hover:text-fg focus-visible:text-fg">{l}</NavLink></li>)}</ul>
-              </nav>
-            ))}
+        </div>
+        <div className="border-t border-line px-5 py-5 md:px-10">
+          <div className="mx-auto flex max-w-6xl flex-col gap-3 text-[12.5px] text-dim md:flex-row md:items-center md:justify-between">
+            <div>© 2026 Blipmade. All rights reserved. Mock-up: no real services.</div>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-[10.5px] uppercase tracking-[.08em]"><span>Frankfurt · Amsterdam · Helsinki · Ashburn</span><span>EN · EUR</span>
+              <button type="button" onClick={top} className="group inline-flex items-center gap-1.5 rounded-md border border-line-2 px-2.5 py-1 uppercase tracking-[.08em] text-mute outline-none transition-[color,border-color] duration-150 hover:border-white/25 hover:text-fg focus-visible:border-white/40" aria-label="Back to top">Top<ArrowUp className="size-3 transition-transform duration-200 ease-[var(--ease-out)] group-hover:-translate-y-0.5" /></button>
+            </div>
           </div>
         </div>
-      </div>
-      {/* legal bar + wordmark */}
-      <div className="border-t border-line px-5 py-5 md:px-10">
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 text-[12.5px] text-dim md:flex-row md:items-center md:justify-between">
-          <div>© 2026 Blipmade. All rights reserved. Mock-up: no real services.</div>
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-[10.5px] uppercase tracking-[.08em]"><span>Frankfurt · Amsterdam · Helsinki · Ashburn</span><span>EN · EUR</span></div>
+        {/* oversized wordmark: spans the full width and is cropped at the bottom edge, so only its top half shows
+            (viewBox is 45x7, so half the glyph height is an aspect of 90 / 7) */}
+        <div aria-hidden="true" className="pointer-events-none relative mt-2 aspect-[90/7] w-full select-none overflow-hidden px-3 opacity-[.2] md:px-6 [mask-image:linear-gradient(to_bottom,#000_35%,transparent)]">
+          <DotText text="BLIPMADE" height={80} className="!flex !w-full [&_svg]:!h-auto [&_svg]:!w-full [&_svg]:!max-w-none" />
         </div>
-      </div>
-      {/* oversized wordmark: spans the full width and is cropped at the bottom edge, so only its top half shows
-          (viewBox is 45x7, so half the glyph height is an aspect of 90 / 7) */}
-      <div aria-hidden="true" className="pointer-events-none relative mt-2 aspect-[90/7] w-full select-none overflow-hidden px-3 opacity-[.2] md:px-6 [mask-image:linear-gradient(to_bottom,#000_35%,transparent)]">
-        <DotText text="BLIPMADE" height={80} className="!flex !w-full [&_svg]:!h-auto [&_svg]:!w-full [&_svg]:!max-w-none" />
       </div>
     </footer>
   )
