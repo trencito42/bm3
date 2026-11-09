@@ -146,3 +146,12 @@ Approach: fix behaviour first, verify in the running app (sampling real frames /
 - `BackLink` (ui.jsx) replaces the three text-arrow back buttons (Products, Admin product, Builder "Chat") with an icon that nudges on hover/press.
 - Verified at 1280/390 px: prices 4.00 -> 3.20 etc. with deltas, billed line opacity swap, no arrow characters left in back buttons, no overflow, all rise animations end at opacity 1.
 - Not verified: reduced-motion CSS for the new classes (added to the media rule, not emulated), real touch.
+
+---
+## Homepage microinteractions
+- Scroll reveal: section headers (`Reveal`), bento and testimonial grids (`RevealGrid`, CSS-staggered), FAQ card; a throttled scroll check backs up IntersectionObserver so a fast scrollbar drag cannot leave content invisible (verified: jump-scroll through the page, 0 unrevealed).
+- Stats numerals assemble when scrolled into view; labels fade in after them.
+- FAQ opens with a real height animation (`anim-collapse`), hover/focus/press states, chevron colour; one open at a time.
+- Tickers (deploy terminal x2, live metrics x2, builder teaser) now run only while on screen and the tab is visible; verified: 0 intervals at the footer, metrics + builder resume when scrolled to.
+- Hero badge is a real button with hover; marquee pauses on hover, fades at the edges, and is off under reduced motion.
+- Not verified: reduced-motion CSS (not emulable), real touch/scroll feel; preview pane throttles animations when hidden so timing was checked through state, not frame rates.

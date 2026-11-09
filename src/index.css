@@ -91,6 +91,15 @@ button { cursor: pointer; }
 @keyframes mega-from-r { from { opacity: 0; transform: translateX(18px) } }
 @keyframes mega-to-l { to { opacity: 0; transform: translateX(-18px) } }
 @keyframes mega-to-r { to { opacity: 0; transform: translateX(18px) } }
+.reveal-grid > * { opacity: 0; }
+.reveal-grid[data-seen] > * { opacity: 1; animation: rise 360ms var(--ease-out) both; }
+.reveal-grid[data-seen] > *:nth-child(2) { animation-delay: 60ms; }
+.reveal-grid[data-seen] > *:nth-child(3) { animation-delay: 120ms; }
+.reveal-grid[data-seen] > *:nth-child(4) { animation-delay: 180ms; }
+.reveal-grid[data-seen] > *:nth-child(n+5) { animation-delay: 240ms; }
+.marquee { animation: marquee 40s linear infinite; }
+.group:hover .marquee { animation-play-state: paused; }
+@keyframes marquee { to { transform: translateX(-50%) } }
 .anim-rise { animation: rise 360ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 55ms); }
 @keyframes rise { from { opacity: 0; transform: translateY(10px) } }
 .anim-collapse[data-state=open] { animation: collapse-down 200ms var(--ease-out); }
@@ -98,8 +107,9 @@ button { cursor: pointer; }
 @keyframes collapse-down { from { height: 0; opacity: 0 } to { height: var(--radix-collapsible-content-height) } }
 @keyframes collapse-up { from { height: var(--radix-collapsible-content-height) } to { height: 0; opacity: 0 } }
 @media (prefers-reduced-motion: reduce) {
-  .anim-overlay, .anim-menu, .anim-pop, .anim-slide, .anim-slide-left, .anim-page, .anim-collapse, .anim-rise, .mega-viewport, .mega-content { animation-duration: 1ms !important; }
+  .anim-overlay, .anim-menu, .anim-pop, .anim-slide, .anim-slide-left, .anim-page, .anim-collapse, .anim-rise, .reveal-grid > *, .mega-viewport, .mega-content { animation-duration: 1ms !important; }
   .mega-viewport { transition-duration: 1ms !important; }
+  .marquee { animation: none !important; }
 }
 
 /* one focus language for everything keyboard-reachable (inputs use border + soft ring instead) */

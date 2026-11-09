@@ -7,10 +7,56 @@ import { AnimatedPrice, DotBars, DotGauge, DotNum } from '../components/DotViz.j
 import { DotField, DotText, Orb } from '../builder/FxBits.jsx'
 import { cn } from '../lib/utils'
 
+/* seen: flips to true once the element scrolls into view (and stays). live: true only while it is on screen and the tab is
+   visible, so the tickers below stop re-rendering when nobody can see them. */
+function useSeen(ref, margin = '0px 0px -8% 0px') {
+  const [seen, setSeen] = useState(typeof IntersectionObserver === 'undefined')
+  useEffect(() => {
+    const el = ref.current
+    if (!el || seen) return
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setSeen(true); io.disconnect() } }, { rootMargin: margin })
+    io.observe(el)
+    /* a fast scrollbar drag can jump past an element between two frames, so IntersectionObserver never reports it:
+       a throttled scroll check also reveals anything that is now at or above the fold */
+    let raf = 0
+    const check = () => { raf = 0; if (el.getBoundingClientRect().top < innerHeight * 0.95) setSeen(true) }
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(check) }
+    addEventListener('scroll', onScroll, { capture: true, passive: true })
+    return () => { io.disconnect(); cancelAnimationFrame(raf); removeEventListener('scroll', onScroll, { capture: true }) }
+  }, [seen])
+  return seen
+}
+function useLive(ref) {
+  const [live, setLive] = useState(true)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    let vis = true, tab = !document.hidden
+    const upd = () => setLive(vis && tab)
+    const io = typeof IntersectionObserver !== 'undefined' ? new IntersectionObserver(([e]) => { vis = e.isIntersecting; upd() }) : null
+    io?.observe(el)
+    const onVis = () => { tab = !document.hidden; upd() }
+    document.addEventListener('visibilitychange', onVis)
+    return () => { io?.disconnect(); document.removeEventListener('visibilitychange', onVis) }
+  }, [])
+  return live
+}
+/* scroll reveal: fades/rises once when first seen; `i` staggers siblings */
+const RevealGrid = ({ className, children }) => {
+  const ref = useRef(null)
+  const seen = useSeen(ref, '0px 0px -6% 0px')
+  return <div ref={ref} data-seen={seen || undefined} className={cn('reveal-grid', className)}>{children}</div>
+}
+const Reveal = ({ i = 0, className, children, as: T = 'div', ...p }) => {
+  const ref = useRef(null)
+  const seen = useSeen(ref)
+  return <T ref={ref} className={cn(seen ? 'anim-rise' : 'opacity-0', className)} style={{ '--i': i }} {...p}>{children}</T>
+}
+
 const eyebrow = 'font-mono text-[11px] uppercase tracking-[.1em] text-dim'
 const Section = ({ id, eyebrowText, title, sub, children, className }) => (
   <section id={id} className={cn('mx-auto max-w-6xl px-5 py-20 md:px-10 md:py-28', className)}>
-    <div className="mb-12 max-w-2xl"><div className={eyebrow}>{eyebrowText}</div><h2 className="mt-3 text-[34px] font-semibold leading-[1.08] tracking-tight md:text-[44px]">{title}</h2>{sub && <p className="mt-4 text-[16px] leading-relaxed text-mute">{sub}</p>}</div>
+    <Reveal className="mb-12 max-w-2xl"><div className={eyebrow}>{eyebrowText}</div><h2 className="mt-3 text-[34px] font-semibold leading-[1.08] tracking-tight md:text-[44px]">{title}</h2>{sub && <p className="mt-4 text-[16px] leading-relaxed text-mute">{sub}</p>}</Reveal>
     {children}
   </section>
 )
@@ -21,9 +67,11 @@ const SCRIPT = [
 ]
 function AutoTerminal() {
   const [n, setN] = useState(0)
-  useEffect(() => { const t = setInterval(() => setN((x) => (x >= SCRIPT.length + 3 ? 0 : x + 1)), 900); return () => clearInterval(t) }, [])
+  const ref = useRef(null)
+  const live = useLive(ref)
+  useEffect(() => { if (!live) return; const t = setInterval(() => setN((x) => (x >= SCRIPT.length + 3 ? 0 : x + 1)), 900); return () => clearInterval(t) }, [live])
   return (
-    <div className="font-mono text-[12.5px] leading-7" style={{ height: (SCRIPT.length + 1) * 28 }}>
+    <div ref={ref} className="font-mono text-[12.5px] leading-7" style={{ height: (SCRIPT.length + 1) * 28 }} aria-label="Deploy log (animated example)" role="img">
       {SCRIPT.slice(0, Math.min(n, SCRIPT.length)).map(([l, c], i) => <div key={i} className={cn('rise', c === 'ok' ? 'text-ok' : c === 'cmd' ? 'text-fg' : 'text-fg/60')}>{l}</div>)}
       {n < SCRIPT.length && <span className="inline-block h-4 w-2 animate-pulse bg-fg align-middle" />}
     </div>
@@ -70,10 +118,12 @@ function WorldMap() {
 /* ---------------- live metrics card ---------------- */
 function LiveMetrics() {
   const [vals, setVals] = useState(() => Array.from({ length: 30 }, (_, i) => 40 + Math.sin(i / 2.5) * 22 + ((i * 17) % 13)))
-  useEffect(() => { const t = setInterval(() => setVals((v) => [...v.slice(1), 40 + Math.random() * 60]), 1100); return () => clearInterval(t) }, [])
+  const ref = useRef(null)
+  const live = useLive(ref)
+  useEffect(() => { if (!live) return; const t = setInterval(() => setVals((v) => [...v.slice(1), 40 + Math.random() * 60]), 1100); return () => clearInterval(t) }, [live])
   const cpu = Math.round(vals[vals.length - 1] * 0.6)
   return (
-    <div className="space-y-5">
+    <div ref={ref} className="space-y-5">
       <div className="flex items-center justify-between"><span className={eyebrow}>blipmade-prod · live</span><span className="flex items-center gap-1.5 font-mono text-[10.5px] uppercase text-ok"><i className="size-1.5 animate-pulse rounded-full bg-ok" />streaming</span></div>
       <DotBars values={vals} rows={9} unit="Mbps" live />
       <div className="flex justify-around pt-1"><DotGauge value={cpu} label="CPU" size={88} n={36} /><DotGauge value={58} label="RAM" size={88} n={36} /><DotGauge value={41} label="DISK" size={88} n={36} /></div>
@@ -85,12 +135,14 @@ function LiveMetrics() {
 const PROMPT = 'A bakery in Porto with online booking'
 function BuilderTeaser() {
   const [i, setI] = useState(0)
-  useEffect(() => { const t = setInterval(() => setI((x) => (x >= PROMPT.length + 18 ? 0 : x + 1)), 90); return () => clearInterval(t) }, [])
+  const ref = useRef(null)
+  const live = useLive(ref)
+  useEffect(() => { if (!live) return; const t = setInterval(() => setI((x) => (x >= PROMPT.length + 18 ? 0 : x + 1)), 90); return () => clearInterval(t) }, [live])
   const typed = PROMPT.slice(0, Math.min(i, PROMPT.length))
   const built = Math.max(0, Math.min(4, Math.floor((i - PROMPT.length) / 4)))
   const state = i < PROMPT.length ? 'speaking' : built < 4 ? 'thinking' : 'happy'
   return (
-    <div className="grid gap-4 md:grid-cols-[1fr_1.1fr]">
+    <div ref={ref} className="grid gap-4 md:grid-cols-[1fr_1.1fr]">
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-3"><Orb size={36} state={state} /><span className="text-[13px] text-mute">Blipmade builder</span></div>
         <div className="rounded-xl border border-line-2 bg-black/40 p-3.5 text-[13.5px]">{typed}<span className="ml-0.5 inline-block h-4 w-px animate-pulse bg-fg align-middle" /></div>
@@ -125,14 +177,26 @@ function Configurator() {
 const FAQ = [['Where are my servers located?', 'Frankfurt, Amsterdam, Helsinki and Ashburn. You choose the region when you deploy, and can move later with a snapshot.'], ['Can I try it without a card?', 'Yes. New accounts start with demo credit, and no payment details are required to explore.'], ['How fast does support reply?', 'The median first reply is about six minutes, from real engineers, not a script.'], ['Is there a contract?', 'No. Billing is hourly or monthly, you can cancel any time, and unused credit stays on your account.']]
 function Faq() {
   const [open, setOpen] = useState(0)
-  return <div className="divide-y divide-line rounded-2xl border border-line-2 bg-card">{FAQ.map(([q, a], i) => (
+  return <Reveal className="divide-y divide-line overflow-hidden rounded-2xl border border-line-2 bg-card">{FAQ.map(([q, a], i) => (
     <Collapsible.Root key={q} open={open === i} onOpenChange={(o) => setOpen(o ? i : -1)}>
-      <Collapsible.Trigger className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left text-[15px] font-medium">{q}<ChevronDown className={cn('size-4 shrink-0 text-dim transition-transform duration-300', open === i && 'rotate-180')} /></Collapsible.Trigger>
-      <Collapsible.Content className="overflow-hidden data-[state=open]:anim-page"><p className="px-6 pb-5 text-[14px] leading-relaxed text-mute">{a}</p></Collapsible.Content>
-    </Collapsible.Root>))}</div>
+      <Collapsible.Trigger className="group flex w-full items-center justify-between gap-4 px-6 py-5 text-left text-[15px] font-medium outline-none transition-colors duration-150 hover:bg-white/[0.02] focus-visible:bg-white/[0.04] active:bg-white/[0.04]">{q}<ChevronDown className={cn('size-4 shrink-0 text-dim transition-[transform,color] duration-300 ease-[var(--ease-out)] group-hover:text-fg', open === i && 'rotate-180 text-fg')} /></Collapsible.Trigger>
+      <Collapsible.Content className="anim-collapse overflow-hidden"><p className="px-6 pb-5 text-[14px] leading-relaxed text-mute">{a}</p></Collapsible.Content>
+    </Collapsible.Root>))}</Reveal>
 }
 
-const BENTO = 'rounded-2xl border border-line bg-card p-6 transition-colors hover:border-line-2'
+function Stats() {
+  const ref = useRef(null)
+  const seen = useSeen(ref, '0px 0px -15% 0px')
+  return (
+    <div ref={ref} className="border-y border-line bg-black/30"><div className="mx-auto grid max-w-6xl gap-px px-5 py-16 sm:grid-cols-4 md:px-10">{[['99.98%', 'Uptime, 90 days'], ['<40S', 'Median deploy'], ['6 MIN', 'First reply'], ['4', 'Regions']].map(([n, l], i) => (
+      <div key={l} className="space-y-3 py-4 text-center">
+        <div className="flex h-9 justify-center">{seen && <DotNum text={n} height={36} animate />}</div>
+        <div className={cn('text-[13px] text-dim transition-opacity duration-500', seen ? 'opacity-100' : 'opacity-0')} style={{ transitionDelay: seen ? `${300 + i * 80}ms` : '0ms' }}>{l}</div>
+      </div>))}</div></div>
+  )
+}
+
+const BENTO = 'rounded-2xl border border-line bg-card p-6 transition-[border-color,background-color] duration-200 hover:border-line-2 hover:bg-[#161619]'
 const LOGOS = ['NODE.JS', 'PYTHON', 'PHP', 'GO', 'RUST', 'DOCKER', 'POSTGRES', 'REDIS', 'NEXT.JS', 'LARAVEL', 'MINECRAFT']
 
 export default function HomePage() {
@@ -146,7 +210,7 @@ export default function HomePage() {
           <div className="relative mx-auto flex max-w-3xl flex-col items-center text-center">
             <span className="absolute -inset-x-16 -inset-y-10 -z-0 bg-black/85 backdrop-blur-[10px] [mask-image:radial-gradient(closest-side,#000_62%,transparent)]" />
             <div className="relative flex flex-col items-center">
-              <span className="mb-8 inline-flex items-center gap-2 rounded-full border border-line-2 bg-black/60 py-1 pl-1.5 pr-3 text-[12px] text-mute"><Orb size={20} />New · AI site builder is live <ArrowRight className="size-3" /></span>
+              <button type="button" onClick={() => nav('/site/register')} className="group mb-8 inline-flex items-center gap-2 rounded-full border border-line-2 bg-black/60 py-1 pl-1.5 pr-3 text-[12px] text-mute outline-none transition-[border-color,color] duration-200 hover:border-white/30 hover:text-fg focus-visible:border-white/40 focus-visible:text-fg"><Orb size={20} />New · AI site builder is live <ArrowRight className="size-3 transition-transform duration-200 ease-[var(--ease-out)] group-hover:translate-x-0.5" /></button>
               <DotText text="HOSTING, SIMPLIFIED" height={46} assemble />
               <h1 className="sr-only">Hosting, simplified</h1>
               <p className="mt-8 max-w-xl text-[18px] leading-snug text-fg/75">Deploy apps, VPS, databases and email in seconds. One calm control panel, EU infrastructure, and support that answers in minutes.</p>
@@ -163,32 +227,31 @@ export default function HomePage() {
       </section>
 
       {/* ------------ stack marquee ------------ */}
-      <div className="overflow-hidden border-b border-line py-5">
-        <div className="flex w-max animate-[marquee_40s_linear_infinite] gap-12 font-mono text-[12px] tracking-[.12em] text-dim">{[...LOGOS, ...LOGOS].map((l, i) => <span key={i} className="flex items-center gap-12">{l}<i className="size-1 rounded-full bg-white/20" /></span>)}</div>
-        <style>{`@keyframes marquee{to{transform:translateX(-50%)}}`}</style>
+      <div className="group overflow-hidden border-b border-line py-5 [mask-image:linear-gradient(to_right,transparent,#000_8%,#000_92%,transparent)]">
+        <div className="marquee flex w-max gap-12 font-mono text-[12px] tracking-[.12em] text-dim">{[...LOGOS, ...LOGOS].map((l, i) => <span key={i} className="flex items-center gap-12">{l}<i className="size-1 rounded-full bg-white/20" /></span>)}</div>
       </div>
 
       {/* ------------ bento ------------ */}
       <Section eyebrowText="Why Blipmade" title="Everything you run, one calm surface." sub="Not another dashboard with forty tabs. Every tool is where you expect it and nothing gets in the way.">
-        <div className="grid gap-4 md:grid-cols-6">
+        <RevealGrid className="grid gap-4 md:grid-cols-6">
           <div className={cn(BENTO, 'md:col-span-4')}><div className={eyebrow}>Deploy</div><h3 className="mt-2 text-xl font-semibold tracking-tight">From git push to live in 40 seconds.</h3><p className="mt-2 max-w-md text-[14px] text-mute">Connect a repository or upload a folder. We build, provision and attach HTTPS for you.</p><div className="mt-6 rounded-xl border border-line bg-black/40 p-5"><AutoTerminal /></div></div>
           <div className={cn(BENTO, 'md:col-span-2')}><div className={eyebrow}>Regions</div><h3 className="mt-2 text-xl font-semibold tracking-tight">Close to your users.</h3><div className="mt-5"><WorldMap /></div><div className="mt-3 flex flex-wrap gap-1.5">{PINGS.map(([, , n]) => <span key={n} className="rounded-full border border-line-2 px-2 py-0.5 font-mono text-[10.5px] text-mute">{n}</span>)}</div></div>
           <div className={cn(BENTO, 'md:col-span-2')}><div className={eyebrow}>Observe</div><h3 className="mt-2 text-xl font-semibold tracking-tight">Live, down to the dot.</h3><div className="mt-5"><LiveMetrics /></div></div>
           <div className={cn(BENTO, 'md:col-span-4')}><div className={eyebrow}>AI site builder</div><h3 className="mt-2 text-xl font-semibold tracking-tight">Describe it. Watch it get built.</h3><p className="mt-2 max-w-md text-[14px] text-mute">Say what you need in a sentence. The builder designs, writes and deploys a real site you can keep editing by chatting.</p><div className="mt-6"><BuilderTeaser /></div></div>
           <div className={cn(BENTO, 'md:col-span-3')}><div className={eyebrow}>Console & files</div><h3 className="mt-2 text-xl font-semibold tracking-tight">A full shell and file manager, in the browser.</h3><div className="mt-5 overflow-hidden rounded-xl border border-line bg-black/40 font-mono text-[12px] leading-6 text-fg/70">{[['server.js', '6.4 KB'], ['package.json', '1.8 KB'], ['.env', '412 B'], ['logs/', '—']].map(([n, s]) => <div key={n} className="flex justify-between border-b border-line/50 px-4 py-1.5 last:border-b-0"><span>{n}</span><span className="text-dim">{s}</span></div>)}</div></div>
           <div className={cn(BENTO, 'md:col-span-3')}><div className={eyebrow}>Support</div><h3 className="mt-2 text-xl font-semibold tracking-tight">Real engineers, in minutes.</h3><div className="mt-5 space-y-2.5"><div className="ml-auto w-fit max-w-[80%] rounded-2xl rounded-br-md bg-fg px-3.5 py-2 text-[13px] text-black">I cannot SSH into my VPS.</div><div className="flex items-end gap-2.5"><Orb size={28} state="speaking" /><div className="max-w-[80%] rounded-2xl rounded-bl-md border border-line bg-white/[0.03] px-3.5 py-2 text-[13px]">Found it: the firewall reset after maintenance. Restored port 22. Try again?</div></div></div></div>
-        </div>
+        </RevealGrid>
       </Section>
 
       {/* ------------ configurator ------------ */}
       <Section eyebrowText="Pricing" title="Build the server you need. Pay for exactly that." sub="Drag the sliders. The price updates instantly, and hourly billing means you never pay for a month you did not use."><Configurator /></Section>
 
       {/* ------------ stats ------------ */}
-      <div className="border-y border-line bg-black/30"><div className="mx-auto grid max-w-6xl gap-px px-5 py-16 sm:grid-cols-4 md:px-10">{[['99.98%', 'Uptime, 90 days'], ['<40S', 'Median deploy'], ['6 MIN', 'First reply'], ['4', 'Regions']].map(([n, l]) => <div key={l} className="space-y-3 py-4 text-center"><div className="flex justify-center"><DotNum text={n} height={36} animate={false} /></div><div className="text-[13px] text-dim">{l}</div></div>)}</div></div>
+      <Stats />
 
       {/* ------------ testimonials ------------ */}
       <Section eyebrowText="Customers" title="People who stopped thinking about hosting." sub="Quotes below are sample copy for this design mock-up.">
-        <div className="grid gap-4 md:grid-cols-3">{[['We moved 40 services over a weekend. The panel is the first one my whole team actually likes.', 'Maya Chen', 'CTO, Northwind'], ['Support fixed a firewall issue before I finished writing the second message.', 'Jonas Weber', 'Indie developer'], ['The builder shipped our landing page while we were still on the kickoff call.', 'Elena Rossi', 'Founder, Studio Rossi']].map(([q, n, r]) => <figure key={n} className={cn(BENTO, 'flex flex-col justify-between gap-6')}><blockquote className="text-[15px] leading-relaxed">“{q}”</blockquote><figcaption className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-full border border-line-2 bg-white/5 text-sm">{n[0]}</span><span className="text-[13px]"><b className="block font-medium">{n}</b><span className="text-dim">{r}</span></span></figcaption></figure>)}</div>
+        <RevealGrid className="grid gap-4 md:grid-cols-3">{[['We moved 40 services over a weekend. The panel is the first one my whole team actually likes.', 'Maya Chen', 'CTO, Northwind'], ['Support fixed a firewall issue before I finished writing the second message.', 'Jonas Weber', 'Indie developer'], ['The builder shipped our landing page while we were still on the kickoff call.', 'Elena Rossi', 'Founder, Studio Rossi']].map(([q, n, r]) => <figure key={n} className={cn(BENTO, 'flex flex-col justify-between gap-6')}><blockquote className="text-[15px] leading-relaxed">“{q}”</blockquote><figcaption className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-full border border-line-2 bg-white/5 text-sm">{n[0]}</span><span className="text-[13px]"><b className="block font-medium">{n}</b><span className="text-dim">{r}</span></span></figcaption></figure>)}</RevealGrid>
       </Section>
 
       {/* ------------ FAQ ------------ */}
