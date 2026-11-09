@@ -1,3 +1,4 @@
+import { ADMIN_LINKS, NotFoundScene } from '../components/NotFound.jsx'
 import { Brand } from '../components/logos.jsx'
 import { useMemo, useState } from 'react'
 import { NavLink, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -141,7 +142,7 @@ export default function AdminApp() {
       <MobileSheet open={mob} onClose={() => setMob(false)}>{Side()}</MobileSheet>
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line px-5"><button className="grid size-9 place-items-center rounded-lg text-mute md:hidden" onClick={() => setMob(true)} aria-label="Menu"><Boxes className="size-4" /></button><span className="grid size-8 place-items-center rounded-lg border border-line-2 bg-white/[0.04] text-mute"><CurIcon className="size-4" /></span><h2 className="text-[15px] font-semibold tracking-tight">{cur[1]}</h2><div className="flex-1" /><div className="hidden items-center gap-2 rounded-lg border border-line px-2.5 py-1.5 text-[12.5px] text-dim sm:flex"><Search className="size-3.5" />Search everything<kbd className="ml-6 font-mono text-[10px]">⌘K</kbd></div></header>
-        <main className="min-h-0 flex-1 overflow-y-auto"><div className="anim-page mx-auto max-w-6xl p-6 md:p-8" key={pathname}>{SECTIONS[seg] ?? SECTIONS['']}</div></main>
+        <main className="min-h-0 flex-1 overflow-y-auto"><div className="anim-page mx-auto max-w-6xl p-6 md:p-8" key={pathname}>{SECTIONS[seg] ?? (seg === '' ? SECTIONS[''] : <NotFoundScene home="/admin" homeLabel="Back to dashboard" links={ADMIN_LINKS} />)}</div></main>
       </div>
     </div>
   )

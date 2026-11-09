@@ -5,6 +5,7 @@ import { Doc, Demo, Row } from './Doc.jsx'
 import { Avatar, Badge, Button, Card, Dialog, DialogContent, DialogTrigger, Input, Label, Menu, MenuContent, MenuItem, MenuLabel, MenuSep, MenuTrigger, Progress, Segmented, Slider, StatusBadge, Switch, Tabs, TabsContent, TabsList, TabsTrigger, Textarea, Tooltip, EmptyState, ChipTabs, Separator, IconTile } from '../components/ui.jsx'
 import { PasswordInput, Breadcrumbs, Checkbox, CodeBlock, Combobox, Confirm, ContextContent, ContextItem, ContextMenu, ContextSep, ContextTrigger, CopyButton, CopyValue, FormField, HoverCard, InlineAlert, NumberStepper, OTPInput, Pagination, Popover, PopoverContent, PopoverTrigger, Select, Skeleton, Stepper, TagInput, inputCls } from '../components/ui2.jsx'
 import { DotBars, DotGauge } from '../components/DotViz.jsx'
+import { DotDonut, LineChart, Sparkline } from '../components/Charts.jsx'
 import * as DialogP from '@radix-ui/react-dialog'
 import * as RadioP from '@radix-ui/react-radio-group'
 import { cn } from '../lib/utils'
@@ -161,9 +162,23 @@ function Overlays() {
 }
 
 /* ------------------------------ E. Data presentation ------------------------------ */
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const REV = [18, 22, 21, 27, 31, 29, 36, 41, 39, 46, 52, 58]
+const ORD = [9, 12, 10, 15, 14, 17, 19, 22, 20, 25, 27, 31]
+function Charts() {
+  return (
+    <div className="grid gap-5 lg:grid-cols-3">
+      <div className="min-w-0 lg:col-span-2"><Demo label="LineChart · crosshair · arrow keys"><LineChart height={240} labels={MONTHS} series={[{ id: 'rev', label: 'Revenue', values: REV }, { id: 'ord', label: 'Orders', values: ORD }]} format={(v) => '$' + Math.round(v) + 'k'} ariaLabel="Revenue and orders by month" /><p className="mt-3 text-xs text-dim">Hover, touch-drag, or focus the chart and use the arrow keys. It draws in once and respects reduced motion.</p></Demo></div>
+      <Demo label="Sparkline"><div className="space-y-3">{[['MRR', REV, '$58k'], ['Orders', ORD, '31'], ['Churn', [5, 4.6, 4.8, 4.1, 3.9, 3.2, 3.4, 2.8], '2.8%']].map(([l, v, t]) => <div key={l} className="flex items-center justify-between gap-3 text-[13px]"><span className="w-14 text-mute">{l}</span><Sparkline values={v} up={l === 'Churn' ? true : undefined} /><span className="w-12 text-right font-mono tabular-nums">{t}</span></div>)}</div></Demo>
+      <div className="min-w-0 lg:col-span-3"><Demo label="DotDonut · segments"><DotDonut size={176} totalLabel="services" segments={[{ label: 'VPS', value: 12 }, { label: 'Game servers', value: 8 }, { label: 'Databases', value: 5 }, { label: 'Bots', value: 3 }]} /></Demo></div>
+    </div>
+  )
+}
+
 function DataPres() {
   return (
     <>
+      <Charts />
       <div className="grid gap-5 lg:grid-cols-3">
         <Demo label="StatusBadge · StatusIndicator"><div className="space-y-4"><Row>{['running', 'stopped', 'restarting', 'paid', 'unpaid', 'overdue', 'open', 'closed'].map((s) => <StatusBadge key={s} status={s} />)}</Row><Row>{[['bg-ok', 'Online'], ['bg-warn', 'Degraded'], ['bg-bad', 'Offline'], ['bg-dim', 'Unknown']].map(([c, l]) => <span key={l} className="flex items-center gap-2 text-[13px] text-mute"><i className={cn('size-2 rounded-full', c)} />{l}</span>)}</Row></div></Demo>
         <Demo label="Avatar · AvatarGroup · Progress"><div className="space-y-4"><div className="flex -space-x-2">{['S', 'M', 'A', 'K'].map((n) => <Avatar key={n} name={n} className="ring-2 ring-card" />)}<span className="grid size-8 place-items-center rounded-full border border-line-2 bg-card font-mono text-[10.5px]">+3</span></div><div className="space-y-3"><Progress value={34} /><Progress value={91} hot /></div></div></Demo>

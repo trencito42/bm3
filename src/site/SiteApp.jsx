@@ -10,6 +10,7 @@ import { DotField, DotText, Orb } from '../builder/FxBits.jsx'
 import { CATALOG, INCIDENTS } from '../lib/mock'
 import HomePage from './HomePage.jsx'
 import { SiteFooter, SiteHeader } from './Chrome.jsx'
+import { NotFoundScene, SITE_LINKS } from '../components/NotFound.jsx'
 import { AppPage, AppsCatalog } from './AppsPages.jsx'
 import { PLAN_DATA } from '../components/product.jsx'
 import { cn, money } from '../lib/utils'
@@ -132,7 +133,7 @@ function Status() {
   )
 }
 const Legal = () => <div className="mx-auto max-w-2xl space-y-5 px-5 py-14 md:px-10"><h1 className="text-3xl font-semibold tracking-tight">Terms of service</h1><p className="font-mono text-[11px] uppercase text-dim">Last updated Nov 1, 2026 · sample text</p>{['Acceptable use', 'Billing and renewals', 'Service levels', 'Termination'].map((t, i) => <section key={t} className="space-y-2"><h2 className="text-lg font-semibold">{i + 1}. {t}</h2><p className="text-[14px] leading-relaxed text-mute">This is placeholder legal copy for the design mock-up. Real terms are authored by counsel and replace this section.</p></section>)}</div>
-const NotFound = () => { const nav = useNavigate(); return <div className="grid min-h-[60dvh] place-items-center px-5 text-center"><div className="flex flex-col items-center gap-6"><Orb size={80} state="waiting" /><DotText text="404" height={56} assemble /><p className="text-[15px] text-mute">We could not find that page.</p><Button onClick={() => nav('/site')}>Back to home</Button></div></div> }
+const NotFound = () => <NotFoundScene home="/site" homeLabel="Back to home" links={SITE_LINKS} />
 
 export default function SiteApp() {
   const { pathname } = useLocation()

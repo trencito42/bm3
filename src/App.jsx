@@ -1,3 +1,4 @@
+import { ADMIN_LINKS, APP_LINKS, NotFoundScene } from './components/NotFound.jsx'
 import { Brand } from './components/logos.jsx'
 import { useEffect, useState } from 'react'
 import { NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
@@ -246,6 +247,7 @@ function Layout() {
                 <Route path="/billing" element={<BillingPage />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/account" element={<AccountPage />} />
+                <Route path="*" element={<NotFoundScene home="/" homeLabel="Back to overview" links={APP_LINKS} />} />
               </Routes>
             </div>
           </main>
@@ -276,6 +278,7 @@ function Root() {
             <Route path="/ds/states" element={<States />} />
             <Route path="/ds/logos" element={<Logos />} />
             <Route path="/ds/orbs" element={<Orbs />} />
+            <Route path="*" element={<NotFoundScene home="/ds/foundations" homeLabel="Back to foundations" />} />
           </Routes>
         ) : admin ? <AdminApp /> : site ? <SiteApp /> : <Layout />}
       </div>

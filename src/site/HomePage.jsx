@@ -6,6 +6,7 @@ import { Button, Slider } from '../components/ui.jsx'
 import { AnimatedPrice, DotBars, DotGauge, DotNum } from '../components/DotViz.jsx'
 import { DotField, DotText, Orb } from '../builder/FxBits.jsx'
 import { cn } from '../lib/utils'
+import { useTorch } from '../lib/useTorch.js'
 
 /* seen: flips to true once the element scrolls into view (and stays). live: true only while it is on screen and the tab is
    visible, so the tickers below stop re-rendering when nobody can see them. */
@@ -54,28 +55,6 @@ const Reveal = ({ i = 0, className, children, as: T = 'div', ...p }) => {
   return <T ref={ref} className={cn(seen ? 'anim-rise' : 'opacity-0', className)} style={{ '--i': i }} {...p}>{children}</T>
 }
 
-/* one listener for every .torch card on the page: it only writes two CSS variables on the card under the pointer */
-function useTorch() {
-  useEffect(() => {
-    let raf = 0, last = null
-    const apply = () => {
-      raf = 0
-      if (!last) return
-      const card = last.target.closest?.('.torch')
-      if (!card) return
-      const r = card.getBoundingClientRect()
-      card.style.setProperty('--mx', last.x - r.left + 'px')
-      card.style.setProperty('--my', last.y - r.top + 'px')
-    }
-    const move = (e) => {
-      if (e.pointerType === 'touch') return
-      last = { target: e.target, x: e.clientX, y: e.clientY }
-      if (!raf) raf = requestAnimationFrame(apply)
-    }
-    document.addEventListener('pointermove', move, { passive: true })
-    return () => { document.removeEventListener('pointermove', move); cancelAnimationFrame(raf) }
-  }, [])
-}
 const DotRule = () => {
   const ref = useRef(null)
   const seen = useSeen(ref, '0px 0px -10% 0px')
