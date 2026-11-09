@@ -5,7 +5,7 @@ import './fx.js'
 export const fx = () => window.BlipFX
 
 /* the orb now lives in components/orbs.jsx (10 selectable styles); re-exported so every existing import keeps working */
-export { Orb } from '../components/orbs.jsx'
+export { Orb, Blip } from '../components/orbs.jsx'
 
 export function DotText({ text, height = 12, assemble, ghost, animate, quick, delay, className }) {
   const host = useRef(null)

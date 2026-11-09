@@ -6,9 +6,21 @@ import '../builder/fx.js'
 import './orbs.css'
 import './orbs2.css'
 import './orbs3.css'
+import './blip.css'
+import { Code2, Gamepad2, Wand2 } from 'lucide-react'
 import { cn } from '../lib/utils'
 
 const fx = () => window.BlipFX
+/* one device pixel, as a length: the Blip face is built from lengths rounded to it (see blip.css) */
+const setSnap = () => { try { document.documentElement.style.setProperty('--snap', 1 / (window.devicePixelRatio || 1) + 'px') } catch {} }
+if (typeof window !== 'undefined') { setSnap(); window.addEventListener('resize', setSnap) }
+const bucket = (n) => (n <= 20 ? 'xs' : n <= 32 ? 'sm' : n <= 64 ? 'md' : 'lg')
+export const ROLES = {
+  chat: { label: 'Chat', note: 'Answers, explains, remembers the project.', icon: null },
+  builder: { label: 'Builder', note: 'Designs and ships websites from a sentence.', icon: Wand2 },
+  dev: { label: 'Dev', note: 'Reads your code, writes the fix, opens the PR.', icon: Code2 },
+  game: { label: 'Game', note: 'Watches the server, reads the crash, debugs it.', icon: Gamepad2 },
+}
 const reduced = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
 /* ---------- shared face (uses the .kl-face-* CSS: blink, glance, follow-cursor, joy arcs) ---------- */
@@ -167,6 +179,7 @@ function WaveBody({ size, state, live }) {
 
 /* ---------- registry ---------- */
 const bodies = {
+  blip: () => <span className="ob ob-blip" />,
   plasma: () => <span className="ob ob-plasma"><i /><i /><i /><i /></span>,
   glass: () => <span className="ob ob-glass" />,
   nebula: () => <span className="ob ob-nebula"><span className="arm a" /><span className="arm b" /><span className="stars" /></span>,
@@ -189,6 +202,7 @@ const bodies = {
 }
 
 export const ORBS = [
+  { id: 'blip', name: 'Blip', tag: 'Blipmade', note: 'The Blipmade assistant. A dark disc with a hairline rim, a faint dot grid that rises while it works, a radar ping that leaves it, and a single red signal dot when it is busy. Face geometry is snapped to whole device pixels, so it is crisp at every size.' },
   { id: 'aurora', name: 'Aurora', tag: 'Current', note: 'Dark ball ringed by rotating colour bands, glowing white eyes. The one we started with.' },
   { id: 'plasma', name: 'Plasma', tag: 'Fluid', note: 'Four colour blobs drift and blend inside a dark glass sphere with a specular highlight. Thinking speeds the flow up; error rotates the hue.' },
   { id: 'nebula', name: 'Nebula', tag: 'Cosmic', note: 'A small galaxy: two dust arms turn in opposite directions over a field of twinkling stars. Deep and calm; the core is kept dark so the eyes stay clear.' },
@@ -212,24 +226,29 @@ export const ORBS = [
 ]
 
 /* ---------- the orb ---------- */
-export function OrbX({ id = 'aurora', size = 28, state = 'idle', className }) {
+export function OrbX({ id = 'blip', size = 28, state = 'idle', role, className }) {
   const meta = ORBS.find((o) => o.id === id) || ORBS[0]
   const root = useRef(null)
   useEffect(() => { if (id === 'aurora') return; const off = fx().track(root.current); return off }, [id])
   usePulse(root, state)
   const live = useLive(root)
   if (id === 'aurora') return <Aurora size={size} state={state} className={className} />
+  const blip = meta.id === 'blip'
+  const R = role && ROLES[role]
   return (
-    <span ref={root} className={cn('kl-face orbx', meta.dark && 'face-dark', className)} data-state={state} style={{ '--orb': size + 'px' }} aria-hidden="true">
-      {bodies[id]({ size, state, live })}
+    <span ref={root} className={cn('kl-face orbx', blip && 'blipx', meta.dark && 'face-dark', className)} data-state={state} data-s={blip ? bucket(size) : undefined} data-role={blip && role ? role : undefined} style={{ '--orb': size + 'px' }} aria-hidden="true">
+      {blip && <i className="blip-ping" />}
+      {bodies[meta.id]({ size, state, live })}
+      {blip && <i className="blip-sig" />}
       {!meta.noFace && <Face />}
+      {blip && R?.icon && <span className="blip-badge"><R.icon /></span>}
     </span>
   )
 }
 
 /* ---------- app-wide selection ---------- */
 const KEY = 'blipmade-orb'
-const read = () => { try { return localStorage.getItem(KEY) || 'aurora' } catch { return 'aurora' } }
+const read = () => { try { return localStorage.getItem(KEY) || 'blip' } catch { return 'blip' } }
 export function useOrbId() {
   const [id, setId] = useState(read)
   useEffect(() => { const f = () => setId(read()); addEventListener('orb-change', f); addEventListener('storage', f); return () => { removeEventListener('orb-change', f); removeEventListener('storage', f) } }, [])
@@ -237,7 +256,12 @@ export function useOrbId() {
   return [id, set]
 }
 /* drop-in: every <Orb /> in the app uses the selected style */
-export function Orb({ size = 28, state = 'idle', className, id }) {
+export function Orb({ size = 28, state = 'idle', className, id, role }) {
   const [sel] = useOrbId()
-  return <OrbX id={id || sel} size={size} state={state} className={className} />
+  return <OrbX id={id || sel} size={size} state={state} role={role} className={className} />
 }
+/* the product name for it: Blips */
+export const Blip = Orb
+export const BlipX = OrbX
+export const BLIPS = ORBS
+export const useBlipId = useOrbId

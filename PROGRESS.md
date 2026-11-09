@@ -205,3 +205,12 @@ Not verified: reduced-motion CSS, real touch, every Radix overlay re-opened in t
 - Drawer and bottom sheet already existed (`DialogContent side`), so they were not rebuilt.
 - **Verified:** 404 on all four shells (orb states, buttons, no overflow); chart hover, keyboard (End, Left, Left -> Oct), donut isolation; notification flows (3 unread -> read one -> dismiss -> mark all -> empty state -> bell clears; click item navigates and closes); accordion single/multiple; 12 routes + bell popover at 390 px: 0 overflow, 0 console errors.
 - **Not verified:** frame-by-frame smoothness, real touch (chart touch-drag), reduced-motion CSS.
+
+## Blips (the assistant orbs, renamed and rebuilt)
+Product direction: Blipmade becomes agentic cloud hosting (AI for development, a website builder, game hosting with debugging); the assistant orbs are now **Blips**. Scope of this pass: the Blip only.
+- **The Blip** (`components/blip.css`, new default): original construction, not one of the experiments: dark disc with a one-device-pixel rim and a soft top light; a faint dot grid that rises while it works (dot-matrix identity); a radar **ping** ring that leaves the disc (name origin; faster when busy, red and double on error); a red **signal** dot only while working (red = active, the single accent); a face whose eye width/height/gap are snapped to whole device pixels and placed from the centre. `--snap` = 1/devicePixelRatio, so it also holds under page zoom.
+- **Roles:** `role="builder|dev|game"` adds a small chip (wand, code, gamepad) from 28 px; chat has none. Exports: `Blip`, `BlipX`, `BLIPS`, `useBlipId`, `ROLES` (the `Orb*` names still work).
+- **Small sizes:** below 21 px no ping/dot grid/signal; below 33 px no glow; eyes never thinner than 2 device px; the whole face no longer floats (a moving face is never pixel-aligned).
+- **Blip lab** (was Orb lab): stage (6 states x 4 roles, light/dark), pixel ladder 16-128 px, roles, in-context (chat, builder, dev crash, game-server debug), the 20 old constructions as optional **skins**, spec.
+- **Verified:** measured eye geometry at 17 sizes (16 to 200 px) at dpr 1: every width/height/position is an integer and both eyes mirror the centre exactly (offset 0); looked at stage, ladder, roles, in-context and the 404; 8 routes at 390 px: 0 overflow, 0 console errors.
+- **Not verified:** devicePixelRatio 2 or fractional zoom (formula is dpr-agnostic, not observed), frame-by-frame motion, touch.
