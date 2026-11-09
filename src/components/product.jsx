@@ -123,6 +123,17 @@ export function FileExplorer({ compact }) {
   const [drag, setDrag] = useState(false)
   const input = useRef(null)
   const depth = useRef(0)
+  const uid = useRef(0)
+  const listRef = useRef(null)
+  const wasRenaming = useRef(false)
+  /* leaving the rename input unmounts it and drops focus to <body>: hand it back to the list so F2 / arrows / Delete keep working */
+  useEffect(() => {
+    if (wasRenaming.current && !renaming && (!document.activeElement || document.activeElement === document.body)) listRef.current?.focus({ preventScroll: true })
+    wasRenaming.current = !!renaming
+  }, [renaming])
+  const timers = useRef({})
+  const stopUpload = (id) => { clearInterval(timers.current[id]); delete timers.current[id] }
+  useEffect(() => () => { Object.values(timers.current).forEach(clearInterval); timers.current = {} }, [])
   const rows = files.filter((f) => f.n.toLowerCase().includes(q.toLowerCase()))
   const one = sel.length === 1 ? files.find((f) => f.id === sel[0]) : null
   const nameTaken = (n, id) => files.some((f) => f.n === n && f.id !== id)
@@ -141,6 +152,8 @@ export function FileExplorer({ compact }) {
   const remove = (ids) => {
     if (!ids.length) return
     const removed = files.map((f, i) => ({ f, i })).filter(({ f }) => ids.includes(f.id))
+    ids.forEach(stopUpload)
+    setProg((p) => { const n = { ...p }; ids.forEach((id) => delete n[id]); return n })
     setFiles((fs) => fs.filter((f) => !ids.includes(f.id)))
     setSel([])
     toast(`Deleted ${removed.length === 1 ? removed[0].f.n : removed.length + ' items'}`, {
@@ -150,28 +163,39 @@ export function FileExplorer({ compact }) {
   const newFolder = () => {
     let n = 'new-folder', k = 1
     while (nameTaken(n)) n = `new-folder-${++k}`
-    const id = 'n' + Date.now()
+    const id = 'n' + (++uid.current)
     setFiles((fs) => [{ id, n, t: 'dir', s: '—', m: 'Just now', p: 'drwxr-xr-x' }, ...fs])
     setSel([id]); setRenaming(id)
   }
   const upload = (list) => {
     const arr = [...list]
     if (!arr.length) return
-    const added = arr.map((file, i) => {
+    const taken = new Set(files.map((f) => f.n))
+    const added = arr.map((file) => {
       let n = file.name, k = 0
-      while (files.some((f) => f.n === n) || arr.slice(0, i).some((o) => o.name === n)) n = file.name.replace(/(\.[^.]*)?$/, ` (${++k})$1`)
-      return { id: 'u' + Date.now() + i, n, t: 'file', s: fmtSize(file.size), m: 'Just now', p: '-rw-r--r--', size: file.size }
+      while (taken.has(n)) n = file.name.replace(/(\.[^.]*)?$/, ` (${++k})$1`)
+      taken.add(n)
+      return { id: 'u' + (++uid.current), n, t: 'file', s: fmtSize(file.size), m: 'Just now', p: '-rw-r--r--', size: file.size }
     })
     setFiles((fs) => [...added, ...fs])
     setSel(added.map((x) => x.id))
     setProg((p) => ({ ...p, ...Object.fromEntries(added.map((x) => [x.id, 0])) }))
-    added.forEach((x, i) => {
+    let left = added.length
+    const finish = (x) => {
+      stopUpload(x.id)
+      if (--left === 0) toast.success(added.length === 1 ? `Uploaded ${added[0].n}` : `Uploaded ${added.length} files`)
+    }
+    added.forEach((x) => {
       let v = 0
       const t = setInterval(() => {
         v = Math.min(100, v + 6 + Math.random() * 14)
-        setProg((p) => ({ ...p, [x.id]: v }))
-        if (v >= 100) { clearInterval(t); setTimeout(() => setProg((p) => { const { [x.id]: _, ...rest } = p; return rest }), 350); if (i === added.length - 1) toast.success(added.length === 1 ? `Uploaded ${x.n}` : `Uploaded ${added.length} files`) }
+        setProg((p) => (x.id in p ? { ...p, [x.id]: v } : p))
+        if (v >= 100) {
+          finish(x)
+          timers.current[x.id] = setTimeout(() => { delete timers.current[x.id]; setProg((p) => { const { [x.id]: _, ...rest } = p; return rest }) }, 350)
+        }
       }, 110)
+      timers.current[x.id] = t
     })
   }
   const dragProps = {
@@ -210,7 +234,7 @@ export function FileExplorer({ compact }) {
           </div>
         </div>
         {sel.length > 1 && <div className="flex items-center gap-2 border-b border-line bg-white/[0.04] px-3 py-1.5 text-[12.5px]"><span>{sel.length} selected</span><Button size="sm" variant="ghost" className="h-6" onClick={() => toast('Archive simulated')}><Archive />Compress</Button><Button size="sm" variant="ghost" className="h-6 text-bad" onClick={() => remove(sel.filter((id) => !(id in prog)))}><Trash2 />Delete</Button><button className="ml-auto text-dim hover:text-fg" onClick={() => setSel([])}>Clear</button></div>}
-        <div className="max-h-[340px] min-h-[120px] overflow-y-auto outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/20" role="listbox" aria-multiselectable="true" aria-label="Files" tabIndex={0} onKeyDown={onKey}>
+        <div className="max-h-[340px] min-h-[120px] overflow-y-auto outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/20" ref={listRef} role="listbox" aria-multiselectable="true" aria-label="Files" tabIndex={0} onKeyDown={onKey}>
           {rows.map((f) => {
             const busy = f.id in prog
             return (
@@ -419,6 +443,7 @@ export function Webmail({ height = 460, mobile: forceMobile }) {
   const [draft, setDraft] = useState({ to: '', subj: '', body: '' })
   const [draftErr, setDraftErr] = useState('')
   const picked = useRef(false)
+  const mid = useRef(0)
   useLayoutEffect(() => {
     const measure = () => setW(box.current.clientWidth)
     measure()
@@ -461,13 +486,14 @@ export function Webmail({ height = 460, mobile: forceMobile }) {
 
   const send = () => {
     if (!/^\S+@\S+\.\S+$/.test(draft.to.trim())) { setDraftErr('Enter a valid recipient address'); return }
-    const id = Date.now()
+    const id = 1000 + (++mid.current)
     setMsgs((a) => [{ id, folder: 'sent', starred: false, from: 'You', mail: 'to: ' + draft.to.trim(), subj: draft.subj.trim() || '(no subject)', prev: draft.body.slice(0, 80) || '(empty)', time: 'now', unread: false, body: draft.body, att: [] }, ...a])
     setCompose(false); setDraft({ to: '', subj: '', body: '' }); setDraftErr('')
     toast.success('Sent (simulated)', { action: { label: 'View', onClick: () => { setFolder('sent'); setSel(id) } } })
   }
   const onKey = (e) => {
-    if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return
+    /* never hijack browser/OS chords (Ctrl+C copy, Cmd+S, Alt+arrows...) */
+    if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName) || e.ctrlKey || e.metaKey || e.altKey) return
     const id = cur?.id
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault()

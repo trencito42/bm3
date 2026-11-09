@@ -19,6 +19,24 @@ const Face = () => (
   </span></span></span></span>
 )
 
+/* true while the orb is on screen and the tab is visible: JS-driven bodies (canvas sphere, LED, waveform) stop
+   ticking otherwise, so a page with many orbs, or a background tab, costs nothing */
+function useLive(ref) {
+  const [live, setLive] = useState(true)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    let vis = true, tab = !document.hidden
+    const upd = () => setLive(vis && tab)
+    const io = typeof IntersectionObserver !== 'undefined' ? new IntersectionObserver(([e]) => { vis = e.isIntersecting; upd() }) : null
+    io?.observe(el)
+    const onVis = () => { tab = !document.hidden; upd() }
+    document.addEventListener('visibilitychange', onVis)
+    return () => { io?.disconnect(); document.removeEventListener('visibilitychange', onVis) }
+  }, [ref])
+  return live
+}
+
 /* a short soft pulse whenever the state changes, so the transition reads as a reaction (not a hard cut) */
 function usePulse(ref, state) {
   const prev = useRef(state)
@@ -70,7 +88,7 @@ function Aurora({ size, state, className }) {
 }
 
 /* ---------- 4. DOT SPHERE: rotating fibonacci sphere of dots ---------- */
-function DotSphereBody({ size, state }) {
+function DotSphereBody({ size, state, live }) {
   const c = useRef(null), st = useRef(state)
   st.current = state
   useEffect(() => {
@@ -96,16 +114,16 @@ function DotSphereBody({ size, state }) {
       }
       if (!reduced()) raf = requestAnimationFrame(draw)
     }
-    draw()
+    if (live) draw(); else if (reduced()) draw()
     return () => cancelAnimationFrame(raf)
-  }, [size])
+  }, [size, live])
   return <span className="ob ob-dsphere"><canvas ref={c} style={{ width: size, height: size, position: 'absolute', inset: 0 }} /></span>
 }
 
 /* ---------- 7. LED MATRIX: the whole face is lit pixels ---------- */
-function LedBody({ size, state }) {
+function LedBody({ size, state, live }) {
   const [t, setT] = useState(0)
-  useEffect(() => { if (reduced()) return; const i = setInterval(() => setT((x) => x + 1), 110); return () => clearInterval(i) }, [])
+  useEffect(() => { if (reduced() || !live) return; const i = setInterval(() => setT((x) => x + 1), 110); return () => clearInterval(i) }, [live])
   const N = 11, lit = new Set(), add = (x, y) => lit.add(x + ',' + y)
   let ex = [3, 7], rows = [4, 5, 6]
   const blink = t % 40 > 38
@@ -126,9 +144,9 @@ function LedBody({ size, state }) {
 }
 
 /* ---------- 9. WAVEFORM: radial bars react to the state ---------- */
-function WaveBody({ size, state }) {
+function WaveBody({ size, state, live }) {
   const [t, setT] = useState(0)
-  useEffect(() => { if (reduced()) return; const i = setInterval(() => setT((x) => x + 1), 55); return () => clearInterval(i) }, [])
+  useEffect(() => { if (reduced() || !live) return; const i = setInterval(() => setT((x) => x + 1), 55); return () => clearInterval(i) }, [live])
   const B = 44, cx = 50, r0 = 33
   const amp = { speaking: 1, thinking: 0.55, happy: 0.6, idle: 0.13, waiting: 0.06, error: 0.3 }[state] ?? 0.13
   return (
@@ -199,10 +217,11 @@ export function OrbX({ id = 'aurora', size = 28, state = 'idle', className }) {
   const root = useRef(null)
   useEffect(() => { if (id === 'aurora') return; const off = fx().track(root.current); return off }, [id])
   usePulse(root, state)
+  const live = useLive(root)
   if (id === 'aurora') return <Aurora size={size} state={state} className={className} />
   return (
     <span ref={root} className={cn('kl-face orbx', meta.dark && 'face-dark', className)} data-state={state} style={{ '--orb': size + 'px' }} aria-hidden="true">
-      {bodies[id]({ size, state })}
+      {bodies[id]({ size, state, live })}
       {!meta.noFace && <Face />}
     </span>
   )

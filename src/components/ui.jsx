@@ -260,20 +260,41 @@ export function MobileSheet({ open, onClose, children, className }) {
     const t = setTimeout(() => setMounted(false), 200)
     return () => clearTimeout(t)
   }, [open])
+  const panel = React.useRef(null)
+  const onCloseRef = React.useRef(onClose)
+  onCloseRef.current = onClose
+  /* focus management: remember the opener, move focus into the panel, keep Tab inside, hand focus back on close */
   React.useEffect(() => {
-    if (!open) return
-    const k = (e) => e.key === 'Escape' && onClose()
+    if (!open || !mounted) return  // the panel only exists once `mounted` flips, one render after `open`
+    const opener = document.activeElement
+    const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select,textarea,[tabindex]:not([tabindex="-1"])'
+    const raf = requestAnimationFrame(() => {
+      const el = panel.current
+      if (el && !el.contains(document.activeElement)) ([...el.querySelectorAll('[aria-current="page"]')].pop() || el.querySelector(FOCUSABLE) || el).focus({ preventScroll: true })
+    })
+    const k = (e) => {
+      if (e.key === 'Escape') { e.stopPropagation(); onCloseRef.current(); return }
+      if (e.key !== 'Tab' || !panel.current) return
+      const f = [...panel.current.querySelectorAll(FOCUSABLE)].filter((n) => n.offsetParent !== null)
+      if (!f.length) { e.preventDefault(); panel.current.focus(); return }
+      const first = f[0], last = f[f.length - 1], a = document.activeElement
+      if (e.shiftKey && (a === first || !panel.current.contains(a))) { e.preventDefault(); last.focus() }
+      else if (!e.shiftKey && (a === last || !panel.current.contains(a))) { e.preventDefault(); first.focus() }
+    }
     addEventListener('keydown', k)
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    return () => { removeEventListener('keydown', k); document.body.style.overflow = prev }
-  }, [open, onClose])
+    return () => {
+      cancelAnimationFrame(raf); removeEventListener('keydown', k); document.body.style.overflow = prev
+      if (opener && opener.isConnected && opener !== document.body) opener.focus({ preventScroll: true })
+    }
+  }, [open, mounted])
   if (!mounted) return null
   const state = open ? 'open' : 'closed'
   return (
     <div className="fixed inset-0 z-40 md:hidden">
       <div data-state={state} className="anim-overlay absolute inset-0 bg-black/60 backdrop-blur-[2px]" onClick={onClose} />
-      <aside data-state={state} role="dialog" aria-modal="true" className={cn('anim-slide-left absolute inset-y-0 left-0 flex w-[min(300px,85vw)] flex-col border-r border-line bg-[#0b0b0d]', className)} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>{children}</aside>
+      <aside ref={panel} tabIndex={-1} data-state={state} role="dialog" aria-modal="true" aria-label="Navigation" className={cn('anim-slide-left absolute inset-y-0 left-0 flex outline-none w-[min(300px,85vw)] flex-col border-r border-line bg-[#0b0b0d]', className)} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>{children}</aside>
     </div>
   )
 }

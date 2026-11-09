@@ -146,15 +146,31 @@ export const PasswordInput = React.forwardRef(({ className, ...p }, ref) => {
 
 /* ---------- Copy ---------- */
 export const CopyButton = ({ value, className }) => {
-  const [ok, setOk] = React.useState(false)
+  const [st, setSt] = React.useState('idle') // idle | ok | fail
   const t = React.useRef()
   React.useEffect(() => () => clearTimeout(t.current), [])
-  const copy = () => { navigator.clipboard?.writeText(value); setOk(true); clearTimeout(t.current); t.current = setTimeout(() => setOk(false), 1400) }
-  /* the confirmation lives on the button itself (icon crossfade + colour), so no toast competes with it */
+  const copy = async () => {
+    let good = false
+    try { await navigator.clipboard.writeText(value); good = true } catch {
+      /* insecure context / permission denied: legacy fallback through a hidden textarea */
+      try {
+        const ta = document.createElement('textarea')
+        ta.value = value; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none'
+        const prev = document.activeElement
+        document.body.appendChild(ta); ta.select(); good = document.execCommand('copy'); ta.remove(); prev?.focus?.({ preventScroll: true })
+      } catch { good = false }
+    }
+    setSt(good ? 'ok' : 'fail')
+    clearTimeout(t.current); t.current = setTimeout(() => setSt('idle'), good ? 1400 : 2000)
+  }
+  const ok = st === 'ok', fail = st === 'fail'
+  /* the confirmation lives on the button itself (icon crossfade + colour), so no toast competes with it;
+     the status text is announced through a polite live region */
   return (
-    <button aria-label={ok ? 'Copied' : 'Copy'} onClick={copy} className={cn('relative grid size-7 place-items-center rounded-md transition-colors duration-150 hover:bg-hover active:bg-white/10', ok ? 'text-ok' : 'text-dim hover:text-fg', className)}>
+    <button aria-label="Copy" onClick={copy} className={cn('relative grid size-7 place-items-center rounded-md transition-colors duration-150 hover:bg-hover active:bg-white/10', ok ? 'text-ok' : fail ? 'text-bad' : 'text-dim hover:text-fg', className)}>
       <Copy className={cn('absolute size-3.5 transition-[opacity,transform] duration-150', ok ? 'scale-50 opacity-0' : 'scale-100 opacity-100')} />
       <Check className={cn('absolute size-3.5 transition-[opacity,transform] duration-150', ok ? 'scale-100 opacity-100' : 'scale-50 opacity-0')} />
+      <span role="status" aria-live="polite" className="sr-only">{ok ? 'Copied' : fail ? 'Copy failed' : ''}</span>
     </button>
   )
 }

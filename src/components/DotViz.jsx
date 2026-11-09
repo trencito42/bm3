@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { DotText } from '../builder/FxBits.jsx'
 import { cn } from '../lib/utils'
 
@@ -21,7 +21,7 @@ export function DotGauge({ value, size = 104, label, n = 44 }) {
         {Array.from({ length: n }, (_, i) => {
           const a = ((-90 + (i * 360) / n) * Math.PI) / 180
           const isLit = i < lit
-          return <circle key={i} cx={50 + 42 * Math.cos(a)} cy={50 + 42 * Math.sin(a)} r={r} style={{ fill: hot && isLit && i >= lit - 4 ? 'var(--brand)' : '#fff', opacity: isLit ? 0.95 : 0.12, transition: 'opacity .25s', transitionDelay: `${i * 16}ms` }} />
+          return <circle key={i} cx={50 + 42 * Math.cos(a)} cy={50 + 42 * Math.sin(a)} r={r} style={{ fill: hot && isLit && i >= lit - 4 ? 'var(--brand)' : '#fff', opacity: isLit ? 0.95 : 0.12, transitionProperty: 'opacity', transitionDuration: '.25s', transitionDelay: `${i * 16}ms` }} />
         })}
       </svg>
       <div className="absolute inset-0 grid place-items-center text-center">
@@ -43,43 +43,59 @@ export function DotGauge({ value, size = 104, label, n = 44 }) {
    - Hover has no delay; the hovered column stays bright, others dim (the crosshair). The tooltip snaps to the
      column's top dot and glides between columns. */
 const W = 150, P = 5
+/* one memoised column: hovering re-renders only the two columns whose state changed, not all 14-60 x rows dots */
+const BarCol = React.memo(function BarCol({ c, v, n, rows, px, rad, on, revealed, state, interactive, onEnter }) {
+  const hot = state === 'hot'
+  return (
+    <g onPointerEnter={interactive ? (e) => onEnter(c, v, e.currentTarget) : undefined}>
+      <rect x={c * px} y="0" width={px} height={rows * P} fill="transparent" />
+      {Array.from({ length: rows }, (_, r) => {
+        const lit = on && r < n
+        return <circle key={r} data-top={r === n - 1} cx={(c + 0.5) * px} cy={(rows - 1 - r) * P + P / 2} r={rad} style={{ fill: hot && lit ? 'var(--brand)' : '#fff', opacity: lit ? (r === n - 1 ? 1 : 0.8) * (state === 'dim' ? 0.42 : 1) : 0.1, transitionProperty: 'opacity, fill', transitionDuration: `${revealed ? 120 : 300}ms, 120ms`, transitionDelay: revealed ? '0ms' : `${c * 14 + r * 10}ms` }} />
+      })}
+    </g>
+  )
+})
 function BarsLayer({ values, rows, unit, reveal, interactive, leaving }) {
   const [on, setOn] = useState(!reveal)
   const [revealed, setRevealed] = useState(!reveal)
   const [tip, setTip] = useState(null)
   const [show, setShow] = useState(false)
   const [hoverCol, setHoverCol] = useState(null)
+  const hovered = useRef(null)
   useEffect(() => {
     if (!reveal) return
     const r = requestAnimationFrame(() => requestAnimationFrame(() => setOn(true)))
     const t = setTimeout(() => setRevealed(true), values.length * 14 + rows * 10 + 340)
     return () => { cancelAnimationFrame(r); clearTimeout(t) }
   }, [])
+  const clear = useCallback(() => { hovered.current = null; setShow(false); setHoverCol(null) }, [])
+  /* the tooltip is position:fixed, so any scroll/resize while it is open would leave it floating: close it */
+  useEffect(() => {
+    if (!show) return
+    addEventListener('scroll', clear, { capture: true, passive: true }); addEventListener('resize', clear)
+    return () => { removeEventListener('scroll', clear, { capture: true }); removeEventListener('resize', clear) }
+  }, [show, clear])
   const px = W / values.length
   const rad = Math.min(1.55, px * 0.31)
   const max = Math.max(...values) * 1.05
-  const point = (c, v, g) => {
+  /* pointerenter fires once per column, so a pointer sweeping inside a column costs nothing (previously
+     pointermove re-measured and re-rendered every dot on each event) */
+  const point = useCallback((c, v, g) => {
+    if (hovered.current === c) return
     const top = g.querySelector('[data-top="true"]')?.getBoundingClientRect()
     if (!top) return
-    setTip({ x: top.left + top.width / 2, y: top.top, t: `Day ${c + 1} \u00b7 ${Math.round(v)} ${unit}` })
+    hovered.current = c
+    setTip({ x: top.left + top.width / 2, y: top.top, t: `Day ${c + 1} · ${Math.round(v)} ${unit}` })
     setShow(true); setHoverCol(c)
-  }
+  }, [unit])
   return (
-    <div className={leaving ? 'pointer-events-none absolute inset-0' : 'relative'} style={{ animation: leaving ? 'fade-out 220ms ease-out forwards' : reveal ? undefined : 'fade-in 220ms ease-out' }} onPointerLeave={() => { setShow(false); setHoverCol(null) }} aria-hidden={leaving || undefined}>
+    <div className={leaving ? 'pointer-events-none absolute inset-0' : 'relative'} style={{ animation: leaving ? 'fade-out 220ms ease-out forwards' : reveal ? undefined : 'fade-in 220ms ease-out' }} onPointerLeave={clear} aria-hidden={leaving || undefined}>
       <svg viewBox={`0 0 ${W} ${rows * P}`} className="block h-auto w-full" role="img" aria-label={`Bar chart, ${values.length} values`}>
-        {values.map((v, c) => {
-          const n = Math.max(1, Math.round((v / max) * rows))
-          return (
-            <g key={c} onPointerEnter={interactive ? (e) => point(c, v, e.currentTarget) : undefined} onPointerMove={interactive ? (e) => point(c, v, e.currentTarget) : undefined}>
-              <rect x={c * px} y="0" width={px} height={rows * P} fill="transparent" />
-              {Array.from({ length: rows }, (_, r) => {
-                const lit = on && r < n
-                const hot = hoverCol === c && lit
-                return <circle key={r} data-top={r === n - 1} cx={(c + 0.5) * px} cy={(rows - 1 - r) * P + P / 2} r={rad} style={{ fill: hot ? 'var(--brand)' : '#fff', opacity: lit ? (r === n - 1 ? 1 : 0.8) * (hoverCol !== null && hoverCol !== c ? 0.42 : 1) : 0.1, transition: `opacity ${revealed ? 120 : 300}ms, fill 120ms`, transitionDelay: revealed ? '0ms' : `${c * 14 + r * 10}ms` }} />
-              })}
-            </g>
-          )
-        })}
+        {values.map((v, c) => (
+          <BarCol key={c} c={c} v={v} n={Math.max(1, Math.round((v / max) * rows))} rows={rows} px={px} rad={rad} on={on} revealed={revealed} interactive={interactive} onEnter={point}
+            state={hoverCol === null ? 'idle' : hoverCol === c ? 'hot' : 'dim'} />
+        ))}
       </svg>
       {interactive && tip && <div className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-[calc(100%+8px)] whitespace-nowrap rounded-md border border-line-2 bg-card px-2.5 py-1.5 font-mono text-[11px] tabular-nums" style={{ left: tip.x, top: tip.y, opacity: show ? 1 : 0, transition: 'left 100ms var(--ease-out), top 100ms var(--ease-out), opacity 120ms' }}>{tip.t}</div>}
     </div>

@@ -103,3 +103,30 @@ Approach: fix behaviour first, verify in the running app (sampling real frames /
 
 **Still open**
 - Real keyboard-modality focus ring; real pointer-leave/touch on charts; toast progress variants; site-builder panel continuity and publish choreography; virtual keyboard/safe-area on devices; attachments in compose.
+
+---
+## Craft pass 4 (fix, don't add: no new components or orbs)
+**Fixed**
+- **Clipboard:** `CopyButton` now awaits `navigator.clipboard`, falls back to a hidden-textarea `execCommand`, and shows a distinct failure state (red icon, "Copy failed" in a polite live region) instead of always claiming success.
+- **Mobile sheet:** focus moves in on open (to the active nav item), Tab/Shift+Tab are trapped, Esc closes, focus returns to the opener on close; the panel is labelled. (`onClose` identity no longer re-runs the effect.)
+- **Chart pointer:** `pointerenter` per column only (no per-`pointermove` measuring/re-render), columns are memoised so a column change re-renders 2 columns instead of all dots, tooltip closes on scroll/resize. Also removed a React warning (shorthand `transition` mixed with `transitionDelay`).
+- **Upload timers:** intervals/timeouts tracked per file, cleared on unmount and when an uploading file is deleted; ids come from a counter (two uploads in the same millisecond used to collide); "Uploaded N files" now fires when the last file *finishes*, not when the last-listed one does.
+- **File manager:** after a rename ends (Enter/Esc) focus returns to the list; before, it fell to `<body>` and F2/arrows/Delete stopped working.
+- **Webmail:** shortcuts no longer hijack Ctrl/Cmd/Alt chords (Ctrl+C used to open Compose and block copy); sent-message ids from a counter.
+- **Orbs:** a shared `useLive` hook (IntersectionObserver + page visibility) stops the JS-driven bodies (dot sphere canvas loop, LED and waveform interval re-renders) when off-screen or the tab is hidden.
+
+**Verified in the browser (390 and 1280 px)**
+- Copy: fallback path with a rejecting clipboard (execCommand called, success state), double failure -> failure state + live text, 5 rapid clicks stable. The real clipboard is blocked in this embedded preview, so the *native* success path was not observed.
+- Upload: 3 files / 2 batches in one tick -> unique names + ids; 2 running intervals -> 0 after navigating away; no console errors.
+- Chart: 0 DOM mutations for moves inside a column; 168 -> 16 mutations column-to-column; tooltip inline opacity 0 after resize.
+- Sheet: initial focus on "Overview", body scroll locked, Tab wraps both directions and recaptures focus from outside, Esc closes, focus back on "Open menu".
+- Orbs: 5 visible LED/wave orbs of 10 -> exactly 5 live intervals; hidden tab -> 0; scrolling swaps which ones run.
+- Webmail: Ctrl/Cmd+C no longer opens Compose; 6 rapid `e` archive 4 -> 0 inbox, Archive 2 -> 6, 3 visible toasts.
+- File manager: 6 F2 -> Esc/Enter cycles keep focus on the list; 4 delete/undo cycles leave 8 rows, unique ids.
+- Reduced motion (JS only): with `matchMedia` forced to reduce, LED/wave start 0 intervals.
+- 23-route overflow/error audit at 390 and 1280 px: 0 findings, 0 console errors.
+
+**Not verified / assumptions**
+- Native clipboard success; real touch/pointer-leave on charts; real keyboard-modality focus rings; CSS `prefers-reduced-motion` rules (only the JS paths were forced, the media query itself cannot be emulated here); safe-area/virtual keyboard on devices.
+- The preview pane reports `document.hidden = true` and throttles rAF/transitions, so timing-dependent checks used state/inline styles rather than computed values.
+- Builder / More / Product mock timeouts (status restarts, orb idle resets) are not cancelled on unmount; harmless in React 18 but untidy.
