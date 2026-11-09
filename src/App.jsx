@@ -1,3 +1,4 @@
+import { NotificationCenter } from './components/NotificationCenter.jsx'
 import { ADMIN_LINKS, APP_LINKS, NotFoundScene } from './components/NotFound.jsx'
 import { Brand } from './components/logos.jsx'
 import { useEffect, useState } from 'react'
@@ -207,9 +208,7 @@ function Layout() {
           <span className="hidden size-8 place-items-center rounded-lg border border-line-2 bg-white/[0.04] text-mute sm:grid"><Icon className="size-4" /></span>
           <h2 className="min-w-0 truncate text-[15px] font-semibold tracking-tight">{title}</h2>
           <div className="flex-1" />
-          <button onClick={() => nav('/notifications')} aria-label="Notifications" className="relative grid size-9 place-items-center rounded-lg text-mute transition-colors hover:bg-hover hover:text-fg">
-            <Bell className="size-4" /><span className="absolute right-2.5 top-2.5 size-1.5 rounded-full bg-[var(--brand)]" />
-          </button>
+          <NotificationCenter />
           <Menu>
             <MenuTrigger className="flex h-9 items-center gap-2 rounded-full border border-line-2 py-1 pl-1 pr-1 text-[13px] sm:pr-3 font-medium outline-none transition-colors hover:bg-hover">
               <Avatar name="Stefan" className="size-7" /><span className="hidden sm:inline">stefan</span>

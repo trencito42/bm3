@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import * as Collapsible from '@radix-ui/react-collapsible'
 import { ArrowRight, Check, ChevronDown, Plus, Terminal as TermIcon } from 'lucide-react'
-import { Button, Slider } from '../components/ui.jsx'
+import { Accordion, Button, Slider } from '../components/ui.jsx'
 import { AnimatedPrice, DotBars, DotGauge, DotNum } from '../components/DotViz.jsx'
 import { DotField, DotText, Orb } from '../builder/FxBits.jsx'
 import { cn } from '../lib/utils'
@@ -183,14 +183,7 @@ function Configurator() {
 }
 
 const FAQ = [['Where are my servers located?', 'Frankfurt, Amsterdam, Helsinki and Ashburn. You choose the region when you deploy, and can move later with a snapshot.'], ['Can I try it without a card?', 'Yes. New accounts start with demo credit, and no payment details are required to explore.'], ['How fast does support reply?', 'The median first reply is about six minutes, from real engineers, not a script.'], ['Is there a contract?', 'No. Billing is hourly or monthly, you can cancel any time, and unused credit stays on your account.']]
-function Faq() {
-  const [open, setOpen] = useState(0)
-  return <Reveal className="torch divide-y divide-line overflow-hidden rounded-2xl border border-line-2 bg-card">{FAQ.map(([q, a], i) => (
-    <Collapsible.Root key={q} open={open === i} onOpenChange={(o) => setOpen(o ? i : -1)}>
-      <Collapsible.Trigger className="group flex w-full items-center justify-between gap-4 px-6 py-5 text-left text-[15px] font-medium outline-none transition-colors duration-150 hover:bg-white/[0.02] focus-visible:bg-white/[0.04] active:bg-white/[0.04]">{q}<ChevronDown className={cn('size-4 shrink-0 text-dim transition-[transform,color] duration-300 ease-[var(--ease-out)] group-hover:text-fg', open === i && 'rotate-180 text-fg')} /></Collapsible.Trigger>
-      <Collapsible.Content className="anim-collapse overflow-hidden"><p className="px-6 pb-5 text-[14px] leading-relaxed text-mute">{a}</p></Collapsible.Content>
-    </Collapsible.Root>))}</Reveal>
-}
+const Faq = () => <Reveal><Accordion items={FAQ} defaultOpen={0} className="torch" /></Reveal>
 
 function Stats() {
   const ref = useRef(null)

@@ -11,7 +11,8 @@ import * as TipP from '@radix-ui/react-tooltip'
 import * as MenuP from '@radix-ui/react-dropdown-menu'
 import * as ToggleP from '@radix-ui/react-toggle-group'
 import * as RadioP from '@radix-ui/react-radio-group'
-import { X, Check, ArrowLeft } from 'lucide-react'
+import * as CollapsibleP from '@radix-ui/react-collapsible'
+import { X, Check, ArrowLeft, ChevronDown } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { DotNum } from './DotViz.jsx'
 
@@ -368,3 +369,25 @@ export const BackLink = ({ children, className, ...p }) => (
     <ArrowLeft className="size-3.5 transition-transform duration-200 ease-[var(--ease-out)] group-hover:-translate-x-0.5 group-active:-translate-x-1" />{children}
   </button>
 )
+
+/* ------------------------------ Accordion ------------------------------ */
+/* items: [[title, content]]. One open at a time by default (`multiple` lets several stay open); the panel animates its
+   real height, the chevron turns, the trigger has hover / focus / press states. `size="sm"` for tighter lists. */
+export function Accordion({ items, defaultOpen = -1, multiple = false, size = 'md', className }) {
+  const [open, setOpen] = React.useState(() => (defaultOpen >= 0 ? [defaultOpen] : []))
+  const toggle = (i, o) => setOpen((cur) => (o ? (multiple ? [...cur, i] : [i]) : cur.filter((x) => x !== i)))
+  const sm = size === 'sm'
+  return (
+    <div className={cn('divide-y divide-line overflow-hidden rounded-2xl border border-line-2 bg-card', className)}>
+      {items.map(([title, body], i) => (
+        <CollapsibleP.Root key={i} open={open.includes(i)} onOpenChange={(o) => toggle(i, o)}>
+          <CollapsibleP.Trigger className={cn('group flex w-full items-center justify-between gap-4 text-left font-medium outline-none transition-colors duration-150 hover:bg-white/[0.02] focus-visible:bg-white/[0.04] active:bg-white/[0.04]', sm ? 'px-5 py-4 text-[14.5px]' : 'px-6 py-5 text-[15px]')}>
+            {title}
+            <ChevronDown className={cn('size-4 shrink-0 text-dim transition-[transform,color] duration-300 ease-[var(--ease-out)] group-hover:text-fg', open.includes(i) && 'rotate-180 text-fg')} />
+          </CollapsibleP.Trigger>
+          <CollapsibleP.Content className="anim-collapse overflow-hidden"><div className={cn('leading-relaxed text-mute', sm ? 'px-5 pb-4 text-[14px]' : 'px-6 pb-5 text-[14px]')}>{body}</div></CollapsibleP.Content>
+        </CollapsibleP.Root>
+      ))}
+    </div>
+  )
+}

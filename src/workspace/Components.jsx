@@ -6,10 +6,12 @@ import { Avatar, Badge, Button, Card, Dialog, DialogContent, DialogTrigger, Inpu
 import { PasswordInput, Breadcrumbs, Checkbox, CodeBlock, Combobox, Confirm, ContextContent, ContextItem, ContextMenu, ContextSep, ContextTrigger, CopyButton, CopyValue, FormField, HoverCard, InlineAlert, NumberStepper, OTPInput, Pagination, Popover, PopoverContent, PopoverTrigger, Select, Skeleton, Stepper, TagInput, inputCls } from '../components/ui2.jsx'
 import { DotBars, DotGauge } from '../components/DotViz.jsx'
 import { DotDonut, LineChart, Sparkline } from '../components/Charts.jsx'
+import { NotificationCenter, notificationStore } from '../components/NotificationCenter.jsx'
 import * as DialogP from '@radix-ui/react-dialog'
 import * as RadioP from '@radix-ui/react-radio-group'
 import { cn } from '../lib/utils'
 import { ResizablePanel } from '../components/layouts.jsx'
+import { Accordion } from '../components/ui.jsx'
 import { AsyncCombobox, DataGrid, DatePicker, DateRangePicker, DateTimePicker, PercentInput, UnitStepper } from '../components/ui3.jsx'
 
 /* ------------------------------ A. Actions ------------------------------ */
@@ -154,9 +156,7 @@ function Overlays() {
           <HoverCard trigger={<button className="text-[13px] underline decoration-white/30 underline-offset-4">@stefan</button>}><div className="flex gap-3"><Avatar name="Stefan" className="size-10" /><div><div className="text-[13.5px] font-semibold">Stefan</div><div className="text-xs text-dim">Owner · joined 2024</div></div></div></HoverCard>
         </Row>
       </Demo>
-      <Demo label="NotificationDropdown" className="lg:col-span-2">
-        <Popover><PopoverTrigger asChild><Button variant="outline"><Bell />Notifications<Badge tone="bad" dot={false}>2</Badge></Button></PopoverTrigger><PopoverContent className="w-80 p-0" align="start"><div className="flex items-center justify-between border-b border-line px-4 py-3 text-[13px] font-medium">Notifications<button className="text-xs text-dim hover:text-fg">Mark all read</button></div>{[['bad', 'Invoice overdue', '2 h ago'], ['ok', 'Backup completed', '03:00'], ['warn', 'High memory on pg-cluster', 'Yesterday']].map(([t, l, w]) => <div key={l} className="flex gap-3 border-b border-line/50 px-4 py-3 last:border-b-0"><i className={cn('mt-1.5 size-2 rounded-full', t === 'bad' ? 'bg-bad' : t === 'ok' ? 'bg-ok' : 'bg-warn')} /><div><div className="text-[13px]">{l}</div><div className="text-xs text-dim">{w}</div></div></div>)}</PopoverContent></Popover>
-      </Demo>
+      <Demo label="NotificationCenter · bell + popover" className="lg:col-span-2"><div className="flex flex-wrap items-center gap-3"><NotificationCenter className="border border-line-2" /><Button variant="outline" size="sm" onClick={() => notificationStore.push()}>Simulate incoming</Button><Button variant="ghost" size="sm" onClick={() => notificationStore.reset()}>Reset</Button></div><p className="mt-3 text-xs text-dim">All / Unread, mark read, dismiss, mark all read, empty states. The bell rings when something arrives and shares state with the real header bell.</p></Demo>
     </div>
   )
 }
@@ -175,10 +175,21 @@ function Charts() {
   )
 }
 
+const ACC = [['Can I change the size later?', 'Yes. Memory and disk can be changed from the client area at any time; the price follows from that moment.'], ['What happens if it crashes?', 'It restarts by itself and the reason is kept in the log.'], ['Where is it hosted?', 'In the region you pick. Moving later is a snapshot and a restore.']]
+function AccordionDemo() {
+  return (
+    <div className="grid gap-5 lg:grid-cols-2">
+      <Demo label="Accordion · one open at a time"><Accordion items={ACC} defaultOpen={0} size="sm" /></Demo>
+      <Demo label="Accordion · multiple"><Accordion items={ACC} multiple size="sm" /></Demo>
+    </div>
+  )
+}
+
 function DataPres() {
   return (
     <>
       <Charts />
+      <AccordionDemo />
       <div className="grid gap-5 lg:grid-cols-3">
         <Demo label="StatusBadge · StatusIndicator"><div className="space-y-4"><Row>{['running', 'stopped', 'restarting', 'paid', 'unpaid', 'overdue', 'open', 'closed'].map((s) => <StatusBadge key={s} status={s} />)}</Row><Row>{[['bg-ok', 'Online'], ['bg-warn', 'Degraded'], ['bg-bad', 'Offline'], ['bg-dim', 'Unknown']].map(([c, l]) => <span key={l} className="flex items-center gap-2 text-[13px] text-mute"><i className={cn('size-2 rounded-full', c)} />{l}</span>)}</Row></div></Demo>
         <Demo label="Avatar · AvatarGroup · Progress"><div className="space-y-4"><div className="flex -space-x-2">{['S', 'M', 'A', 'K'].map((n) => <Avatar key={n} name={n} className="ring-2 ring-card" />)}<span className="grid size-8 place-items-center rounded-full border border-line-2 bg-card font-mono text-[10.5px]">+3</span></div><div className="space-y-3"><Progress value={34} /><Progress value={91} hot /></div></div></Demo>

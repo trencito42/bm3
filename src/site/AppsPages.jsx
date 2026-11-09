@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import * as Collapsible from '@radix-ui/react-collapsible'
 import { toast } from 'sonner'
 import { ArrowRight, Check, ChevronDown, Search, X } from 'lucide-react'
-import { BackLink, Badge, Button, IconTile, RadioCard, RadioGroup, Segmented, Slider } from '../components/ui.jsx'
+import { Accordion, BackLink, Badge, Button, IconTile, RadioCard, RadioGroup, Segmented, Slider } from '../components/ui.jsx'
 import { Select } from '../components/ui2.jsx'
 import { AnimatedPrice } from '../components/DotViz.jsx'
 import { Orb } from '../builder/FxBits.jsx'
@@ -248,16 +248,4 @@ export function AppPage({ id }) {
   )
 }
 
-function Faq() {
-  const [open, setOpen] = useState(-1)
-  return (
-    <div className="divide-y divide-line overflow-hidden rounded-2xl border border-line-2 bg-card">
-      {FAQ.map(([q, a], i) => (
-        <Collapsible.Root key={q} open={open === i} onOpenChange={(o) => setOpen(o ? i : -1)}>
-          <Collapsible.Trigger className="group flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-[14.5px] font-medium outline-none transition-colors duration-150 hover:bg-white/[0.02] focus-visible:bg-white/[0.04] active:bg-white/[0.04]">{q}<ChevronDown className={cn('size-4 shrink-0 text-dim transition-[transform,color] duration-300 ease-[var(--ease-out)] group-hover:text-fg', open === i && 'rotate-180 text-fg')} /></Collapsible.Trigger>
-          <Collapsible.Content className="anim-collapse overflow-hidden"><p className="px-5 pb-4 text-[14px] leading-relaxed text-mute">{a}</p></Collapsible.Content>
-        </Collapsible.Root>
-      ))}
-    </div>
-  )
-}
+const Faq = () => <Accordion items={FAQ} size="sm" />

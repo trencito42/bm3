@@ -196,3 +196,12 @@ Not verified: reduced-motion CSS, real touch, every Radix overlay re-opened in t
 - **Dot rules** between stats / testimonials / FAQ: a row of dots a ring of light crosses once when first seen (CSS only, 1.5 s, then nothing runs).
 - Measured: 400 synthetic pointermoves cost 6.8 ms in total; 0 requestAnimationFrame calls while idle; 13 torch cards, 3 rules; 0 overflow and 0 console errors at 390 px.
 - Not verified: how it feels frame by frame (preview throttles), real touch devices.
+
+## 404 + the missing pieces (components)
+- **404 scene** (`components/NotFound.jsx`): the zero of "404" is the assistant (selected orb style): it looks at the cursor, thinks on hover, laughs it off on click; dot-matrix 4s assemble, the requested path in a mono chip, Back / Go back, three real destinations per shell. Used by the public site, the client area (new catch-all route), the admin (unknown sections used to show the dashboard) and design-system routes. Shared `lib/useTorch.js`.
+- **Charts** (`components/Charts.jsx`): `LineChart` (hairline grid, flat strokes, no gradient; draws in once; hover/touch-drag crosshair with tooltip; arrow keys, Home/End, Esc), `Sparkline`, `DotDonut` (ring of dots, legend and ring isolate segments together). Showcased in Components, section E.
+- **Notification center** (`components/NotificationCenter.jsx`): the header bell is now a real popover (All / Unread with counts, mark read, dismiss with height collapse, mark all read, empty states with the orb, "View all"); a small external store keeps bell, popover and demo in sync; the bell rings when something arrives. Replaces the static demo.
+- **Accordion** primitive in `ui.jsx` (single / multiple, animated height); the homepage and app-page FAQs now use it instead of two hand-written copies.
+- Drawer and bottom sheet already existed (`DialogContent side`), so they were not rebuilt.
+- **Verified:** 404 on all four shells (orb states, buttons, no overflow); chart hover, keyboard (End, Left, Left -> Oct), donut isolation; notification flows (3 unread -> read one -> dismiss -> mark all -> empty state -> bell clears; click item navigates and closes); accordion single/multiple; 12 routes + bell popover at 390 px: 0 overflow, 0 console errors.
+- **Not verified:** frame-by-frame smoothness, real touch (chart touch-drag), reduced-motion CSS.

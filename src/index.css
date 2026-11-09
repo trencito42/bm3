@@ -119,6 +119,7 @@ button { cursor: pointer; }
 .marquee { animation: marquee 40s linear infinite; }
 .group:hover .marquee { animation-play-state: paused; }
 @keyframes marquee { to { transform: translateX(-50%) } }
+@keyframes bell-ring { 0% { transform: rotate(0) } 15% { transform: rotate(14deg) } 35% { transform: rotate(-11deg) } 55% { transform: rotate(7deg) } 75% { transform: rotate(-4deg) } 100% { transform: rotate(0) } }
 .anim-rise { animation: rise 360ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 55ms); }
 @keyframes rise { from { opacity: 0; transform: translateY(10px) } }
 .anim-collapse[data-state=open] { animation: collapse-down 200ms var(--ease-out); }
@@ -126,7 +127,7 @@ button { cursor: pointer; }
 @keyframes collapse-down { from { height: 0; opacity: 0 } to { height: var(--radix-collapsible-content-height) } }
 @keyframes collapse-up { from { height: var(--radix-collapsible-content-height) } to { height: 0; opacity: 0 } }
 @media (prefers-reduced-motion: reduce) {
-  .anim-overlay, .anim-menu, .anim-pop, .anim-slide, .anim-slide-left, .anim-page, .anim-collapse, .anim-rise, .reveal-grid > *, .mega-viewport, .mega-content, .mega-content [data-stagger] { animation-duration: 1ms !important; }
+  .anim-overlay, .anim-menu, .anim-pop, .anim-slide, .anim-slide-left, .anim-page, .anim-collapse, .anim-rise, [class*=bell-ring], .reveal-grid > *, .mega-viewport, .mega-content, .mega-content [data-stagger] { animation-duration: 1ms !important; }
   .mega-viewport { transition-duration: 1ms !important; }
   .marquee { animation: none !important; }
   .torch::before, .torch::after, .dotrule::after { display: none; }
