@@ -12,13 +12,13 @@ const Ticks = ({ status }) => status === 'read' ? <CheckCheck className="size-3 
 function Card({ card, onAct }) {
   if (card.type === 'invoice') {
     return (
-      <div className="mt-1.5 w-full max-w-[290px] rounded-xl border border-line-2 bg-black/30 p-3">
+      <div className="mt-1.5 w-[272px] max-w-full rounded-xl border border-line-2 bg-black/30 p-3">
         <div className="flex items-center gap-3">
           <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-line-2 bg-white/[0.04]"><Receipt className="size-4 text-mute" /></span>
           <div className="min-w-0 flex-1"><div className="font-mono text-[12.5px]">{card.id}</div><div className="text-[11.5px] text-dim">Due {card.due}</div></div>
           <div className="text-right"><div className="font-mono text-[14px] tabular-nums">{card.amount}</div><div className="font-mono text-[10px] uppercase tracking-[.06em] text-warn">{card.status}</div></div>
         </div>
-        <div className="mt-3 flex gap-2"><button onClick={() => onAct('invoice')} className="h-8 flex-1 rounded-lg bg-fg text-[12.5px] font-semibold text-black outline-none transition-[transform,opacity] active:scale-[.97] focus-visible:ring-2 focus-visible:ring-white/40">Open invoice</button><button onClick={() => onAct('pay')} className="h-8 flex-1 rounded-lg border border-line-2 text-[12.5px] font-medium outline-none transition-[transform,background-color] hover:bg-hover active:scale-[.97] focus-visible:ring-2 focus-visible:ring-white/30">Pay now</button></div>
+        <div className="mt-3 flex gap-2"><button onClick={() => onAct('invoice')} className="h-8 min-w-0 flex-1 truncate whitespace-nowrap rounded-lg bg-fg px-2 text-[12.5px] font-semibold text-black outline-none transition-[transform,opacity] active:scale-[.97] focus-visible:ring-2 focus-visible:ring-white/40">Open invoice</button><button onClick={() => onAct('pay')} className="h-8 min-w-0 flex-1 truncate whitespace-nowrap rounded-lg border border-line-2 px-2 text-[12.5px] font-medium outline-none transition-[transform,background-color] hover:bg-hover active:scale-[.97] focus-visible:ring-2 focus-visible:ring-white/30">Pay now</button></div>
       </div>
     )
   }
@@ -37,7 +37,7 @@ const Message = memo(function Message({ m, first, last, onAct, onQuick, showQuic
       {!me && <span className={cn('w-7 shrink-0', !last && 'invisible')}>{last && <Who who={m.from} size={28} live={m.from === 'operator'} />}</span>}
       <div className={cn('flex min-w-0 max-w-[82%] flex-col', me ? 'items-end' : 'items-start')}>
         {m.kind === 'file' ? (
-          <div className="flex items-center gap-3 rounded-2xl rounded-br-md border border-line-2 bg-white/[0.06] py-2 pl-2 pr-4"><span className="grid size-9 place-items-center rounded-lg border border-line-2 bg-black/30"><FileText className="size-4 text-mute" /></span><span className="min-w-0"><span className="block truncate text-[13px]">{m.file.name}</span><span className="block font-mono text-[10.5px] text-dim">{m.file.size}</span></span></div>
+          <div className="flex w-full min-w-0 max-w-[280px] items-center gap-3 rounded-2xl rounded-br-md border border-line-2 bg-white/[0.06] py-2 pl-2 pr-4"><span className="grid size-9 shrink-0 place-items-center rounded-lg border border-line-2 bg-black/30"><FileText className="size-4 text-mute" /></span><span className="min-w-0 flex-1"><span className="block truncate text-[13px]" title={m.file.name}>{m.file.name}</span><span className="block font-mono text-[10.5px] text-dim">{m.file.size}</span></span></div>
         ) : m.kind === 'card' ? <Card card={m.card} onAct={onAct} /> : (
           <div className={cn('whitespace-pre-wrap break-words px-3.5 py-2.5 text-[14px] leading-[1.5] rounded-2xl', me ? 'bg-fg text-black' : 'border border-line bg-white/[0.04] text-fg', me && last && 'rounded-br-md', !me && last && 'rounded-bl-md', me && !first && 'rounded-tr-md', !me && !first && 'rounded-tl-md')}>
             {m.text}{m.streaming && <span aria-hidden className="ml-0.5 inline-block h-[1em] w-[2px] translate-y-[2px] animate-pulse bg-current align-baseline" />}
