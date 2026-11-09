@@ -1,9 +1,10 @@
 /* Orb styles: ten constructions of the same assistant character.
    All share the face (eyes, blink, glance, cursor-follow, joy/sad states) and the six states:
    idle · thinking · speaking · happy · waiting · error.  All motion honours prefers-reduced-motion. */
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import '../builder/fx.js'
 import './orbs.css'
+import './orbs2.css'
 import { cn } from '../lib/utils'
 
 const fx = () => window.BlipFX
@@ -17,12 +18,54 @@ const Face = () => (
   </span></span></span></span>
 )
 
+/* a short soft pulse whenever the state changes, so the transition reads as a reaction (not a hard cut) */
+function usePulse(ref, state) {
+  const prev = useRef(state)
+  useEffect(() => {
+    if (prev.current === state) return
+    prev.current = state
+    const el = ref.current
+    if (!el || reduced()) return
+    el.removeAttribute('data-pulse'); void el.offsetWidth; el.setAttribute('data-pulse', '')
+    const t = setTimeout(() => el.removeAttribute('data-pulse'), 320)
+    return () => clearTimeout(t)
+  }, [state, ref])
+}
+
+/* ---------- GOO: metaballs through an SVG gooey filter ---------- */
+function GooBody() {
+  const id = 'goo' + useId().replace(/[^a-z0-9]/gi, '')
+  const fill = `url(#${id}g)`
+  return (
+    <span className="ob ob-goo">
+      <svg viewBox="0 0 100 100" className="size-full">
+        <defs>
+          <filter id={id} x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3.6" result="b" />
+            <feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 24 -10" />
+          </filter>
+          <linearGradient id={id + 'g'} gradientUnits="userSpaceOnUse" x1="18" y1="14" x2="82" y2="86">
+            <stop offset="0" stopColor="#ff5ab8" /><stop offset=".5" stopColor="#ff8a4a" /><stop offset="1" stopColor="#8a4dff" />
+          </linearGradient>
+        </defs>
+        <g className="grad-wrap"><g filter={`url(#${id})`}>
+          <circle cx="50" cy="50" r="32" fill={fill} />
+          <g className="orbit" style={{ '--t': '7s' }}><circle cx="50" cy="15" r="12" fill={fill} /></g>
+          <g className="orbit rev" style={{ '--t': '9s' }}><circle cx="50" cy="86" r="11" fill={fill} /></g>
+          <g className="orbit" style={{ '--t': '12s' }}><circle cx="84" cy="50" r="9" fill={fill} /></g>
+        </g></g>
+      </svg>
+    </span>
+  )
+}
+
 /* ---------- 1. AURORA: the original (dark ball + rotating colour rings), imperative ---------- */
 function Aurora({ size, state, className }) {
   const host = useRef(null), orb = useRef(null)
   useEffect(() => { const o = fx().orb(size, state); orb.current = o; host.current.replaceChildren(o); return () => o.remove() }, [size])
   useEffect(() => { orb.current?.setState(state) }, [state])
-  return <span ref={host} className={className} style={{ display: 'inline-grid' }} />
+  usePulse(host, state)
+  return <span ref={host} className={cn('orb-host', className)} style={{ display: 'inline-grid' }} />
 }
 
 /* ---------- 4. DOT SPHERE: rotating fibonacci sphere of dots ---------- */
@@ -107,7 +150,13 @@ function WaveBody({ size, state }) {
 const bodies = {
   plasma: () => <span className="ob ob-plasma"><i /><i /><i /><i /></span>,
   glass: () => <span className="ob ob-glass" />,
-  gimbal: () => <span className="ob ob-gimbal"><span className="core" /><span className="ring r1" /><span className="ring r2" /><span className="ring r3" /></span>,
+  nebula: () => <span className="ob ob-nebula"><span className="arm a" /><span className="arm b" /><span className="stars" /></span>,
+  bubble: () => <span className="ob ob-bubble" />,
+  moon: () => <span className="ob ob-moon" />,
+  halo: () => <span className="ob ob-halo" />,
+  goo: () => <GooBody />,
+  jelly: () => <span className="ob ob-jelly" />,
+  eclipse: () => <span className="ob ob-eclipse" />,
   mercury: () => <span className="ob ob-mercury" />,
   ember: () => <span className="ob ob-ember"><i /><i /><i /><i /><i /></span>,
   mono: () => <span className="ob ob-mono"><span className="orbit" /></span>,
@@ -119,14 +168,20 @@ const bodies = {
 export const ORBS = [
   { id: 'aurora', name: 'Aurora', tag: 'Current', note: 'Dark ball ringed by rotating colour bands, glowing white eyes. The one we started with.' },
   { id: 'plasma', name: 'Plasma', tag: 'Fluid', note: 'Four colour blobs drift and blend inside a dark glass sphere with a specular highlight. Thinking speeds the flow up; error rotates the hue.' },
-  { id: 'glass', name: 'Glass', tag: 'Refractive', note: 'A translucent blue sphere with a rim light, a gloss crescent and a caustic that slides along the bottom. Dark eyes read clearly on it.', dark: true },
-  { id: 'dsphere', name: 'Dot sphere', tag: 'On-brand', note: 'A rotating sphere of dots drawn on canvas. Same language as the dot-matrix type; the back of the sphere dims so the eyes stay legible.', noBodyFace: false },
-  { id: 'gimbal', name: 'Gimbal', tag: 'Technical', note: 'Three thin rings tumble in 3D around a soft core: white, brand red and cyan. Feels like instrumentation rather than a mascot.' },
+  { id: 'nebula', name: 'Nebula', tag: 'Cosmic', note: 'A small galaxy: two dust arms turn in opposite directions over a field of twinkling stars. Deep and calm; the core is kept dark so the eyes stay clear.' },
+  { id: 'glass', name: 'Glass', tag: 'Refractive', dark: true, note: 'A translucent blue sphere with a rim light, a gloss crescent and a caustic that slides along the bottom. Dark eyes read clearly on it.' },
+  { id: 'bubble', name: 'Bubble', tag: 'Iridescent', note: 'Thin-film colour travelling around a nearly clear sphere, wobbling like soap. Almost no mass: the most delicate option.' },
+  { id: 'halo', name: 'Halo', tag: 'Neon ring', note: 'One bold ring of rotating spectrum around a dark void, with a soft bloom outside. Speaking makes the whole orb breathe.' },
+  { id: 'goo', name: 'Goo', tag: 'Metaballs', note: 'Blobs orbit a core and fuse into it through a gooey filter, so the silhouette keeps changing while the gradient flows across it.' },
+  { id: 'jelly', name: 'Jelly', tag: 'Squish', dark: true, note: 'Translucent green gel that squishes while it talks and hops when it is happy. The friendliest, most physical of the set.' },
   { id: 'mercury', name: 'Mercury', tag: 'Liquid metal', dark: true, note: 'A chrome blob whose outline slowly morphs, with a sweeping sheen. Heavy and expensive-looking; works best large.' },
-  { id: 'led', name: 'LED matrix', tag: 'Pixel face', note: 'An 11×11 dot display where the entire face (eyes, blink, smile, frown) is made of lit pixels. No overlay: the expression is the display.', noFace: true },
+  { id: 'moon', name: 'Moon', tag: 'Matte pearl', dark: true, note: 'A matte pearl lit from one side; the light source drifts around it so the shading is always slowly moving. Quiet and soft.' },
+  { id: 'eclipse', name: 'Eclipse', tag: 'Corona', note: 'A black disc with a thin bright rim and a faintly turning corona of rays. High contrast, very graphic.' },
   { id: 'ember', name: 'Ember', tag: 'Warm', note: 'A glowing coal that flickers, with sparks rising off it. The warm counterpart to the cool orbs; hue-rotates to a cold tone on error.' },
+  { id: 'dsphere', name: 'Dot sphere', tag: 'On-brand', note: 'A rotating sphere of dots drawn on canvas. Same language as the dot-matrix type; the back of the sphere dims so the eyes stay legible.' },
+  { id: 'led', name: 'LED matrix', tag: 'Pixel face', noFace: true, note: 'An 11\u00d711 dot display where the entire face (eyes, blink, smile, frown) is made of lit pixels. No overlay: the expression is the display.' },
   { id: 'wave', name: 'Waveform', tag: 'Voice', note: 'A dark disc ringed by 44 radial bars that respond to the state: calm when idle, full amplitude when speaking, a travelling sweep when thinking.' },
-  { id: 'mono', name: 'Mono', tag: 'Minimal', note: 'A flat off-white disc with black eyes. Thinking adds a single red orbiting dot. The quietest option, and the only one that survives one-colour print.', dark: true },
+  { id: 'mono', name: 'Mono', tag: 'Minimal', dark: true, note: 'A flat off-white disc with black eyes. Thinking adds a single red orbiting dot. The quietest option, and the only one that survives one-colour print.' },
 ]
 
 /* ---------- the orb ---------- */
@@ -134,6 +189,7 @@ export function OrbX({ id = 'aurora', size = 28, state = 'idle', className }) {
   const meta = ORBS.find((o) => o.id === id) || ORBS[0]
   const root = useRef(null)
   useEffect(() => { if (id === 'aurora') return; const off = fx().track(root.current); return off }, [id])
+  usePulse(root, state)
   if (id === 'aurora') return <Aurora size={size} state={state} className={className} />
   return (
     <span ref={root} className={cn('kl-face orbx', meta.dark && 'face-dark', className)} data-state={state} style={{ '--orb': size + 'px' }} aria-hidden="true">

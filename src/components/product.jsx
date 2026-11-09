@@ -127,11 +127,24 @@ export function FileExplorer({ compact }) {
           </div>
         </div>
         {sel.length > 1 && <div className="flex items-center gap-2 border-b border-line bg-white/[0.04] px-3 py-1.5 text-[12.5px]"><span>{sel.length} selected</span><Button size="sm" variant="ghost" className="h-6" onClick={() => toast('Archive simulated')}><Archive />Compress</Button><Button size="sm" variant="ghost" className="h-6 text-bad" onClick={() => toast('Delete simulated')}><Trash2 />Delete</Button><button className="ml-auto text-dim hover:text-fg" onClick={() => setSel([])}>Clear</button></div>}
-        <div className="max-h-[340px] overflow-y-auto">
+        <div className="max-h-[340px] overflow-y-auto outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/20" role="listbox" aria-multiselectable="true" aria-label="Files" tabIndex={0}
+          onKeyDown={(e) => {
+            const box = e.currentTarget
+            const i = rows.findIndex((f) => f.n === sel[sel.length - 1])
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+              e.preventDefault()
+              const n = rows[Math.min(rows.length - 1, Math.max(0, i < 0 ? 0 : i + (e.key === 'ArrowDown' ? 1 : -1)))]
+              if (!n) return
+              setSel(e.shiftKey ? [...new Set([...sel, n.n])] : [n.n])
+              requestAnimationFrame(() => box.querySelector(`[data-name="${n.n}"]`)?.scrollIntoView({ block: 'nearest' }))
+            } else if (e.key === ' ' && i >= 0) { e.preventDefault(); setSel((s) => (s.includes(rows[i].n) ? s.filter((x) => x !== rows[i].n) : [...s, rows[i].n])) }
+            else if (e.key === 'Escape') setSel([])
+            else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') { e.preventDefault(); setSel(rows.map((f) => f.n)) }
+          }}>
           {rows.map((f) => (
             <ContextMenu key={f.n}>
               <ContextTrigger asChild>
-                <div onClick={(e) => setSel((s) => (e.metaKey || e.ctrlKey ? (s.includes(f.n) ? s.filter((x) => x !== f.n) : [...s, f.n]) : [f.n]))} className={cn('flex cursor-pointer items-center gap-3 border-b border-line/50 px-3 py-2 text-[13px] transition-colors last:border-b-0 hover:bg-hover', sel.includes(f.n) && 'bg-white/[0.06]')}>
+                <div data-name={f.n} role="option" aria-selected={sel.includes(f.n)} onClick={(e) => setSel((s) => (e.metaKey || e.ctrlKey ? (s.includes(f.n) ? s.filter((x) => x !== f.n) : [...s, f.n]) : [f.n]))} className={cn('flex cursor-pointer items-center gap-3 border-b border-line/50 px-3 py-2 text-[13px] transition-colors last:border-b-0 hover:bg-hover', sel.includes(f.n) && 'bg-white/[0.06]')}>
                   <Checkbox checked={sel.includes(f.n)} onCheckedChange={(v) => setSel((s) => (v ? [...s, f.n] : s.filter((x) => x !== f.n)))} onClick={(e) => e.stopPropagation()} aria-label={`Select ${f.n}`} />
                   {f.t === 'dir' ? <Folder className="size-4 text-info" /> : <FileIcon className="size-4 text-dim" />}
                   <span className="min-w-0 flex-1 truncate">{f.n}</span>
@@ -297,23 +310,33 @@ export const MailboxTable = () => (
 export function Webmail({ height = 460, mobile: forceMobile }) {
   const box = useRef(null)
   const [narrow, setNarrow] = useState(false)
-  useLayoutEffect(() => { setNarrow(box.current.clientWidth < 640); const ro = new ResizeObserver(([e]) => setNarrow(e.contentRect.width < 640)); ro.observe(box.current); return () => ro.disconnect() }, [])
+  const picked = useRef(false)
+  /* in a narrow container the inbox opens on the LIST (like a phone), not on a pre-selected message */
+  useLayoutEffect(() => { const n = box.current.clientWidth < 640; setNarrow(n); if (n && !picked.current) setSel(null); const ro = new ResizeObserver(([e]) => setNarrow(e.contentRect.width < 640)); ro.observe(box.current); return () => ro.disconnect() }, [])
   const mobile = forceMobile || narrow
   const [msgs, setMsgs] = useState(MESSAGES)
   const [sel, setSel] = useState(forceMobile ? null : 1)
   const [compose, setCompose] = useState(false)
   const m = msgs.find((x) => x.id === sel)
-  const open = (id) => { setSel(id); setMsgs((a) => a.map((x) => (x.id === id ? { ...x, unread: false } : x))) }
+  const open = (id) => { picked.current = true; setSel(id); setMsgs((a) => a.map((x) => (x.id === id ? { ...x, unread: false } : x))) }
   return (
     <div ref={box} style={{ height }} className="relative overflow-hidden rounded-xl border border-line-2 bg-card">
       <div className={cn('grid h-full', mobile ? 'grid-cols-1' : 'grid-cols-[300px_1fr]')}>
         {(!mobile || !m) && (
           <div className="flex min-h-0 flex-col border-r border-line">
             <div className="flex items-center gap-2 border-b border-line p-3"><Button size="sm" onClick={() => setCompose(true)}><Plus />Compose</Button><span className="ml-auto font-mono text-[10.5px] uppercase tracking-[.06em] text-dim">Inbox · {msgs.filter((x) => x.unread).length}</span></div>
-            <div className="min-h-0 flex-1 overflow-y-auto">
+            <div className="min-h-0 flex-1 overflow-y-auto" role="listbox" aria-label="Messages" onKeyDown={(e) => {
+              if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+              e.preventDefault()
+              const box = e.currentTarget
+              const cur = document.activeElement?.dataset?.id ? +document.activeElement.dataset.id : sel
+              const i = msgs.findIndex((x) => x.id === cur)
+              const n = msgs[Math.min(msgs.length - 1, Math.max(0, i + (e.key === 'ArrowDown' ? 1 : -1)))]
+              if (n) { open(n.id); requestAnimationFrame(() => box.querySelector(`[data-id="${n.id}"]`)?.focus()) }
+            }}>
               {msgs.map((x) => (
-                <button key={x.id} onClick={() => open(x.id)} className={cn('w-full border-b border-line/50 px-4 py-3 text-left transition-colors hover:bg-hover', sel === x.id && 'bg-white/[0.06]')}>
-                  <div className="flex items-center gap-2"><span className={cn('size-1.5 shrink-0 rounded-full', x.unread ? 'bg-[var(--brand)]' : 'bg-transparent')} /><span className={cn('min-w-0 flex-1 truncate text-[13px]', x.unread ? 'font-semibold' : 'text-mute')}>{x.from}</span><span className="text-[11px] text-dim">{x.time}</span></div>
+                <button key={x.id} data-id={x.id} role="option" aria-selected={sel === x.id} onClick={() => open(x.id)} className={cn('w-full border-b border-line/50 px-4 py-3 text-left transition-colors hover:bg-hover', sel === x.id && 'bg-white/[0.06]')}>
+                  <div className="flex items-center gap-2"><span className={cn('size-1.5 shrink-0 rounded-full transition-colors duration-300', x.unread ? 'bg-[var(--brand)]' : 'bg-transparent')} /><span className={cn('min-w-0 flex-1 truncate text-[13px]', x.unread ? 'font-semibold' : 'text-mute')}>{x.from}</span><span className="text-[11px] text-dim">{x.time}</span></div>
                   <div className="mt-0.5 truncate pl-3.5 text-[12.5px]">{x.subj}</div><div className="truncate pl-3.5 text-[12px] text-dim">{x.prev}</div>
                 </button>
               ))}
@@ -335,9 +358,9 @@ export function Webmail({ height = 460, mobile: forceMobile }) {
         )}
       </div>
       {compose && (
-        <div className="anim-menu absolute bottom-3 right-3 z-10 w-[min(420px,calc(100%-1.5rem))] rounded-xl border border-line-2 bg-[#101012] shadow-2xl shadow-black/60" style={{ transformOrigin: '100% 100%' }}>
+        <div className="anim-menu absolute bottom-3 right-3 z-10 w-[min(420px,calc(100%-1.5rem))] rounded-xl border border-line-2 bg-[#101012] shadow-2xl shadow-black/60" style={{ transformOrigin: '100% 100%' }} role="dialog" aria-label="New message" onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); setCompose(false) } }}>
           <div className="flex items-center justify-between border-b border-line px-4 py-2.5 text-[13px] font-medium">New message<button aria-label="Close" onClick={() => setCompose(false)} className="text-dim hover:text-fg"><X className="size-4" /></button></div>
-          <div className="space-y-2 p-3"><input placeholder="To" className={inputCls()} aria-label="To" /><input placeholder="Subject" className={inputCls()} aria-label="Subject" /><Textarea rows={5} placeholder="Write something…" /></div>
+          <div className="space-y-2 p-3"><input autoFocus placeholder="To" className={inputCls()} aria-label="To" /><input placeholder="Subject" className={inputCls()} aria-label="Subject" /><Textarea rows={5} placeholder="Write something…" /></div>
           <div className="flex items-center justify-between border-t border-line px-3 py-2.5"><Button variant="ghost" size="icon" aria-label="Attach"><Paperclip /></Button><Button onClick={() => { setCompose(false); toast.success('Sent (simulated)') }}><Send />Send</Button></div>
         </div>
       )}

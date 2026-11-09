@@ -62,7 +62,21 @@ export default function Builder() {
     ro.observe(msRef.current)
     return () => ro.disconnect()
   }, [plan, refit])
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }) }, [msgs])
+  /* Follow the stream only while the reader is at the bottom. Direct scrollTop writes (no smooth scroll) because
+     streaming updates every ~16 ms and chained smooth scrolls make the thread shake. */
+  const stick = useRef(true)
+  useEffect(() => {
+    const el = endRef.current?.parentElement
+    if (!el) return
+    const onScroll = () => { stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80 }
+    /* user intent wins immediately: scrolling up / touching releases the follow before the next stream tick */
+    const release = (e) => { if (!e || e.type !== 'wheel' || e.deltaY < 0) stick.current = false }
+    el.addEventListener('scroll', onScroll, { passive: true })
+    el.addEventListener('wheel', release, { passive: true })
+    el.addEventListener('touchstart', release, { passive: true })
+    return () => { el.removeEventListener('scroll', onScroll); el.removeEventListener('wheel', release); el.removeEventListener('touchstart', release) }
+  }, [])
+  useEffect(() => { const el = endRef.current?.parentElement; if (el && stick.current) el.scrollTop = el.scrollHeight }, [msgs])
   useEffect(() => {
     const t = taRef.current
     if (t) { t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 140) + 'px' }
@@ -78,7 +92,7 @@ export default function Builder() {
   const submit = async (override) => {
     const text = (override ?? input).trim()
     if (!text || busy) return
-    setBusy(true); setInput('')
+    setBusy(true); setInput(''); stick.current = true
     const uid = Date.now(), aid = uid + 1
     setMsgs((m) => [...m, { id: uid, role: 'u', text }, { id: aid, role: 'a', text: '', text2: '', orb: 'thinking', chips: null }])
     await sleep(900)

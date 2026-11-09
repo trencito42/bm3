@@ -1,0 +1,58 @@
+/* =================== ORB STYLES (batch 2) =================== */
+@property --mx { syntax: '<percentage>'; inherits: false; initial-value: 30%; }
+@property --my { syntax: '<percentage>'; inherits: false; initial-value: 26%; }
+
+/* ---- NEBULA: a small galaxy, two counter-rotating dust arms + twinkling stars ---- */
+.ob-nebula { background: radial-gradient(circle at 50% 50%, #1b0c3d 0, #07030f 78%); box-shadow: 0 0 calc(var(--orb) * .36) rgba(120,70,255,.42), inset 0 0 calc(var(--orb) * .14) rgba(255,255,255,.2); }
+.ob-nebula .arm { position: absolute; border-radius: 50%; filter: blur(calc(var(--orb) * .055)) hue-rotate(var(--hue)); transition: filter .6s; }
+.ob-nebula .a { inset: -28%; background: conic-gradient(from 0deg, transparent 0 10%, rgba(255,70,200,.6) 22%, transparent 38%, transparent 60%, rgba(70,170,255,.55) 74%, transparent 90%); animation: ne-spin calc(15s / var(--spd)) linear infinite; }
+.ob-nebula .b { inset: -12%; background: conic-gradient(from 90deg, transparent 0 18%, rgba(255,190,90,.45) 32%, transparent 48%, transparent 68%, rgba(150,90,255,.55) 82%, transparent 96%); animation: ne-spin calc(9s / var(--spd)) linear infinite reverse; }
+.ob-nebula .stars { position: absolute; inset: 0; border-radius: 50%; background-image: radial-gradient(circle at 18% 30%, #fff 0 calc(var(--orb) * .008), transparent calc(var(--orb) * .014)), radial-gradient(circle at 78% 22%, #cfe8ff 0 calc(var(--orb) * .007), transparent calc(var(--orb) * .013)), radial-gradient(circle at 66% 76%, #fff 0 calc(var(--orb) * .009), transparent calc(var(--orb) * .015)), radial-gradient(circle at 28% 72%, #ffe3cf 0 calc(var(--orb) * .007), transparent calc(var(--orb) * .013)), radial-gradient(circle at 88% 56%, #fff 0 calc(var(--orb) * .006), transparent calc(var(--orb) * .012)); animation: ne-tw calc(3.4s / var(--spd)) ease-in-out infinite alternate; }
+.ob-nebula::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle, rgba(5,2,12,.62) 0, rgba(5,2,12,.25) 36%, transparent 60%); }
+@keyframes ne-spin { to { transform: rotate(360deg) } }
+@keyframes ne-tw { from { opacity: .55 } to { opacity: 1 } }
+
+/* ---- BUBBLE: thin-film iridescence, wobbling like a soap bubble ---- */
+.ob-bubble { overflow: visible; background: radial-gradient(circle, rgba(255,255,255,.02) 52%, rgba(255,255,255,.12) 76%, rgba(255,255,255,.32) 100%); box-shadow: inset 0 0 calc(var(--orb) * .05) rgba(255,255,255,.55), 0 0 calc(var(--orb) * .22) rgba(150,200,255,.28); animation: bb-wob calc(4.2s / var(--spd)) ease-in-out infinite; }
+.ob-bubble::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, rgba(255,120,200,.5), rgba(120,200,255,.5), rgba(140,255,200,.45), rgba(255,220,120,.5), rgba(255,120,200,.5)); -webkit-mask: radial-gradient(circle, transparent 50%, #000 72%); mask: radial-gradient(circle, transparent 50%, #000 72%); mix-blend-mode: screen; filter: blur(calc(var(--orb) * .012)) hue-rotate(var(--hue)); animation: ne-spin calc(11s / var(--spd)) linear infinite; }
+.ob-bubble::after { content: ""; position: absolute; left: 15%; top: 11%; width: 24%; height: 15%; border-radius: 50%; background: rgba(255,255,255,.9); filter: blur(calc(var(--orb) * .01)); transform: rotate(-32deg); }
+@keyframes bb-wob { 0%,100% { transform: scale(1,1) } 33% { transform: scale(1.035,.97) } 66% { transform: scale(.975,1.03) } }
+
+/* ---- MOON: matte pearl, the light source drifts around it ---- */
+.ob-moon { background: radial-gradient(circle at var(--mx) var(--my), #fffdf6 0, #ece7da 26%, #9a94a8 60%, #2c2a44 100%); box-shadow: 0 0 calc(var(--orb) * .3) rgba(255,248,225,.22), inset calc(var(--orb) * -.06) calc(var(--orb) * -.08) calc(var(--orb) * .16) rgba(10,10,30,.7); animation: mo-light calc(14s / var(--spd)) ease-in-out infinite; }
+@keyframes mo-light { 0%,100% { --mx: 30%; --my: 26% } 33% { --mx: 70%; --my: 30% } 66% { --mx: 56%; --my: 70% } }
+
+/* ---- HALO: a single bold neon ring, spectrum rotating, inner void ---- */
+.ob-halo { overflow: visible; background: radial-gradient(circle, #04040a 58%, #0c0c18 100%); box-shadow: inset 0 0 calc(var(--orb) * .2) rgba(0,0,0,.85); --ring: conic-gradient(from 0deg, #ff2d36, #ff8a2b, #ffd24a, #3be8a0, #2bb8ff, #8a4dff, #ff2d36); }
+.ob-halo::before, .ob-halo::after { content: ""; position: absolute; border-radius: 50%; background: var(--ring); animation: ne-spin calc(5s / var(--spd)) linear infinite; filter: hue-rotate(var(--hue)); }
+.ob-halo::before { inset: -5%; -webkit-mask: radial-gradient(circle, transparent 63%, #000 65%, #000 75%, transparent 77%); mask: radial-gradient(circle, transparent 63%, #000 65%, #000 75%, transparent 77%); }
+.ob-halo::after { inset: -14%; opacity: .55; filter: blur(calc(var(--orb) * .08)) hue-rotate(var(--hue)); -webkit-mask: radial-gradient(circle, transparent 55%, #000 66%, #000 78%, transparent 92%); mask: radial-gradient(circle, transparent 55%, #000 66%, #000 78%, transparent 92%); }
+.orbx[data-state=speaking] .ob-halo { animation: ha-pulse .7s ease-in-out infinite; }
+@keyframes ha-pulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.045) } }
+
+/* ---- GOO: metaballs merging and splitting, gradient body ---- */
+.ob-goo { overflow: visible; background: none; }
+.ob-goo svg { overflow: visible; }
+.ob-goo .orbit { transform-origin: 50px 50px; animation: ne-spin calc(var(--t) / var(--spd)) linear infinite; }
+.ob-goo .rev { animation-direction: reverse; }
+.ob-goo .grad-wrap { filter: hue-rotate(var(--hue)); transition: filter .6s; }
+
+/* ---- JELLY: translucent gel that squishes (talks, hops) ---- */
+.ob-jelly { background: radial-gradient(circle at 34% 26%, rgba(255,255,255,.75) 0, rgba(255,255,255,0) 22%), radial-gradient(circle at 50% 62%, #8dffbc, #1fc884 58%, #0a6b4a); box-shadow: inset 0 calc(var(--orb) * -.12) calc(var(--orb) * .2) rgba(0,70,40,.5), inset 0 calc(var(--orb) * .06) calc(var(--orb) * .1) rgba(255,255,255,.5), 0 calc(var(--orb) * .16) calc(var(--orb) * .3) -3px rgba(20,200,130,.55); transform-origin: 50% 100%; animation: je-idle calc(3.4s / var(--spd)) ease-in-out infinite; filter: hue-rotate(var(--hue)); transition: filter .6s; }
+.orbx[data-state=speaking] .ob-jelly { animation: je-talk .52s ease-in-out infinite; }
+.orbx[data-state=happy] .ob-jelly { animation: je-hop .8s var(--ease-out) 2; }
+.orbx[data-state=error] .ob-jelly { animation: je-idle 6s ease-in-out infinite; }
+@keyframes je-idle { 0%,100% { transform: scale(1,1) } 50% { transform: scale(1.035,.965) } }
+@keyframes je-talk { 0%,100% { transform: scale(1,1) } 50% { transform: scale(.955,1.06) } }
+@keyframes je-hop { 0%,100% { transform: translateY(0) scale(1,1) } 20% { transform: translateY(0) scale(1.08,.9) } 50% { transform: translateY(-9%) scale(.95,1.06) } 80% { transform: translateY(0) scale(1.05,.94) } }
+
+/* ---- ECLIPSE: black disc, flickering corona ---- */
+.ob-eclipse { overflow: visible; background: #000; box-shadow: 0 0 0 calc(var(--orb) * .018) rgba(255,255,255,.92), 0 0 calc(var(--orb) * .1) calc(var(--orb) * .02) rgba(255,232,190,.9), 0 0 calc(var(--orb) * .34) calc(var(--orb) * .05) rgba(255,168,88,.5); filter: hue-rotate(var(--hue)); transition: filter .6s; animation: ec-fl calc(2.6s / var(--spd)) ease-in-out infinite; }
+.ob-eclipse::before { content: ""; position: absolute; inset: -22%; border-radius: 50%; background: repeating-conic-gradient(from 0deg, rgba(255,214,150,.0) 0deg 7deg, rgba(255,214,150,.5) 9deg, rgba(255,214,150,0) 12deg); -webkit-mask: radial-gradient(circle, transparent 44%, #000 50%, transparent 72%); mask: radial-gradient(circle, transparent 44%, #000 50%, transparent 72%); filter: blur(calc(var(--orb) * .012)); animation: ne-spin calc(40s / var(--spd)) linear infinite; }
+@keyframes ec-fl { 0%,100% { filter: brightness(1) hue-rotate(var(--hue)) } 50% { filter: brightness(1.14) hue-rotate(var(--hue)) } }
+
+/* every style: a short, soft pulse whenever the state changes (set by OrbX) */
+.orbx[data-pulse], .orb-host[data-pulse] { animation: ob-state-pulse 280ms var(--ease-out); }
+@keyframes ob-state-pulse { 0% { transform: scale(1) } 38% { transform: scale(1.07) } 100% { transform: scale(1) } }
+
+@media (prefers-reduced-motion: reduce) { .ob-nebula *, .ob-bubble, .ob-bubble::before, .ob-moon, .ob-halo::before, .ob-halo::after, .ob-goo .orbit, .ob-jelly, .ob-eclipse, .ob-eclipse::before { animation: none !important } }

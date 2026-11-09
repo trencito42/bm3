@@ -43,6 +43,7 @@ export function DotBars({ values, rows = 11, unit = 'GB' }) {
   const [revealed, setRevealed] = useState(false)
   const [tip, setTip] = useState(null)
   const [show, setShow] = useState(false)
+  const [hoverCol, setHoverCol] = useState(null)
   useEffect(() => {
     setOn(false); setRevealed(false)
     const r = requestAnimationFrame(() => requestAnimationFrame(() => setOn(true)))
@@ -55,10 +56,10 @@ export function DotBars({ values, rows = 11, unit = 'GB' }) {
     const top = g.querySelector('[data-top="true"]')?.getBoundingClientRect()
     if (!top) return
     setTip({ x: top.left + top.width / 2, y: top.top, t: `Day ${c + 1} \u00b7 ${Math.round(v)} ${unit}` })
-    setShow(true)
+    setShow(true); setHoverCol(c)
   }
   return (
-    <div className="relative" onPointerLeave={() => setShow(false)}>
+    <div className="relative" onPointerLeave={() => { setShow(false); setHoverCol(null) }}>
       <svg viewBox={`0 0 ${values.length * P} ${rows * P}`} className="block h-auto w-full" role="img" aria-label={`Bar chart, ${values.length} values`}>
         {values.map((v, c) => {
           const n = Math.max(1, Math.round((v / max) * rows))
@@ -67,7 +68,7 @@ export function DotBars({ values, rows = 11, unit = 'GB' }) {
               <rect x={c * P} y="0" width={P} height={rows * P} fill="transparent" />
               {Array.from({ length: rows }, (_, r) => {
                 const lit = on && r < n
-                return <circle key={r} data-top={r === n - 1} cx={c * P + P / 2} cy={(rows - 1 - r) * P + P / 2} r={1.55} className="fill-white transition-[opacity,fill] duration-150 group-hover:[fill:var(--brand)]" style={{ opacity: lit ? (r === n - 1 ? 1 : 0.8) : 0.1, transitionDuration: revealed ? '120ms' : '300ms', transitionDelay: revealed ? '0ms' : `${c * 14 + r * 10}ms` }} />
+                return <circle key={r} data-top={r === n - 1} cx={c * P + P / 2} cy={(rows - 1 - r) * P + P / 2} r={1.55} className="fill-white transition-[opacity,fill] duration-150 group-hover:[fill:var(--brand)]" style={{ opacity: lit ? (r === n - 1 ? 1 : 0.8) * (hoverCol !== null && hoverCol !== c ? 0.42 : 1) : 0.1, transitionDuration: revealed ? '120ms' : '300ms', transitionDelay: revealed ? '0ms' : `${c * 14 + r * 10}ms` }} />
               })}
             </g>
           )

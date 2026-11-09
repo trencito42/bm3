@@ -78,3 +78,18 @@ Approach: fix behaviour first, verify in the running app (sampling real frames /
 - Pointer-leave of the chart tooltip (synthetic events do not exercise React's leave); real hover on touch devices.
 - Chart crosshair / dataset transitions, orb state-to-state transitions, toast timing, file-manager and webmail interaction details, Site builder choreography are untouched in this batch.
 - Virtual keyboard and safe-area behaviour on real devices.
+
+---
+## Craft pass 2 (orbs, state transitions, product interactions)
+**Orbs:** removed Gimbal (thin rings read as technical, not as a character). Added Nebula, Bubble, Halo, Goo (SVG metaballs), Jelly, Moon (matte pearl with a drifting light via `@property`), Eclipse (corona). The lab now has 16 styles; each shares the face, the six states and cursor-follow. Goo enlarged after the first render looked small; plasma/mercury legibility fixed earlier. **State changes:** every orb now does a 280 ms soft pulse when its state changes (`usePulse`), verified (`data-pulse` set, cleared after ~320 ms) and honours reduced motion; lab has a "Cycle states" mode to watch the transitions. Selecting an orb applies it app-wide (verified in the Site builder, and reverts).
+**Site builder:** the thread no longer shakes while text streams. Smooth-scroll was being re-triggered every ~16 ms; now it writes `scrollTop` directly and only while the reader is at the bottom; wheel/touch up releases the follow immediately. Verified at 380 px height: the gap stays 0 while streaming; after scrolling up the thread stays put while content keeps growing (gap 292).
+**File manager:** arrow keys move selection, Shift+arrow extends, Space toggles, Esc clears, Ctrl/Cmd+A selects all, selected row scrolls into view (all verified). **Webmail:** arrow keys move through messages and focus follows; compose focuses "To" and Esc closes it; in a narrow container the inbox now opens on the list (not on a pre-selected message); the unread dot fades instead of vanishing.
+**Charts:** hovering a column dims the others (acts as the crosshair). **Toasts:** 2.8 s, max 3 visible, mobile offset clears the bottom bar.
+**QA:** 70-route overflow/error/numeral audit at 390 px and 1280 px after these changes: 0 findings.
+
+**Still open (honest list)**
+- Real keyboard-modality focus ring check; real pointer-leave and touch behaviour on charts; chart dataset-to-dataset transition is still a full re-reveal.
+- Toast progress/loading variants, copy-confirmation inside tables, inline validation timing.
+- File manager rename/upload choreography, drag-and-drop; webmail folders/toolbars (not built), compose attachments.
+- Site builder panel-to-panel continuity on resize, publish dialog choreography.
+- Virtual keyboard / safe-area on real devices; the preview pane intermittently throttles animations while hidden, so frame-timing numbers were taken with it awake.

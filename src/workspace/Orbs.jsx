@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Check, Moon, Sun } from 'lucide-react'
 import { toast } from 'sonner'
 import { Doc, Demo } from './Doc.jsx'
@@ -33,11 +33,18 @@ function Gallery() {
   const [sel, setSel] = useOrbId()
   const [state, setState] = useState('idle')
   const [light, setLight] = useState(false)
+  const [cycle, setCycle] = useState(false)
+  useEffect(() => {
+    if (!cycle) return
+    const t = setInterval(() => setState((s) => STATES[(STATES.indexOf(s) + 1) % STATES.length]), 2600)
+    return () => clearInterval(t)
+  }, [cycle])
   return (
     <>
       <div className="sticky top-0 z-20 -mx-1 flex flex-wrap items-center gap-3 rounded-xl border border-line-2 bg-bg/90 px-3 py-2.5 backdrop-blur">
         <div className="flex flex-wrap gap-1">{STATES.map((s) => <button key={s} onClick={() => setState(s)} className={cn('h-8 rounded-lg px-3 text-[12.5px] capitalize transition-colors', state === s ? 'bg-fg text-black' : 'bg-white/[0.06] text-mute hover:text-fg')}>{s}</button>)}</div>
-        <button onClick={() => setLight(!light)} aria-label="Toggle light stage" className="ml-auto flex h-8 items-center gap-2 rounded-lg border border-line-2 px-3 text-[12.5px] text-mute transition-colors hover:text-fg">{light ? <Moon className="size-3.5" /> : <Sun className="size-3.5" />}{light ? 'Dark stage' : 'Light stage'}</button>
+        <button onClick={() => setCycle(!cycle)} aria-pressed={cycle} className={cn('ml-auto flex h-8 items-center gap-2 rounded-lg border px-3 text-[12.5px] transition-colors', cycle ? 'border-fg bg-fg text-black' : 'border-line-2 text-mute hover:text-fg')}>{cycle ? 'Cycling states' : 'Cycle states'}</button>
+        <button onClick={() => setLight(!light)} aria-label="Toggle light stage" className="flex h-8 items-center gap-2 rounded-lg border border-line-2 px-3 text-[12.5px] text-mute transition-colors hover:text-fg">{light ? <Moon className="size-3.5" /> : <Sun className="size-3.5" />}{light ? 'Dark stage' : 'Light stage'}</button>
       </div>
       <p className="text-[12.5px] text-dim">Move the cursor around: every style’s eyes follow it. Hover an idle orb to see it smile. Pick a state above to preview them all at once.</p>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -69,14 +76,14 @@ function Spec() {
       {[['Shared contract', 'Every style renders inside the same 1:1 box, takes size and state, uses the same face (eyes, blink, glance, joy arcs) and the same six states, so they are drop-in replacements for one another.'],
         ['Cursor follow', 'The eyes drift towards the pointer, capped at a few percent of the orb, and return to their idle glance after 2.5 s without movement. Disabled under reduced motion and on touch.'],
         ['State language', 'Idle: blink + occasional glance, smiles on hover. Thinking: faster motion and eyes scanning side to side. Speaking: eyes pulse, motion speeds up. Happy: arcs and a small hop. Waiting: slow, eyes lowered. Error: colour shifts and eyes droop.'],
-        ['Performance', 'Seven styles are pure CSS (compositor-friendly transforms). Dot sphere uses one small canvas and LED / Waveform update at about 10–18 fps. Cheap enough for a chat message per orb.']]
+        ['Performance', 'Most styles are pure CSS (compositor-friendly transforms). Dot sphere uses one small canvas and LED / Waveform update at about 10–18 fps. Cheap enough for a chat message per orb.']]
         .map(([t, d]) => <div key={t} className="rounded-xl border border-line bg-card p-4"><div className="text-[14px] font-semibold">{t}</div><p className="mt-1 text-[13px] leading-relaxed text-mute">{d}</p></div>)}
     </div>
   )
 }
 
 export default function Orbs() {
-  return <Doc title="Orb lab" lead="Ten constructions of the same assistant character. Pick one and it becomes the orb in the site builder, chat, support and everywhere else the assistant appears." sections={[
+  return <Doc title="Orb lab" lead="Sixteen constructions of the same assistant character. Pick one and it becomes the orb in the site builder, chat, support and everywhere else the assistant appears." sections={[
     { id: 'gallery', title: 'Styles', note: 'click “Use this orb” to apply everywhere', node: <Gallery /> },
     { id: 'context', title: 'In context', node: <InContext /> },
     { id: 'spec', title: 'How they work', node: <Spec /> },
