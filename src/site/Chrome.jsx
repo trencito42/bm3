@@ -59,12 +59,13 @@ export const MENU = [
       { h: 'Operate', items: [
         { t: 'System status', d: 'Live regional health and incident history.', to: '/site/status', I: Boxes },
         { t: 'Support', d: 'Median first reply under 8 minutes.', to: '/site/login', I: LifeBuoy },
+        { t: 'Blog', d: 'Product news, engineering notes and guides.', to: '/site/blog', I: BookOpen },
       ] },
     ],
     feature: { tag: 'CLI', t: 'Deploy in one line', d: 'blip deploy vps --plan pro --region fra', mono: true, to: '/site/docs', cta: 'Read the quick start' },
   },
 ]
-const FLAT = [['/site/apps', 'Apps'], ['/site/products', 'Pricing'], ['/site/status', 'Status']]
+const FLAT = [['/site/apps', 'Apps'], ['/site/products', 'Pricing'], ['/site/blog', 'Blog'], ['/site/status', 'Status']]
 
 /* ------------------------------ desktop mega panel ------------------------------ */
 function MegaLink({ it }) {
@@ -440,7 +441,7 @@ const COLS = [
   ['Hosting', [['Web hosting', P + 'web'], ['VPS', P + 'vps'], ['Game servers', '/site/apps'], ['Databases', P + 'db'], ['Email hosting', P + 'mail'], ['Domains', P + 'dom']]],
   ['Solutions', [['Startups', '/site/products'], ['Agencies', '/site/products'], ['Game communities', P + 'game'], ['Migrations', '/site/docs'], ['Site builder', '/site/register']]],
   ['Developers', [['Documentation', '/site/docs'], ['API reference', '/site/docs'], ['CLI', '/site/docs'], ['System status', '/site/status'], ['Changelog', '/site/docs']]],
-  ['Company', [['About', '/site'], ['Careers', '/site'], ['Support', '/site/login'], ['Contact', '/site/login'], ['Client area', '/site/login']]],
+  ['Company', [['About', '/site'], ['Blog', '/site/blog'], ['Careers', '/site'], ['Support', '/site/login'], ['Contact', '/site/login'], ['Client area', '/site/login']]],
   ['Legal', [['Terms of service', '/site/legal'], ['Privacy policy', '/site/legal'], ['Acceptable use', '/site/legal'], ['SLA', '/site/legal'], ['DPA', '/site/legal']]],
 ]
 

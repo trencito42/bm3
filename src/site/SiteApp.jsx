@@ -1,5 +1,5 @@
 import { Brand } from '../components/logos.jsx'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ArrowRight, Check, Cloud, Database, Gamepad2, Globe, Mail, Menu, Server, X } from 'lucide-react'
@@ -12,14 +12,18 @@ import HomePage from './HomePage.jsx'
 import { SiteFooter, SiteHeader } from './Chrome.jsx'
 import { NotFoundScene, SITE_LINKS } from '../components/NotFound.jsx'
 import { AppPage, AppsCatalog } from './AppsPages.jsx'
+import { BlogIndex, BlogPost } from './BlogPages.jsx'
 import { PLAN_DATA } from '../components/product.jsx'
 import { cn, money } from '../lib/utils'
 
 function Shell({ children }) {
   const { pathname } = useLocation()
   const home = /^\/site\/?$/.test(pathname)
+  const scroller = useRef(null)
+  /* a new page starts at the top (the shell is the scroll container, so the browser does not do it for us) */
+  useEffect(() => { scroller.current?.scrollTo({ top: 0, behavior: 'auto' }) }, [pathname])
   return (
-    <div className="flex h-full flex-col overflow-y-auto bg-bg">
+    <div ref={scroller} className="flex h-full flex-col overflow-y-auto bg-bg">
       <SiteHeader />
       <div className="flex-1">{children}</div>
       <SiteFooter cta={!home} />
@@ -138,6 +142,6 @@ const NotFound = () => <NotFoundScene home="/site" homeLabel="Back to home" link
 export default function SiteApp() {
   const { pathname } = useLocation()
   const [, seg = '', arg] = pathname.replace(/^\/site\/?/, '/').split('/')
-  const page = { '': <HomePage />, products: <Products id={arg} />, apps: arg ? <AppPage key={arg} id={arg} /> : <AppsCatalog />, login: <Auth key="l" mode="login" />, register: <Auth key="r" mode="register" />, recover: <Auth key="c" mode="recover" />, docs: <Docs />, status: <Status />, legal: <Legal /> }[seg] || <NotFound />
+  const page = { '': <HomePage />, products: <Products id={arg} />, apps: arg ? <AppPage key={arg} id={arg} /> : <AppsCatalog />, blog: arg ? <BlogPost key={arg} id={arg} /> : <BlogIndex />, login: <Auth key="l" mode="login" />, register: <Auth key="r" mode="register" />, recover: <Auth key="c" mode="recover" />, docs: <Docs />, status: <Status />, legal: <Legal /> }[seg] || <NotFound />
   return <Shell>{page}</Shell>
 }
