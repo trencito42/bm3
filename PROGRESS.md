@@ -155,3 +155,11 @@ Approach: fix behaviour first, verify in the running app (sampling real frames /
 - Tickers (deploy terminal x2, live metrics x2, builder teaser) now run only while on screen and the tab is visible; verified: 0 intervals at the footer, metrics + builder resume when scrolled to.
 - Hero badge is a real button with hover; marquee pauses on hover, fades at the edges, and is off under reduced motion.
 - Not verified: reduced-motion CSS (not emulable), real touch/scroll feel; preview pane throttles animations when hidden so timing was checked through state, not frame rates.
+
+---
+## Public site: app catalog + app page (`/site/apps`, `/site/apps/:id`)
+Redesign of the staging catalog pages in the bm3 style (mock data in `src/site/appsData.js`, pages in `src/site/AppsPages.jsx`; nothing in blipmade-hosting was touched).
+- **Catalog:** 24 mock apps in 4 categories, sticky filter bar with live counts, search (`/` focuses, Esc clears, clear button), grouped grids with staggered rise-in, "Coming soon" state, empty state with the waiting orb, "Running something else?" band. Header menu gets an "Apps" link; the Products feature card points here.
+- **App page (Minecraft + all others):** edition cards (Paper/Forge/Vanilla/Bedrock/Folia, per-edition memory minimum, note cross-fades), size presets, memory/storage sliders, region select with latency, sticky order summary with `AnimatedPrice`, billing switch, line items, simulated deploy (loading -> toast), included list, FAQ with height animation, related apps; on phones the summary becomes a sticky bottom bar. Unknown id -> friendly not-found, "coming soon" apps get Notify me.
+- **Verified:** 1280 px filters, search, empty state, `/`, Esc; edition switching and min memory (Forge 4, Vanilla 2, Folia 4); keyboard slider with real key presses (5 -> 8, focus kept); billing and deploy flow; 390 px: no overflow on 6 routes, no console errors.
+- **Not verified:** real touch; reduced-motion CSS; tablet widths between 640 and 1024 only seen via the responsive grid classes.

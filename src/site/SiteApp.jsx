@@ -10,6 +10,7 @@ import { DotField, DotText, Orb } from '../builder/FxBits.jsx'
 import { CATALOG, INCIDENTS } from '../lib/mock'
 import HomePage from './HomePage.jsx'
 import { SiteFooter, SiteHeader } from './Chrome.jsx'
+import { AppPage, AppsCatalog } from './AppsPages.jsx'
 import { PLAN_DATA } from '../components/product.jsx'
 import { cn, money } from '../lib/utils'
 
@@ -136,6 +137,6 @@ const NotFound = () => { const nav = useNavigate(); return <div className="grid 
 export default function SiteApp() {
   const { pathname } = useLocation()
   const [, seg = '', arg] = pathname.replace(/^\/site\/?/, '/').split('/')
-  const page = { '': <HomePage />, products: <Products id={arg} />, login: <Auth key="l" mode="login" />, register: <Auth key="r" mode="register" />, recover: <Auth key="c" mode="recover" />, docs: <Docs />, status: <Status />, legal: <Legal /> }[seg] || <NotFound />
+  const page = { '': <HomePage />, products: <Products id={arg} />, apps: arg ? <AppPage key={arg} id={arg} /> : <AppsCatalog />, login: <Auth key="l" mode="login" />, register: <Auth key="r" mode="register" />, recover: <Auth key="c" mode="recover" />, docs: <Docs />, status: <Status />, legal: <Legal /> }[seg] || <NotFound />
   return <Shell>{page}</Shell>
 }

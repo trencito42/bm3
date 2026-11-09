@@ -30,7 +30,7 @@ export const MENU = [
         { t: 'Domains', d: 'Register and transfer, WHOIS privacy included.', to: P + 'dom', I: Cloud },
       ] },
     ],
-    feature: { tag: 'Popular', t: 'Web hosting', d: 'Free SSL, daily backups and a site builder that writes the first draft for you.', price: 4, to: P + 'web', cta: 'See plans' },
+    feature: { tag: 'Popular', t: 'Web hosting', d: 'Free SSL, daily backups and a site builder that writes the first draft for you.', price: 4, to: '/site/apps', cta: 'Browse the catalog' },
   },
   {
     id: 'solutions', label: 'Solutions',
@@ -64,7 +64,7 @@ export const MENU = [
     feature: { tag: 'CLI', t: 'Deploy in one line', d: 'blip deploy vps --plan pro --region fra', mono: true, to: '/site/docs', cta: 'Read the quick start' },
   },
 ]
-const FLAT = [['/site/products', 'Pricing'], ['/site/status', 'Status']]
+const FLAT = [['/site/apps', 'Apps'], ['/site/products', 'Pricing'], ['/site/status', 'Status']]
 
 /* ------------------------------ desktop mega panel ------------------------------ */
 function MegaLink({ it }) {
@@ -208,7 +208,7 @@ export function SiteHeader() {
 
 /* ------------------------------ footer ------------------------------ */
 const COLS = [
-  ['Hosting', [['Web hosting', P + 'web'], ['VPS', P + 'vps'], ['Game servers', P + 'game'], ['Databases', P + 'db'], ['Email hosting', P + 'mail'], ['Domains', P + 'dom']]],
+  ['Hosting', [['Web hosting', P + 'web'], ['VPS', P + 'vps'], ['Game servers', '/site/apps'], ['Databases', P + 'db'], ['Email hosting', P + 'mail'], ['Domains', P + 'dom']]],
   ['Solutions', [['Startups', '/site/products'], ['Agencies', '/site/products'], ['Game communities', P + 'game'], ['Migrations', '/site/docs'], ['Site builder', '/site/register']]],
   ['Developers', [['Documentation', '/site/docs'], ['API reference', '/site/docs'], ['CLI', '/site/docs'], ['System status', '/site/status'], ['Changelog', '/site/docs']]],
   ['Company', [['About', '/site'], ['Careers', '/site'], ['Support', '/site/login'], ['Contact', '/site/login'], ['Client area', '/site/login']]],
