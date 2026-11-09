@@ -175,3 +175,5 @@ Dot grid (16 px) behind the footer: the pointer lights it like a torch, a ring o
 
 ## Footer wordmark, animated
 The oversized BLIPMADE is now drawn on a canvas from the same dot glyphs (read from a hidden DotText svg): letters rise out of the bottom edge column by column when the footer is first seen, a soft band of light passes through every 9 s, and the pointer pushes dots apart while the nearest ones turn brand red (single-accent rule). Loop is idle until the footer has been seen and off-screen/hidden-tab; static under reduced motion. Verified: 129 dots drawn at 1280 and 390, red pixels present under a real hover, 3 routes without overflow or console errors. Not verified: how the rise/band look frame by frame.
+
+Footer wordmark: pointer reaction (push + red) removed on request, it was too much. It keeps the rise-in and the passing light band.
