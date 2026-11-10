@@ -34,6 +34,7 @@ import States from './workspace/States.jsx'
 import Logos from './workspace/Logos.jsx'
 import Orbs from './workspace/Orbs.jsx'
 import Emails from './workspace/Emails.jsx'
+import System from './workspace/System.jsx'
 import AdminApp from './admin/AdminApp.jsx'
 import SiteApp from './site/SiteApp.jsx'
 
@@ -280,6 +281,7 @@ function Root() {
             <Route path="/ds/logos" element={<Logos />} />
             <Route path="/ds/orbs" element={<Orbs />} />
             <Route path="/ds/emails" element={<Emails />} />
+            <Route path="/ds/system" element={<System />} />
             <Route path="*" element={<NotFoundScene home="/ds/foundations" homeLabel="Back to foundations" />} />
           </Routes>
         ) : admin ? <AdminApp /> : site ? <SiteApp /> : <Layout />}

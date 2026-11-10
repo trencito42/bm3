@@ -78,6 +78,7 @@ After each numbered phase: what changed (files), screenshots at 1280 and 390 fro
 
 Today the site shows a gateway error while a deploy is running. `public/deploying.html` in bm3 replaces that: one self-contained file (inline CSS and JS, no requests) with the dot-matrix headline decoding out of noise, Pip waiting, and a script that polls the current URL and reloads the moment the site answers again.
 
+- The page has seven states and picks one from the server's real answer: deploying (502/503/504), slow (still deploying after 3 minutes), maintenance (503 plus the header `X-Blip-State: maintenance`), busy (429), error (500 or any other failure), offline (no answer at all), back (first success, then it reloads). Preview them in bm3 at `#/ds/system`, or directly with `/deploying.html?state=error`. Map 500 to the same file as well, and add the maintenance header to whatever maintenance switch the proxy has.
 - Find how staging is deployed (the GitHub workflow and whatever reverse proxy sits in front of the app) and make the proxy serve this file whenever the app is unreachable (502 / 503 / 504). Keep the error status, add `Retry-After` and `Cache-Control: no-store`. The file's header comment has an nginx example; translate it to the proxy actually in use.
 - The file must live outside whatever the deploy replaces or restarts, otherwise it disappears exactly when it is needed.
 - Never return it with status 200 on a real URL (it would be indexed, and it could not tell when the site is back).

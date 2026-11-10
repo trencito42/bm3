@@ -1,22 +1,31 @@
 <!doctype html>
 <!--
-  Blipmade: the page visitors see while a deploy is in progress, instead of a gateway error.
+  Blipmade system page: what visitors see instead of a gateway error. One file, seven states.
 
   ONE FILE, NO DEPENDENCIES. Everything is inline (styles, script, type) and it requests nothing: the app, its bundle and
   its fonts are exactly what is unavailable while this page is on screen.
 
+  States, and what puts the page in each one (it works it out from the real answer of the server, nobody has to tell it):
+    deploying    the proxy answers 502 / 503 / 504                      -> "BUILDING. / DEPLOYING. / ALMOST LIVE."
+    slow         still deploying after 3 minutes                        -> "STILL WORKING."
+    maintenance  503 with the header  X-Blip-State: maintenance         -> "MAINTENANCE. / BACK SOON."
+    busy         429                                                    -> "ONE MOMENT."
+    error        500, or any other failure status                       -> "SOMETHING BROKE."
+    offline      the request never leaves the device                    -> "NO CONNECTION."
+    back         the first successful answer                            -> "BACK ONLINE." and the page reloads
+  The first state, before the first check has returned, is the one in <meta name="blip-state"> below.
+
   How to serve it
   - Keep a copy OUTSIDE the directory or container the deploy replaces, and let the reverse proxy answer with it whenever
-    the app is not reachable (502 / 503 / 504), keeping that error status and adding "Retry-After" and "Cache-Control: no-store".
-    nginx, for example:
+    the app is not reachable, keeping the error status and adding "Retry-After" and "Cache-Control: no-store". nginx, for example:
         proxy_intercept_errors on;
-        error_page 502 503 504 /deploying.html;
+        error_page 500 502 503 504 /deploying.html;
         location = /deploying.html { root /srv/static; internal; add_header Retry-After 20 always; add_header Cache-Control "no-store" always; }
+  - Planned maintenance: answer 503 and add the header  X-Blip-State: maintenance.
   - Do not serve it with status 200 on real URLs: search engines would index it and the page could not tell when the site is back.
+  - Optional: put the address of a public status page in <meta name="blip-status-url"> and a "Status page" link appears.
 
-  How it leaves
-  - Every few seconds it asks for the current URL again. The first successful answer reloads the page, so visitors land where
-    they were going. Opened directly as /deploying.html (a preview) it does not poll.
+  Preview: open /deploying.html?state=error (or any state above). In preview nothing is polled.
 -->
 <html lang="en">
 <head>
@@ -24,13 +33,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#0d0d0f">
+<meta name="blip-state" content="deploying">
+<meta name="blip-status-url" content="">
 <title>Deploying · Blipmade</title>
 <noscript><meta http-equiv="refresh" content="20"></noscript>
 <style>
   @property --mx { syntax: '<percentage>'; inherits: false; initial-value: 30%; }
   @property --my { syntax: '<percentage>'; inherits: false; initial-value: 28%; }
-  :root { --bg: #0d0d0f; --fg: #f2f2f3; --mute: #8e8e94; --dim: #6b6b72; --line: #2a2a2f; --brand: #ff2d36; --ok: #4ade80;
-    --ease: cubic-bezier(.16, 1, .3, 1); }
+  @property --r { syntax: '<length>'; inherits: false; initial-value: 0px; }
+  :root { --bg: #0d0d0f; --fg: #f2f2f3; --mute: #8e8e94; --dim: #6b6b72; --line: #2a2a2f; --brand: #ff2d36; --ok: #4ade80; --warn: #fbbf24;
+    --tone: var(--brand); --ease: cubic-bezier(.16, 1, .3, 1); }
+  body[data-state=back] { --tone: var(--ok); }
+  body[data-state=maintenance], body[data-state=busy], body[data-state=slow], body[data-state=offline] { --tone: var(--warn); }
   * { box-sizing: border-box; margin: 0; }
   html, body { height: 100%; }
   body { min-height: 100dvh; background: var(--bg); color: var(--fg); font: 15px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -45,16 +59,21 @@
     -webkit-mask-image: radial-gradient(circle at 50% 46%, transparent 0, transparent calc(var(--r) - 90px), #000 var(--r), transparent calc(var(--r) + 14px));
     mask-image: radial-gradient(circle at 50% 46%, transparent 0, transparent calc(var(--r) - 90px), #000 var(--r), transparent calc(var(--r) + 14px));
     animation: ring 5.2s cubic-bezier(.3, 0, .2, 1) infinite; }
-  @property --r { syntax: '<length>'; inherits: false; initial-value: 0px; }
   @keyframes ring { 0% { --r: 0px; opacity: 0 } 12% { opacity: .55 } 70% { opacity: .22 } 100% { --r: 900px; opacity: 0 } }
+  /* nothing is being worked on in these states, so nothing radiates */
+  body:is([data-state=error], [data-state=offline]) .field::after { animation: none; opacity: 0; }
+  body[data-state=back] .field::after { animation-duration: 1.4s; }
 
   header, footer { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px clamp(20px, 4vw, 40px); }
   header { padding-top: max(22px, env(safe-area-inset-top)); }
   footer { padding-bottom: max(22px, env(safe-area-inset-bottom)); border-top: 1px solid #1c1c20; }
   .live { display: inline-flex; align-items: center; gap: 8px; color: var(--mute); }
-  .live i { width: 6px; height: 6px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 10px var(--brand); animation: pulse 1.4s ease-in-out infinite; }
+  .live i { width: 6px; height: 6px; border-radius: 50%; background: var(--tone); box-shadow: 0 0 10px var(--tone); animation: pulse 1.4s ease-in-out infinite; transition: background-color .4s, box-shadow .4s; }
+  body:is([data-state=error], [data-state=back]) .live i { animation: none; }
   @keyframes pulse { 50% { opacity: .25 } }
   #clock { font-variant-numeric: tabular-nums; }
+  footer a { color: var(--mute); text-decoration: none; border-bottom: 1px solid var(--line); transition: color .15s, border-color .15s; }
+  footer a:hover, footer a:focus-visible { color: var(--fg); border-color: var(--fg); outline: none; }
 
   main { position: relative; display: grid; place-items: center; padding: 24px clamp(20px, 4vw, 40px); }
   .stack { width: 100%; max-width: 760px; display: flex; flex-direction: column; align-items: center; text-align: center; animation: rise 700ms var(--ease) both; }
@@ -62,56 +81,92 @@
   /* a pool of darkness behind the words so the grid never competes with them */
   .stack::before { content: ""; position: absolute; inset: -8% -12%; z-index: -1; background: radial-gradient(closest-side, rgba(0,0,0,.82) 55%, transparent); }
 
-  /* Pip, waiting with you: a matte pearl whose light goes round while it works; it blinks */
+  /* ---------- Pip, and how it feels about each state ---------- */
   .pip { position: relative; width: 64px; height: 64px; border-radius: 50%; margin-bottom: 34px;
     background: radial-gradient(circle at 80% 86%, rgba(160,178,255,.42) 0, rgba(160,178,255,0) 36%), radial-gradient(circle at var(--mx) var(--my), #fff 0, #f4f0e7 20%, #cfcad2 46%, #837e96 74%, #3b3853 100%);
     box-shadow: 0 0 22px rgba(255,246,225,.2), inset 0 0 0 1px rgba(255,255,255,.16), inset -3px -4px 9px rgba(14,12,40,.5);
-    animation: orbit 2.8s linear infinite, breathe 5.6s ease-in-out infinite; }
-  .pip i { position: absolute; top: 25px; width: 6px; height: 13px; border-radius: 6px; background: #0b0b0d; animation: blink 5.2s infinite; }
+    animation: orbit 2.8s linear infinite, breathe 5.6s ease-in-out infinite; transition: filter .5s; }
+  .pip i { position: absolute; top: 25px; width: 6px; height: 13px; border-radius: 6px; background: #0b0b0d; animation: blink 5.2s infinite; transition: transform .35s var(--ease), top .35s var(--ease), height .35s var(--ease); }
   .pip i:first-child { left: 23px } .pip i:last-child { left: 35px }
   @keyframes orbit { 0%, 100% { --mx: 30%; --my: 28% } 25% { --mx: 70%; --my: 28% } 50% { --mx: 72%; --my: 68% } 75% { --mx: 30%; --my: 70% } }
+  @keyframes drift { 0%, 100% { --mx: 30%; --my: 26% } 33% { --mx: 70%; --my: 30% } 66% { --mx: 56%; --my: 70% } }
   @keyframes breathe { 50% { transform: scale(1.025) } }
-  @keyframes blink { 0%, 46%, 50%, 100% { transform: none } 48% { transform: scaleY(.1) } }
+  @keyframes blink { 0%, 46%, 50%, 100% { scale: 1 } 48% { scale: 1 .1 } }
+  @keyframes hop { 0%, 100% { transform: none } 20% { transform: translateY(3%) scale(1.07, .91) } 50% { transform: translateY(-16%) scale(.95, 1.06) } 80% { transform: translateY(0) scale(1.04, .96) } }
+  @keyframes shake { 0%, 100% { transform: none } 20% { transform: translateX(-3px) } 40% { transform: translateX(3px) } 60% { transform: translateX(-2px) } 80% { transform: translateX(2px) } }
+  @keyframes look { 0%, 40%, 100% { translate: 0 0 } 50%, 90% { translate: -4px 2px } }
+  /* not working, just waiting: the light wanders instead of circling */
+  body:is([data-state=maintenance], [data-state=busy], [data-state=slow]) .pip { animation: drift 12s ease-in-out infinite, breathe 5.6s ease-in-out infinite; }
+  /* error: grey, a small shake, worried eyes */
+  body[data-state=error] .pip { filter: saturate(.15) brightness(.7); animation: shake .5s ease-in-out .1s; }
+  body[data-state=error] .pip i { animation: none; top: 28px; height: 9px; }
+  body[data-state=error] .pip i:first-child { transform: rotate(24deg) } body[data-state=error] .pip i:last-child { transform: rotate(-24deg) }
+  /* offline: dim, looking off to the side for the signal */
+  body[data-state=offline] .pip { filter: saturate(.4) brightness(.8); animation: drift 16s ease-in-out infinite; }
+  body[data-state=offline] .pip i { animation: blink 5.2s infinite, look 6s ease-in-out infinite; }
+  /* back: a hop, and happy eyes (short and wide) */
+  body[data-state=back] .pip { animation: hop .64s cubic-bezier(.3, 1.4, .5, 1) 2; }
+  body[data-state=back] .pip i { animation: none; top: 27px; height: 6px; transform: scaleX(1.5); border-radius: 6px 6px 2px 2px; }
 
   /* the headline is a dot-matrix display: canvas, so 400+ dots cost nothing */
   #type { width: 100%; height: auto; display: block; }
   h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  p.lead { margin-top: 30px; max-width: 30rem; font-size: 16.5px; line-height: 1.55; color: rgba(242,242,243,.74); text-wrap: pretty; }
+  p.lead { margin-top: 30px; max-width: 30rem; min-height: 4.7em; font-size: 16.5px; line-height: 1.55; color: rgba(242,242,243,.74); text-wrap: pretty; }
+  p.lead span { display: block; animation: step 420ms var(--ease) both; }
 
-  /* progress without a number we would have to invent: a wave travelling along a rail of dots */
-  .rail { margin-top: 36px; display: flex; gap: 7px; }
-  .rail i { width: 5px; height: 5px; border-radius: 50%; background: #fff; opacity: .12; animation: wave 2.1s ease-in-out infinite; animation-delay: calc(var(--i) * 62ms); }
+  /* progress without a number we would have to invent: a rail of dots that behaves like the state */
+  .rail { margin-top: 30px; display: flex; gap: 7px; }
+  .rail i { width: 5px; height: 5px; border-radius: 50%; background: #fff; opacity: .12; animation: wave 2.1s ease-in-out infinite; animation-delay: calc(var(--i) * 62ms); transition: background-color .4s, opacity .4s; }
   @keyframes wave { 0%, 60%, 100% { opacity: .12; transform: none } 22% { opacity: 1; transform: translateY(-2px) } }
+  @keyframes fill { to { opacity: 1 } }
+  body:is([data-state=maintenance], [data-state=busy], [data-state=slow]) .rail i { animation-duration: 3.6s; animation-delay: calc(var(--i) * 110ms); }
+  body[data-state=error] .rail i { animation: none; opacity: .12; }
+  body[data-state=error] .rail i:nth-child(-n+9) { opacity: .9; background: var(--brand); }    /* it got this far and stopped */
+  body[data-state=offline] .rail i { animation: none; opacity: .12; }
+  body[data-state=offline] .rail i:nth-child(3n) { opacity: 0; }                              /* a broken line */
+  body[data-state=back] .rail i { background: var(--ok); animation: fill 240ms ease-out both; animation-delay: calc(var(--i) * 22ms); }
+
   .steps { margin-top: 18px; height: 16px; }
   .steps span { display: inline-block; animation: step 320ms var(--ease) both; }
   @keyframes step { from { opacity: 0; transform: translateY(5px) } }
+
+  .act { margin-top: 22px; height: 40px; }
+  .act button { height: 40px; padding: 0 18px; border-radius: 10px; border: 1px solid var(--line); background: transparent; color: var(--fg); font: 500 13.5px/1 inherit; font-family: inherit; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px; transition: border-color .15s, background-color .15s; animation: step 420ms var(--ease) both; }
+  .act button:hover { border-color: rgba(255,255,255,.3); background: rgba(255,255,255,.07); }
+  .act button:active { background: rgba(255,255,255,.12); transition-duration: 0s; }
+  .act button:focus-visible { outline: 2px solid rgba(255,255,255,.6); outline-offset: 2px; }
+  .act button svg { transition: transform .5s var(--ease); }
+  .act button:hover svg { transform: rotate(180deg); }
+  .act[hidden] { display: block; visibility: hidden; }     /* keeps its height: the layout does not jump between states */
 
   @media (max-width: 520px) { .rail { gap: 5px } .rail i:nth-child(n+19) { display: none } p.lead { font-size: 15.5px } }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important } .field::after { display: none } }
 </style>
 </head>
-<body>
+<body data-state="deploying">
 <div class="field" aria-hidden="true"></div>
 
 <header>
   <canvas id="mark" width="0" height="0" role="img" aria-label="Blipmade" style="height:13px"></canvas>
-  <span class="mono live"><i></i>Deploy in progress</span>
+  <span class="mono live"><i></i><span id="label">Deploy in progress</span></span>
 </header>
 
 <main>
   <div class="stack">
     <div class="pip" aria-hidden="true"><i></i><i></i></div>
-    <h1>We are deploying an update</h1>
+    <h1 id="title" aria-live="polite">We are deploying an update</h1>
     <canvas id="type" aria-hidden="true"></canvas>
-    <p class="lead">We are shipping a new version of the site. Nothing is broken and your services keep running. This page will bring you back by itself, usually within a minute.</p>
+    <p class="lead"><span id="lead"></span></p>
     <div class="rail" aria-hidden="true"></div>
-    <div class="steps mono" aria-live="polite"><span id="step">Building</span></div>
+    <div class="steps mono"><span id="step"></span></div>
+    <div class="act" id="act" hidden><button type="button" id="retry"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>Try again</button></div>
   </div>
 </main>
 
 <footer>
   <span class="mono">Waiting <span id="clock">00:00</span></span>
-  <span class="mono" id="note">Checking every few seconds</span>
+  <span class="mono"><span id="note">Checking every few seconds</span><span id="status"></span></span>
 </footer>
 
 <noscript><p style="position:fixed;left:0;right:0;bottom:70px;text-align:center;color:#8e8e94">This page reloads every 20 seconds until the site is back.</p></noscript>
@@ -120,15 +175,38 @@
 (function () {
   'use strict'
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+  var $ = function (id) { return document.getElementById(id) }
+
+  /* ---------- what each state says ----------
+     words: the headline cycles through them. steps: the small line under the rail, one per word. retry: show the button. */
+  var STATES = {
+    deploying:   { title: 'We are deploying an update', label: 'Deploy in progress', words: ['BUILDING.', 'DEPLOYING.', 'ALMOST LIVE.'], steps: ['Building', 'Shipping', 'Warming up'],
+                   lead: 'We are shipping a new version of the site. Nothing is broken and your services keep running. This page will bring you back by itself, usually within a minute.' },
+    slow:        { title: 'The deploy is taking longer than usual', label: 'Still deploying', words: ['STILL WORKING.', 'HANG ON.'], steps: ['Taking longer than usual', 'Still checking'], retry: true,
+                   lead: 'This update is taking longer than usual. Your services are not affected. We keep checking, and you can also try again yourself.' },
+    maintenance: { title: 'Planned maintenance', label: 'Planned maintenance', words: ['MAINTENANCE.', 'BACK SOON.'], steps: ['Scheduled work', 'Back shortly'],
+                   lead: 'We are doing planned work on the site. Your servers, sites and mail keep running the whole time. This page brings you back as soon as we are done.' },
+    busy:        { title: 'One moment', label: 'High demand', words: ['ONE MOMENT.', 'YOU ARE NEXT.'], steps: ['A lot of people arrived at once', 'Holding your place'],
+                   lead: 'A lot of people arrived at the same moment. You do not need to do anything: we will let you through in a few seconds.' },
+    error:       { title: 'Something broke on our side', label: 'Error on our side', words: ['SOMETHING BROKE.'], steps: ['Not your fault'], retry: true, noise: '255,45,54',
+                   lead: 'The problem is on our side, not yours, and nothing you did caused it. We keep retrying in the background. You can try again now.' },
+    offline:     { title: 'No connection', label: 'You are offline', words: ['NO CONNECTION.'], steps: ['Waiting for your network'], retry: true,
+                   lead: 'Your device does not seem to be connected to the internet. Check your Wi-Fi or mobile data. We will carry on the moment you are back.' },
+    back:        { title: 'Back online', label: 'Back online', words: ['BACK ONLINE.'], steps: ['Taking you there'],
+                   lead: 'All done. Taking you to where you were going.' }
+  }
 
   /* ---------- 5x7 dot-matrix type (the Blipmade face) ---------- */
   var G = {
     A:'.XXX. X...X X...X XXXXX X...X X...X X...X', B:'XXXX. X...X X...X XXXX. X...X X...X XXXX.', C:'.XXX. X...X X.... X.... X.... X...X .XXX.',
-    D:'XXXX. X...X X...X X...X X...X X...X XXXX.', E:'XXXXX X.... X.... XXXX. X.... X.... XXXXX', G:'.XXX. X...X X.... X.XXX X...X X...X .XXX.',
-    I:'XXX .X. .X. .X. .X. .X. XXX', L:'X.... X.... X.... X.... X.... X.... XXXXX', M:'X...X XX.XX X.X.X X.X.X X...X X...X X...X',
-    N:'X...X XX..X X.X.X X.X.X X.X.X X..XX X...X', O:'.XXX. X...X X...X X...X X...X X...X .XXX.', P:'XXXX. X...X X...X XXXX. X.... X.... X....',
+    D:'XXXX. X...X X...X X...X X...X X...X XXXX.', E:'XXXXX X.... X.... XXXX. X.... X.... XXXXX', F:'XXXXX X.... X.... XXXX. X.... X.... X....',
+    G:'.XXX. X...X X.... X.XXX X...X X...X .XXX.', H:'X...X X...X X...X XXXXX X...X X...X X...X', I:'XXX .X. .X. .X. .X. .X. XXX',
+    J:'..XXX ...X. ...X. ...X. ...X. X..X. .XX..', K:'X...X X..X. X.X.. XX... X.X.. X..X. X...X', L:'X.... X.... X.... X.... X.... X.... XXXXX',
+    M:'X...X XX.XX X.X.X X.X.X X...X X...X X...X', N:'X...X XX..X X.X.X X.X.X X.X.X X..XX X...X', O:'.XXX. X...X X...X X...X X...X X...X .XXX.',
+    P:'XXXX. X...X X...X XXXX. X.... X.... X....', Q:'.XXX. X...X X...X X...X X.X.X X..X. .XX.X', R:'XXXX. X...X X...X XXXX. X.X.. X..X. X...X',
     S:'.XXXX X.... X.... .XXX. ....X ....X XXXX.', T:'XXXXX ..X.. ..X.. ..X.. ..X.. ..X.. ..X..', U:'X...X X...X X...X X...X X...X X...X .XXX.',
-    V:'X...X X...X X...X X...X X...X .X.X. ..X..', Y:'X...X X...X .X.X. ..X.. ..X.. ..X.. ..X..', '.':'. . . . . . X', ' ':'... ... ... ... ... ... ...'
+    V:'X...X X...X X...X X...X X...X .X.X. ..X..', W:'X...X X...X X...X X.X.X X.X.X X.X.X .X.X.', X:'X...X X...X .X.X. ..X.. .X.X. X...X X...X',
+    Y:'X...X X...X .X.X. ..X.. ..X.. ..X.. ..X..', Z:'XXXXX ....X ...X. ..X.. .X... X.... XXXXX', '.':'. . . . . . X', ' ':'... ... ... ... ... ... ...'
   }
   function layout(text) {            /* -> { cols, on: {"x,y": charIndex} } */
     var x = 0, on = {}
@@ -139,10 +217,13 @@
     })
     return { cols: x - 1, on: on, chars: text.length }
   }
+  var COLS = 0
+  Object.keys(STATES).forEach(function (k) { var s = STATES[k]; s.lay = s.words.map(layout); s.lay.forEach(function (l) { COLS = Math.max(COLS, l.cols) }) })
+  COLS += 2
 
   /* ---------- wordmark, static ---------- */
   ;(function () {
-    var c = document.getElementById('mark'), L = layout('BLIPMADE'), p = 13 / 7, dpr = Math.min(devicePixelRatio || 1, 3)
+    var c = $('mark'), L = layout('BLIPMADE'), p = 13 / 7, dpr = Math.min(devicePixelRatio || 1, 3)
     c.width = Math.ceil(L.cols * p * dpr); c.height = Math.ceil(13 * dpr); c.style.width = L.cols * p + 'px'
     var k = c.getContext('2d'); k.scale(dpr, dpr); k.fillStyle = '#f2f2f3'
     Object.keys(L.on).forEach(function (key) { var q = key.split(','); k.beginPath(); k.arc(+q[0] * p + p / 2, +q[1] * p + p / 2, p * .4, 0, 6.3); k.fill() })
@@ -150,70 +231,103 @@
 
   /* ---------- the headline: decodes out of noise, holds, falls apart, next word ----------
      Each word starts as random lit dots across the whole display. The real letters lock in from left to right while the noise
-     thins out, so it reads as a message being received, one character at a time. */
-  var WORDS = ['BUILDING.', 'DEPLOYING.', 'ALMOST LIVE.']
-  var LAY = WORDS.map(layout), COLS = Math.max.apply(null, LAY.map(function (l) { return l.cols })) + 2
-  var cv = document.getElementById('type'), ctx = cv.getContext('2d'), pitch = 10, W = 0, H = 0
+     thins out, so it reads as a message being received, one character at a time. A state with a single word decodes once and stays. */
+  var cv = $('type'), ctx = cv.getContext('2d'), pitch = 10, W = 0, H = 0
   function size() {
     var w = cv.parentNode.clientWidth, dpr = Math.min(devicePixelRatio || 1, 3)
-    pitch = Math.max(4, Math.min(11, Math.floor(w / COLS))); W = COLS * pitch; H = 7 * pitch
+    pitch = Math.max(3, Math.min(11, Math.floor(w / COLS))); W = COLS * pitch; H = 7 * pitch
     cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.maxWidth = '100%'; cv.style.margin = '0 auto'
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
   }
-  var word = 0, t0 = performance.now(), noise = {}, lastNoise = 0
+  var state = 'deploying', S = STATES[state], word = 0, t0 = performance.now(), noise = {}, lastNoise = 0, running = false
   var DECODE = 1100, HOLD = 2600, FALL = 420
   function reseed(density) { noise = {}; for (var x = 0; x < COLS; x++) for (var y = 0; y < 7; y++) if (Math.random() < density) noise[x + ',' + y] = 1 }
   function draw(now) {
-    var L = LAY[word], off = Math.floor((COLS - L.cols) / 2), t = now - t0
-    var phase = t < DECODE ? 0 : t < DECODE + HOLD ? 1 : 2
+    var L = S.lay[word], off = Math.floor((COLS - L.cols) / 2), t = now - t0, single = S.lay.length === 1
+    var phase = t < DECODE ? 0 : (single || t < DECODE + HOLD) ? 1 : 2
     var k = phase === 0 ? t / DECODE : phase === 2 ? (t - DECODE - HOLD) / FALL : 1
     if (phase !== 1 && now - lastNoise > 55) { reseed(phase === 0 ? .34 * (1 - k) + .04 : .3 * k); lastNoise = now }
     ctx.clearRect(0, 0, W, H)
     for (var x = 0; x < COLS; x++) for (var y = 0; y < 7; y++) {
-      var ci = L.on[(x - off) + ',' + y], lit = 0
+      var ci = L.on[(x - off) + ',' + y], lit = 0, isNoise = false
       if (ci !== undefined) {
         /* a character is locked once the sweep has passed it; before that it flickers with the noise */
         var locked = phase === 0 ? k * (L.chars + 1.5) > ci + 1 : true
         if (phase === 2) lit = Math.random() > k * 1.15 ? 1 : 0
-        else lit = locked ? 1 : (noise[x + ',' + y] ? .5 : 0)
-      } else if (phase !== 1 && noise[x + ',' + y]) lit = phase === 0 ? .42 : .3
+        else if (locked) lit = 1
+        else if (noise[x + ',' + y]) { lit = .5; isNoise = true }
+      } else if (phase !== 1 && noise[x + ',' + y]) { lit = phase === 0 ? .42 : .3; isNoise = true }
       ctx.globalAlpha = lit ? lit : .07
-      ctx.fillStyle = '#fff'
+      ctx.fillStyle = isNoise && S.noise ? 'rgb(' + S.noise + ')' : '#fff'
       ctx.beginPath(); ctx.arc(x * pitch + pitch / 2, y * pitch + pitch / 2, pitch * (lit ? .4 : .3), 0, 6.3); ctx.fill()
     }
     ctx.globalAlpha = 1
-    if (t > DECODE + HOLD + FALL) { word = (word + 1) % WORDS.length; t0 = now; setStep() }
-    if (!reduce) requestAnimationFrame(draw)
+    if (!single && t > DECODE + HOLD + FALL) { word = (word + 1) % S.lay.length; t0 = now; setStep() }
+    /* a single word that has finished decoding is a still image: stop drawing until the state changes */
+    if (reduce || (single && phase === 1)) { running = false; return }
+    requestAnimationFrame(draw)
   }
-  var STEPS = ['Building', 'Shipping', 'Warming up']
-  function setStep() { var s = document.getElementById('step'), n = s.cloneNode(false); n.textContent = STEPS[word]; s.parentNode.replaceChild(n, s) }
-  size(); addEventListener('resize', function () { size(); if (reduce) still() })
-  function still() { word = 1; t0 = performance.now() - DECODE - 1; draw(performance.now()) }
-  if (reduce) still(); else requestAnimationFrame(draw)
+  function kick() { if (running && !reduce) return; running = true; if (reduce) { t0 = performance.now() - DECODE - 1; draw(performance.now()) } else requestAnimationFrame(draw) }
+  function swap(id, text) { var s = $(id), n = s.cloneNode(false); n.textContent = text; s.parentNode.replaceChild(n, s) }   /* re-mount so the entrance animation plays */
+  function setStep() { swap('step', S.steps[word] || S.steps[0]) }
 
-  /* ---------- rail ---------- */
+  /* ---------- one place that changes state ---------- */
+  function set(next) {
+    if (!STATES[next] || (next === state && $('lead').textContent)) return
+    state = next; S = STATES[next]; word = 0; t0 = performance.now()
+    document.body.setAttribute('data-state', next)
+    document.title = S.title + ' · Blipmade'
+    $('title').textContent = S.title
+    $('label').textContent = S.label
+    swap('lead', S.lead); setStep()
+    $('act').hidden = !S.retry
+    kick()
+  }
+
+  /* ---------- rail, clock, status link, retry ---------- */
   var rail = document.querySelector('.rail')
   for (var i = 0; i < 26; i++) { var d = document.createElement('i'); d.style.setProperty('--i', i); rail.appendChild(d) }
-
-  /* ---------- how long you have been here ---------- */
-  var start = Date.now(), clock = document.getElementById('clock')
+  var start = Date.now(), clock = $('clock')
   setInterval(function () { var s = Math.floor((Date.now() - start) / 1000); clock.textContent = ('0' + Math.floor(s / 60)).slice(-2) + ':' + ('0' + s % 60).slice(-2) }, 1000)
+  var url = (document.querySelector('meta[name=blip-status-url]') || {}).content
+  if (url && /^https?:\/\//.test(url)) { var a = document.createElement('a'); a.href = url; a.textContent = 'Status page'; a.rel = 'noopener'; $('status').appendChild(document.createTextNode(' · ')); $('status').appendChild(a) }
+  $('retry').addEventListener('click', function () { if (preview) { set('deploying'); return } location.reload() })
+  size(); addEventListener('resize', function () { size(); kick() })
 
-  /* ---------- come back by itself ----------
-     Ask for the page we are standing on. While the deploy runs the proxy answers with an error status (and this document);
-     the first successful answer means the site is back, so reload and let the visitor continue where they were going.
-     Backs off gently, and does nothing when this file is opened directly (a preview would otherwise reload forever). */
-  var note = document.getElementById('note')
-  if (/deploying\.html$/.test(location.pathname)) { note.textContent = 'Preview: not checking'; return }
-  var wait = 3000
+  /* ---------- which state are we in? ----------
+     Preview (?state=, or the file opened directly): show what was asked for and never poll.
+     Otherwise: ask for the page we are standing on and let the real answer decide. The first successful answer means the site
+     is back: say so, then reload so the visitor continues where they were going. */
+  var q = (location.search.match(/[?&]state=([a-z]+)/) || [])[1]
+  var preview = !!q || /deploying\.html$/.test(location.pathname)
+  var first = (document.querySelector('meta[name=blip-state]') || {}).content || 'deploying'
+  set(STATES[q] ? q : STATES[first] ? first : 'deploying')
+  if (preview) { $('note').textContent = 'Preview: not checking'; if (q === 'back') return; return }
+
+  var wait = 3000, SLOW_AFTER = 180000
+  function from(r) {
+    if (r.ok) return 'back'
+    if (r.status === 429) return 'busy'
+    if (r.status === 502 || r.status === 503 || r.status === 504) {
+      if ((r.headers.get('X-Blip-State') || '').toLowerCase() === 'maintenance') return 'maintenance'
+      return Date.now() - start > SLOW_AFTER ? 'slow' : 'deploying'
+    }
+    return 'error'
+  }
   function check() {
     fetch(location.href, { method: 'HEAD', cache: 'no-store', credentials: 'same-origin' })
-      .then(function (r) { if (r.ok) { note.textContent = 'Back online'; location.reload() } else next() })
-      .catch(next)
+      .then(function (r) {
+        var s = from(r); set(s)
+        if (s === 'back') { $('note').textContent = 'Back online'; setTimeout(function () { location.reload() }, reduce ? 300 : 1500); return }
+        next()
+      })
+      .catch(function () { set(navigator.onLine === false ? 'offline' : (Date.now() - start > SLOW_AFTER ? 'slow' : state === 'offline' ? 'deploying' : state)); next() })
   }
   function next() { wait = Math.min(wait * 1.25, 10000); setTimeout(check, wait) }
+  addEventListener('online', check)
+  addEventListener('offline', function () { set('offline') })
   document.addEventListener('visibilitychange', function () { if (!document.hidden) check() })
-  setTimeout(check, wait)
+  setTimeout(check, 400)
 })()
 </script>
 </body>
