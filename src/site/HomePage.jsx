@@ -403,7 +403,7 @@ export default function HomePage() {
       {/* ------------ the Blips: nothing else on this screen ------------ */}
       <section id="blips" className="border-y border-line bg-black/30">
         <div className={cn(WRAP, SPACE)}>
-          <Reveal className={cn(eyebrow, 'mb-12 text-center')}>Meet the Blips, your AI crew</Reveal>
+          <Reveal className={cn(eyebrow, 'mb-12 text-center')}>Meet the Blips</Reveal>
           <BlipCast />
         </div>
       </section>
@@ -412,7 +412,7 @@ export default function HomePage() {
       <section className={cn(WRAP, SPACE)}>
         <SectionHead label="The panel" title="A control panel you will actually like." sub="Every tool is where you expect it, and nothing gets in the way." />
         <RevealGrid className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <div className={cn(CARD, 'flex flex-col')}><div className={eyebrow}>Deploy</div><h3 className="mt-2 text-xl font-semibold tracking-tight">Push to live in 40 seconds.</h3><p className="mt-2 text-[14px] leading-relaxed text-mute">Connect a repository or drop in a folder. We build it and switch on HTTPS.</p><div className="mt-auto"><Pipeline /></div></div>
+          <div className={cn(CARD, 'flex flex-col')}><div className={eyebrow}>Deploy</div><h3 className="mt-2 text-xl font-semibold tracking-tight">From a push to a running app.</h3><p className="mt-2 text-[14px] leading-relaxed text-mute">Connect a repository or drop in a folder. We build it and switch on HTTPS.</p><div className="mt-auto"><Pipeline /></div></div>
           <div className={CARD}><div className={eyebrow}>Regions</div><h3 className="mt-2 text-xl font-semibold tracking-tight">Close to your users.</h3><Regions /></div>
           <div className={cn(CARD, 'md:col-span-2 lg:col-span-1')}><div className={eyebrow}>Observe</div><h3 className="mt-2 text-xl font-semibold tracking-tight">Live, down to the dot.</h3><div className="mt-6"><LiveMetrics gauge={72} /></div></div>
         </RevealGrid>
@@ -435,7 +435,7 @@ export default function HomePage() {
       <section className={cn(WRAP, SPACE)}>
         <Reveal className="grid items-center gap-10 md:grid-cols-2 md:gap-20">
           <div className="flex flex-col items-start">
-            <div className={eyebrow}>Free migration</div>
+            <div className={eyebrow}>Switching hosts</div>
             <h2 className="mt-3 text-balance text-[32px] font-semibold leading-[1.08] tracking-[-0.025em] md:text-[44px]">{MIGRATION.title}</h2>
             <p className="mt-4 text-pretty text-[16px] leading-relaxed text-mute">{MIGRATION.sub}</p>
             <Button size="lg" variant="outline" className="mt-8" onClick={() => nav('/site/register')}>{MIGRATION.cta} <ArrowRight /></Button>

@@ -12,6 +12,7 @@ import { inputCls } from '../components/ui2.jsx'
 import { DotNum } from '../components/DotViz.jsx'
 import { DotText, Orb } from '../builder/FxBits.jsx'
 import { cn } from '../lib/utils'
+import { openCookieSettings } from './CookieConsent.jsx'
 
 /* ------------------------------ menu content ------------------------------ */
 const P = '/site/products/'
@@ -42,8 +43,8 @@ export const MENU = [
       ] },
       { h: 'By need', items: [
         { t: 'Launch a site fast', d: 'Describe it, review it, publish it.', to: '/site/register', I: Zap },
-        { t: 'Move from another host', d: 'Free migration with a Friday cutover window.', to: '/site/docs', I: GitBranch },
-        { t: 'Security & compliance', d: 'Isolation, audit logs, 2FA everywhere.', to: '/site/legal', I: ShieldCheck },
+        { t: 'Move from another host', d: 'Free migration with a Friday cutover window.', to: '/site/contact', I: GitBranch },
+        { t: 'Security & compliance', d: 'Isolation, audit logs, 2FA everywhere.', to: '/site/legal/dpa', I: ShieldCheck },
       ] },
     ],
     feature: { tag: 'New', t: 'Site builder', d: 'Chat with an assistant, watch the site assemble, ship it to your own server.', to: '/site/register', cta: 'Try it free', orb: true },
@@ -54,7 +55,7 @@ export const MENU = [
       { h: 'Build', items: [
         { t: 'Documentation', d: 'Quick start, SSH, DNS and API guides.', to: '/site/docs', I: BookOpen },
         { t: 'API reference', d: 'Bearer-token REST API for every service.', to: '/site/docs', I: Code2 },
-        { t: 'CLI', d: 'Deploy and manage from your terminal.', to: '/site/docs', I: Terminal },
+        { t: 'Changelog', d: 'What shipped, once a month.', to: '/site/changelog', I: Terminal },
       ] },
       { h: 'Operate', items: [
         { t: 'System status', d: 'Live regional health and incident history.', to: '/site/status', I: Boxes },
@@ -440,9 +441,9 @@ function useSeenOnce(ref, margin = '0px 0px -6% 0px') {
 const COLS = [
   ['Hosting', [['Web hosting', P + 'web'], ['VPS', P + 'vps'], ['Game servers', '/site/apps'], ['Databases', P + 'db'], ['Email hosting', P + 'mail'], ['Domains', P + 'dom']]],
   ['Solutions', [['Startups', '/site/products'], ['Agencies', '/site/products'], ['Game communities', P + 'game'], ['Migrations', '/site/docs'], ['Site builder', '/site/register']]],
-  ['Developers', [['Documentation', '/site/docs'], ['API reference', '/site/docs'], ['CLI', '/site/docs'], ['System status', '/site/status'], ['Changelog', '/site/docs']]],
-  ['Company', [['About', '/site'], ['Blog', '/site/blog'], ['Careers', '/site'], ['Support', '/site/login'], ['Contact', '/site/login'], ['Client area', '/site/login']]],
-  ['Legal', [['Terms of service', '/site/legal'], ['Privacy policy', '/site/legal'], ['Acceptable use', '/site/legal'], ['SLA', '/site/legal'], ['DPA', '/site/legal']]],
+  ['Developers', [['Documentation', '/site/docs'], ['API reference', '/site/docs'], ['CLI', '/site/docs'], ['System status', '/site/status'], ['Changelog', '/site/changelog']]],
+  ['Company', [['Blog', '/site/blog'], ['Changelog', '/site/changelog'], ['Contact', '/site/contact'], ['Support', '/site/login'], ['Client area', '/site/login']]],
+  ['Legal', [['Terms of service', '/site/legal/terms'], ['Privacy policy', '/site/legal/privacy'], ['Acceptable use', '/site/legal/aup'], ['SLA', '/site/legal/sla'], ['DPA', '/site/legal/dpa'], ['Cookie policy', '/site/legal/cookies']]],
 ]
 
 /* idle -> sending -> done: the button itself reports the result, and a ring of light leaves it */
@@ -542,6 +543,7 @@ export function SiteFooter({ cta = true }) {
           <div className="mx-auto flex max-w-6xl flex-col gap-3 text-[12.5px] text-dim md:flex-row md:items-center md:justify-between">
             <div>© 2026 Blipmade. All rights reserved. Mock-up: no real services.</div>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-[10.5px] uppercase tracking-[.08em]"><span>Frankfurt · Amsterdam · Helsinki · Ashburn</span><span>EN · EUR</span>
+              <button type="button" onClick={openCookieSettings} className="uppercase tracking-[.08em] text-dim underline-offset-4 outline-none transition-colors hover:text-fg hover:underline focus-visible:text-fg">Cookie settings</button>
               <button type="button" onClick={top} className="group inline-flex items-center gap-1.5 rounded-md border border-line-2 px-2.5 py-1 uppercase tracking-[.08em] text-mute outline-none transition-[color,border-color] duration-150 hover:border-white/25 hover:text-fg focus-visible:border-white/40" aria-label="Back to top">Top<ArrowUp className="size-3 transition-transform duration-200 ease-[var(--ease-out)] group-hover:-translate-y-0.5" /></button>
             </div>
           </div>

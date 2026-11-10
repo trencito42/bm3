@@ -13,6 +13,8 @@ import { SiteFooter, SiteHeader } from './Chrome.jsx'
 import { NotFoundScene, SITE_LINKS } from '../components/NotFound.jsx'
 import { AppPage, AppsCatalog } from './AppsPages.jsx'
 import { BlogIndex, BlogPost } from './BlogPages.jsx'
+import { ChangelogPage, ContactPage, LegalPage, StatusPage } from './MorePages.jsx'
+import { CookieConsent } from './CookieConsent.jsx'
 import { PLAN_DATA } from '../components/product.jsx'
 import { cn, money } from '../lib/utils'
 
@@ -27,6 +29,7 @@ function Shell({ children }) {
       <SiteHeader />
       <div className="flex-1">{children}</div>
       <SiteFooter cta={!home} />
+      <CookieConsent />
     </div>
   )
 }
@@ -127,21 +130,11 @@ function Docs() {
   )
 }
 
-function Status() {
-  return (
-    <div className="mx-auto max-w-3xl space-y-8 px-5 py-14 md:px-10">
-      <div className="flex items-center gap-3"><span className="size-3 rounded-full bg-warn shadow-[0_0_12px_var(--color-warn)]" /><h1 className="text-3xl font-semibold tracking-tight">Partial degradation</h1></div>
-      <div className="space-y-3">{[['Frankfurt', 'degraded'], ['Amsterdam', 'ok'], ['Helsinki', 'ok'], ['Ashburn', 'bad'], ['Control panel', 'ok'], ['Email delivery', 'ok']].map(([n, s]) => <div key={n} className="flex items-center justify-between rounded-xl border border-line bg-card px-4 py-3.5 text-[14px]">{n}<Badge tone={s === 'ok' ? 'ok' : s === 'bad' ? 'bad' : 'warn'}>{s === 'ok' ? 'Operational' : s === 'bad' ? 'Outage' : 'Degraded'}</Badge></div>)}</div>
-      <div className="space-y-3"><h2 className="text-lg font-semibold">Incidents</h2>{INCIDENTS.map((i) => <div key={i.id} className="rounded-xl border border-line bg-card p-4"><div className="font-medium">{i.t}</div><div className="mt-1 text-xs text-dim">{i.when} · {i.status}</div></div>)}</div>
-    </div>
-  )
-}
-const Legal = () => <div className="mx-auto max-w-2xl space-y-5 px-5 py-14 md:px-10"><h1 className="text-3xl font-semibold tracking-tight">Terms of service</h1><p className="font-mono text-[11px] uppercase text-dim">Last updated Nov 1, 2026 · sample text</p>{['Acceptable use', 'Billing and renewals', 'Service levels', 'Termination'].map((t, i) => <section key={t} className="space-y-2"><h2 className="text-lg font-semibold">{i + 1}. {t}</h2><p className="text-[14px] leading-relaxed text-mute">This is placeholder legal copy for the design mock-up. Real terms are authored by counsel and replace this section.</p></section>)}</div>
 const NotFound = () => <NotFoundScene home="/site" homeLabel="Back to home" links={SITE_LINKS} />
 
 export default function SiteApp() {
   const { pathname } = useLocation()
   const [, seg = '', arg] = pathname.replace(/^\/site\/?/, '/').split('/')
-  const page = { '': <HomePage />, products: <Products id={arg} />, apps: arg ? <AppPage key={arg} id={arg} /> : <AppsCatalog />, blog: arg ? <BlogPost key={arg} id={arg} /> : <BlogIndex />, login: <Auth key="l" mode="login" />, register: <Auth key="r" mode="register" />, recover: <Auth key="c" mode="recover" />, docs: <Docs />, status: <Status />, legal: <Legal /> }[seg] || <NotFound />
+  const page = { '': <HomePage />, products: <Products id={arg} />, apps: arg ? <AppPage key={arg} id={arg} /> : <AppsCatalog />, blog: arg ? <BlogPost key={arg} id={arg} /> : <BlogIndex />, login: <Auth key="l" mode="login" />, register: <Auth key="r" mode="register" />, recover: <Auth key="c" mode="recover" />, docs: <Docs />, status: <StatusPage />, changelog: <ChangelogPage />, contact: <ContactPage />, legal: <LegalPage key={arg || 'terms'} id={arg || 'terms'} /> }[seg] || <NotFound />
   return <Shell>{page}</Shell>
 }

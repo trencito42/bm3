@@ -84,3 +84,36 @@ Today the site shows a gateway error while a deploy is running. `public/deployin
 - Never return it with status 200 on a real URL (it would be indexed, and it could not tell when the site is back).
 - If the downtime comes from the deploy itself stopping the old version before the new one is healthy, say so and propose the fix (start new, health-check, then switch) as a separate change. The page is the fallback, not the cure.
 - Prove it on staging: trigger a deploy, load the site during it, confirm the page shows with a 5xx status and that it returns to the site by itself afterwards.
+
+## Round 2: what is wrong on staging today (fix these before anything new)
+
+Looked at `staging.blipmade.com` on 2026-11-10.
+
+1. **The homepage copy reads like a disclaimer.** Lines such as "The characters on this page illustrate the design, they are not autonomous agents", "This is not a multi-region marketplace map", "TLS on supported products", "Cancel per billing rules", "The animated strip below is an example, not a live deploy" must go. The rule was "do not claim what is not true". The fix for an untrue line is to **delete it or say the true thing plainly**, never to keep it and hedge it. A visitor must not be able to tell that a careful robot wrote the page.
+2. **No dashes as punctuation** anywhere a visitor reads: no em dash, no en dash, no " - " between clauses. Use a full stop or a comma. Search the built HTML for the characters U+2014 and U+2013 and for " - " and remove every hit in copy.
+3. **`/apps/minecraft` answers HTTP 404** (title "Page not found") while still rendering the Minecraft Paper page under the 404. Make the slug resolve (alias `minecraft` to the Paper edition, or redirect 301 to the real slug) and return 200. Check every catalogue slug the homepage, header and footer link to, the same way.
+4. On that page the description is printed twice, "Good for" is empty and "Total per month" has no number in the HTML. Empty blocks are removed, not shown blank.
+5. On the homepage the product rows show "/ mo" with no number for WordPress, Minecraft and PostgreSQL. Every row shows "from EUR x" from the catalogue, or "See plans" when there is no single starting price. Never a unit without a number.
+
+### Homepage copy to use (replace what is there)
+
+`src/site/homeContent.js` in bm3 now holds this text. It is written for what the product really is today: EU hosting in Germany, monthly billing, prices in euros, people answering support, Blips as characters and status indicators (not agents). If a line below is not true, tell me; do not rewrite it into a hedge.
+
+- Headline: "YOUR WEBSITE. / YOUR APP. / YOUR GAME SERVER. / YOUR SERVER." over "ONLINE TODAY."
+- Sub: "Pick what you need, set the size yourself, and run it from one panel that stays out of your way."
+- Buttons: "Create account", "See pricing". Line under them: "Prices up front · Hosted in the EU · No contract"
+- Products: one line each, from `PRODUCT_PITCH`.
+- Meet the Blips: "Pip, Forge, Byte and Glitch live in your panel. They show you what your services are doing, so a glance is enough. When you need help, a person answers."
+- Panel cards: "From a push to a running app." / "Connect a repository or upload a folder. We build it and switch on HTTPS." · "Hosted in the EU." / "Your data stays in data centres in Germany." (one region: show it as a fact, drop the multi-region map) · "Live, down to the dot." / "CPU, memory and disk as they happen."
+- Pricing: "Build the server you need. Pay for exactly that." Under the price: "per month". Included list from `INCLUDED`.
+- Stats strip: only numbers we measure and can show the source for. If there are fewer than three, remove the strip.
+- Moving: "Switching hosts? We help you move." plus `MIGRATION.sub` and its four steps.
+- FAQ: the five in `FAQ`.
+- Final: "GO LIVE TODAY" / "Pick a product, set the size, launch it." / "Create account", "See products".
+
+## Round 2: new in bm3 since the last prompt
+
+- **Public pages** in `src/site/MorePages.jsx`: status (`/status`: 90-day history per system, open incidents with a timeline of updates, planned maintenance, past incidents, subscribe), changelog (`/changelog`: monthly releases, filter by kind), contact (`/contact`: topic, validated form, sending and sent states), legal (`/legal/:doc` for terms, privacy, aup, sla, dpa, cookies: document switcher, numbered sections, contents, print). Wire status to the real monitoring data and incidents; if there is no source yet, ship the page with real current state only and no invented history. Legal text comes from me, keep the "sample document" banner until it does.
+- **Cookie choice** in `src/site/CookieConsent.jsx`: bottom left, does not block the page, "Only necessary" and "Accept all" are the same size and style on purpose, optional categories are off by default, the footer has "Cookie settings" to reopen it. List only the categories the site really sets, and do not load any optional script before consent.
+- **Email**: 18 templates in `src/emails/` (account, billing, services, support, marketing). Images are real PNG files in `public/email`; publish that folder at a stable public address and replace `{{assets}}` with it when sending. Every `href="#"` gets its real link. `{{company_address}}` is the registered company name and postal address. No email ever contains a password. Replace the transactional emails the app sends today with these, keep the plain-text part.
+- **Workspace**: `#/ds/pages` lists every screen and the known gaps (about, careers, real docs, sharing image and icons, invoice PDF). Do not invent those.

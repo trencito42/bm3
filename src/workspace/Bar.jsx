@@ -1,8 +1,10 @@
 import { Brand } from '../components/logos.jsx'
+import { useEffect, useRef } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { DotText } from '../builder/FxBits.jsx'
 import { cn } from '../lib/utils'
 
+/* [number, label, route, is-this-section-current] */
 const SECTIONS = [
   ['01', 'Foundations', '/ds/foundations', (p) => p.startsWith('/ds/foundations')],
   ['02', 'Components', '/ds/components', (p) => p.startsWith('/ds/components')],
@@ -10,21 +12,26 @@ const SECTIONS = [
   ['04', 'Product', '/ds/product', (p) => p.startsWith('/ds/product')],
   ['05', 'Customer app', '/', (p) => !/^\/(ds|admin|site)/.test(p)],
   ['06', 'Admin', '/admin', (p) => p.startsWith('/admin')],
-  ['07', 'Public site', '/site', (p) => p.startsWith('/site')],
-  ['08', 'States & mobile', '/ds/states', (p) => p.startsWith('/ds/states')],
-  ['09', 'Logo lab', '/ds/logos', (p) => p.startsWith('/ds/logos')],
-  ['10', 'Blip lab', '/ds/orbs', (p) => p.startsWith('/ds/orbs')],
-  ['11', 'Email', '/ds/emails', (p) => p.startsWith('/ds/emails')],
-  ['12', 'System pages', '/ds/system', (p) => p.startsWith('/ds/system')],
+  ['07', 'Public site', '/site', (p) => p.startsWith('/site') && !p.startsWith('/site/blog')],
+  ['08', 'Blog', '/site/blog', (p) => p.startsWith('/site/blog')],
+  ['09', 'States & mobile', '/ds/states', (p) => p.startsWith('/ds/states')],
+  ['10', 'Logo lab', '/ds/logos', (p) => p.startsWith('/ds/logos')],
+  ['11', 'Blip lab', '/ds/orbs', (p) => p.startsWith('/ds/orbs')],
+  ['12', 'Email', '/ds/emails', (p) => p.startsWith('/ds/emails')],
+  ['13', 'System pages', '/ds/system', (p) => p.startsWith('/ds/system')],
+  ['14', 'All pages', '/ds/pages', (p) => p.startsWith('/ds/pages')],
 ]
 
 export default function WorkspaceBar() {
   const { pathname } = useLocation()
+  const bar = useRef(null)
+  /* fourteen sections do not fit on a laptop: the bar scrolls sideways, and the current one is always brought into view */
+  useEffect(() => { bar.current?.querySelector('[data-on]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' }) }, [pathname])
   return (
-    <div className="flex h-10 shrink-0 items-center gap-1 overflow-x-auto border-b border-line bg-black px-3">
+    <div ref={bar} className="flex h-10 shrink-0 items-center gap-1 overflow-x-auto border-b border-line bg-black px-3 [scrollbar-width:none]">
       <NavLink to="/ds/foundations" className="mr-3 flex shrink-0 items-center gap-2"><Brand height={11} /><span className="font-mono text-[10px] uppercase tracking-[.08em] text-dim">Design system</span></NavLink>
       {SECTIONS.map(([n, l, to, is]) => (
-        <NavLink key={n} to={to} className={cn('flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-[12.5px] transition-colors', is(pathname) ? 'bg-white/[0.08] text-fg' : 'text-mute hover:text-fg')}>
+        <NavLink key={n} to={to} data-on={is(pathname) || undefined} className={cn('flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-[12.5px] transition-colors', is(pathname) ? 'bg-white/[0.08] text-fg' : 'text-mute hover:text-fg')}>
           <span className={cn('font-mono text-[10px]', is(pathname) ? 'text-[var(--brand)]' : 'text-dim')}>{n}</span>{l}
         </NavLink>
       ))}

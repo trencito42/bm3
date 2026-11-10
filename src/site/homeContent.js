@@ -7,14 +7,13 @@ import { Activity, ArrowLeftRight, AtSign, Clock, Code2, Database, DatabaseBacku
 /* The headline is one sentence with a moving part: "YOUR <thing>. LIVE IN SECONDS." The thing is whatever the stage below
    is showing, so the words and the product window always say the same thing. */
 export const HERO = {
-  fixed: 'LIVE IN SECONDS.',
-  srTitle: 'Your website, app, game server or VPS, live in seconds',
-  sub: 'Hosting for everything you put online, with an AI crew that builds, watches and fixes things with you.',
-  primary: 'Start free',
+  fixed: 'ONLINE TODAY.',
+  srTitle: 'Your website, app, game server or VPS, online today',
+  sub: 'Pick what you need, set the size yourself, and run it from one panel that stays out of your way.',
+  primary: 'Create account',
   secondary: 'See pricing',
-  trust: 'No card required · Free SSL and backups · Cancel any time',
+  trust: 'Prices up front · Hosted in the EU · No contract',
 }
-
 /* the hero stage: `word` is the moving part of the headline, the rest drives the product window */
 export const STAGE = [
   { id: 'site', word: 'YOUR WEBSITE.', label: 'Website', icon: Wand2, url: 'crumbandco.blipmade.site', from: 4, to: '/site/products/web', cta: 'Build a website' },
@@ -46,17 +45,16 @@ export const STACK = ['NODE.JS', 'PYTHON', 'PHP', 'GO', 'RUST', 'DOCKER', 'POSTG
 /* ids match CATALOG in lib/mock.js: name, blurb and "from" price come from the catalogue, not from here */
 export const PRODUCT_ICONS = { web: Globe, vps: Server, game: Gamepad2, db: Database, mail: Mail, dom: AtSign }
 export const PRODUCT_PITCH = {
-  web: 'Your site online today, with SSL, email and backups already switched on.',
-  vps: 'Root access, NVMe disks and the exact size you need. Resize whenever you like.',
-  game: 'Minecraft, Rust, CS2 and more. One click to install, mods and backups included.',
-  db: 'PostgreSQL, MySQL and Redis that back themselves up and restore to any minute.',
-  mail: 'Professional mailboxes on your own domain, with webmail that is pleasant to use.',
-  dom: 'Search, register and transfer. WHOIS privacy and DNS are free with every name.',
+  web: 'WordPress or your own code, online with HTTPS and backups set up for you.',
+  vps: 'Root access, NVMe disks and the exact size you need.',
+  game: 'Minecraft and more. One click to install, a console in your browser.',
+  db: 'PostgreSQL looked after for you, in the same panel as your apps.',
+  mail: 'Mailboxes on your own domain, with webmail included.',
+  dom: 'Find a name and connect it to your site in a few clicks.',
 }
 
-/* one quiet line under the price, not a section of its own */
-export const INCLUDED = [[Lock, 'Free SSL'], [DatabaseBackup, 'Daily backups'], [ShieldCheck, 'DDoS protection'], [ArrowLeftRight, 'Free migration'], [Network, 'IPv4 and IPv6'], [Activity, 'Live monitoring'], [KeyRound, 'SSH and SFTP'], [Clock, 'Hourly billing']]
-
+/* one quiet line under the price, not a section of its own. Only things that are true of every plan. */
+export const INCLUDED = [[Lock, 'HTTPS certificates'], [DatabaseBackup, 'Backups'], [Network, 'IPv4 and IPv6'], [KeyRound, 'SSH and SFTP'], [Activity, 'Live monitoring'], [ShieldCheck, 'Hosted in the EU']]
 export const PRESETS = [
   { id: 'starter', label: 'Starter', hint: 'Blogs, bots, side projects', cpu: 1, ram: 2, disk: 40 },
   { id: 'growth', label: 'Growth', hint: 'Shops and busy apps', cpu: 4, ram: 8, disk: 160 },
@@ -67,20 +65,22 @@ export const RATES = { cpu: 2.5, ram: 1.25, disk: 0.03 }
 export const STATS = [['99.98%', 'Uptime, last 90 days'], ['40S', 'Median deploy time'], ['6 MIN', 'Median first reply'], ['4', 'Regions, two continents']]
 
 export const MIGRATION = {
-  title: 'Switching hosts? We do the moving.',
-  sub: 'Tell us where your sites live today. Our engineers copy everything across, test it, and switch you over when you are happy. No downtime, no charge.',
-  cta: 'Start a free migration',
-  steps: ['Share access to your old host', 'We copy sites, databases and mail', 'You check the preview', 'We switch you over'],
+  title: 'Switching hosts? We help you move.',
+  sub: 'Tell us what you run today. We plan the move with you, agree on a time that suits you, and nothing switches until you have checked the result.',
+  cta: 'Plan my move',
+  steps: ['Create your account', 'Tell us what you run today', 'We agree on a time', 'You check before anything switches'],
 }
 
 /* No testimonials section: it comes back when there are real, attributable customer quotes to put in it. */
 
+/* Copy rules for this page: short sentences, no dashes used as punctuation, no disclaimers. If something is not true of
+   the product, the line is removed; it is never kept and hedged ("where supported", "this is not a ..."). */
 export const FAQ = [
-  ['Can I try it without a card?', 'Yes. New accounts start with demo credit and you do not need payment details to look around or launch your first project.'],
-  ['Where are my servers located?', 'Frankfurt, Amsterdam, Helsinki and Ashburn. You choose the region when you deploy and can move later with a snapshot.'],
-  ['What exactly do the Blips do?', 'They are AI teammates built into the panel. Pip answers questions, Forge builds websites, Byte reads errors and proposes fixes, Glitch watches game servers. They act only with your permission, and a human engineer is always one click away.'],
-  ['How fast does support reply?', 'The median first reply is about six minutes, from engineers who can actually fix the problem.'],
-  ['Is there a contract?', 'No. Billing is hourly or monthly, you can cancel any time, and unused credit stays on your account.'],
+  ['Can I see prices before I sign up?', 'Yes. Every plan and price is public. You only need an account when you are ready to launch something.'],
+  ['Where is my data?', 'In the European Union, in data centres in Germany.'],
+  ['Who answers when I need help?', 'People. Support engineers answer tickets and live chat, inside the same panel you work in.'],
+  ['What are the Blips?', 'Pip, Forge, Byte and Glitch are the characters of Blipmade. They show you what your services are doing, so a glance is enough.'],
+  ['Is there a contract?', 'No. Plans are billed monthly and you can cancel from your account.'],
 ]
 
-export const FINAL = { headline: 'GO LIVE TODAY', sub: 'Your first project is online in under a minute. No card required.', primary: 'Create free account', secondary: 'See products' }
+export const FINAL = { headline: 'GO LIVE TODAY', sub: 'Pick a product, set the size, launch it.', primary: 'Create account', secondary: 'See products' }

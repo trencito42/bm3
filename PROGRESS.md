@@ -298,3 +298,24 @@ Standalone page for the reverse proxy to serve while a deploy is running, instea
 - Workspace section `src/workspace/System.jsx`: state chips, the real file in an iframe (desktop / mobile, replay, open in a tab), what triggers the selected state, a table of all triggers, and how to serve it (with the nginx example).
 - **Verified:** all seven states load with the right state attribute, label, copy, step and retry visibility (scripted through iframes); looked at deploying, error and back at desktop width and offline at 375 px; the workspace section and its nav entry; production build copies the file to `dist/`.
 - **Not verified:** the automatic detection against real 5xx / 429 answers and a real offline device (previews force the state), the reload after "back", slow / maintenance / busy visually, reduced motion.
+
+## Missing pages, cookie choice, email pass (2026-11-10)
+
+What changed
+- Top bar: `08 Blog` and `14 All pages` (`#/ds/pages`, an index of every screen plus the known gaps). The bar scrolls sideways and keeps the current section in view.
+- New public pages (`src/site/MorePages.jsx`): status with 90-day strips, changelog, contact, six legal documents. The old one-line status and legal stubs are gone. Footer and menu links now point at real routes.
+- Cookie choice (`src/site/CookieConsent.jsx`): equal buttons, optional categories off, reopen from the footer or the cookie policy.
+- Email: kit fixes (images keep their proportions on phones, button pairs stack on phones, tinted boxes are table cells so Outlook keeps the padding, light-mode fixes), 8 new system templates (confirm email, password reset, server ready, renewal, suspended, domain expiring, maintenance, ticket reply), the invented customer quote removed. Images are now real PNG files in `public/email`, addressed through `{{assets}}`.
+- Homepage copy rewritten for what the product is today (EU, monthly, people answer support, Blips are characters). No dashes, no disclaimers.
+
+Verified
+- All new routes render with the right heading at 1280 and 375 px, no horizontal overflow (scripted).
+- Cookie choice: shows, saves "only necessary", disappears, reopens from the footer with two switches; it does not overlap the chat launcher at 375 px.
+- All 18 emails at 375 and 680 px: no overflow, no missing image, no distorted image (scripted, in iframes).
+- Production build passes.
+
+Not verified
+- Nothing was looked at by eye this pass: the preview pane was too small for usable screenshots. Spacing and rhythm of the new pages are unchecked visually.
+- Emails in real clients (Gmail, Outlook, Apple Mail). The Blip PNGs are simple drawings, not exports of the animated characters.
+- Status history, incidents, changelog entries are invented sample data. Numbers in the homepage stats strip and the regions card are still mock.
+- Print layout of legal pages, reduced motion, keyboard pass on the new pages.
