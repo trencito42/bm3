@@ -16,7 +16,8 @@ export function Composer({ autoFocus }) {
   const grow = () => { const e = ta.current; if (!e) return; e.style.height = 'auto'; e.style.height = Math.min(e.scrollHeight, 132) + 'px' }
   useEffect(grow, [v])
   useEffect(() => { if (autoFocus) { const t = setTimeout(() => ta.current?.focus({ preventScroll: true }), 380); return () => clearTimeout(t) } }, [autoFocus])
-  const send = () => { const t = v.trim(); if (!t) return; chat.send(t); setV(''); chat.setDraft(''); requestAnimationFrame(() => { grow(); ta.current?.focus({ preventScroll: true }) }) }
+  const [sent, setSent] = useState(0)          // bumps once per message: the send arrow plays its exit
+  const send = () => { const t = v.trim(); if (!t) return; chat.send(t); setSent((n) => n + 1); setV(''); chat.setDraft(''); requestAnimationFrame(() => { grow(); ta.current?.focus({ preventScroll: true }) }) }
   const onFile = (e) => {
     const f = e.target.files?.[0]
     e.target.value = ''
@@ -36,7 +37,7 @@ export function Composer({ autoFocus }) {
           onChange={(e) => { setV(e.target.value); chat.setDraft(e.target.value) }}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send() } }}
           className="max-h-[132px] min-h-9 flex-1 resize-none bg-transparent px-1.5 py-[7px] text-[16px] leading-[22px] text-fg outline-none placeholder:text-dim sm:text-[14px]" />
-        <button type="button" aria-label="Send message" disabled={!can} onClick={send} className={cn('grid size-9 shrink-0 place-items-center rounded-xl outline-none transition-[background-color,color,transform,opacity] duration-200 focus-visible:ring-2 focus-visible:ring-white/40', can ? 'bg-fg text-black active:scale-90' : 'bg-white/[0.06] text-dim')}><ArrowUp className={cn('size-[18px] transition-transform duration-200 ease-[var(--ease-out)]', can && '-translate-y-px')} /></button>
+        <button key={sent} type="button" aria-label="Send message" disabled={!can} onClick={send} className={cn(sent > 0 && 'chat-sent', 'grid size-9 overflow-hidden shrink-0 place-items-center rounded-xl outline-none transition-[background-color,color,transform,opacity] duration-200 focus-visible:ring-2 focus-visible:ring-white/40', can ? 'bg-fg text-black active:scale-90' : 'bg-white/[0.06] text-dim')}><ArrowUp className={cn('size-[18px] transition-transform duration-200 ease-[var(--ease-out)]', can && '-translate-y-px')} /></button>
       </div>
       <p className="mt-2 hidden px-1 font-mono text-[10px] tracking-[.02em] text-dim sm:block">Enter to send · Shift+Enter for a new line</p>
     </div>

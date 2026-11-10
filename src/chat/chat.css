@@ -1,5 +1,7 @@
 /* ChatWidget: one element morphs between launcher and conversation */
-.chat-shell { transition: right 480ms var(--ease-out), bottom 480ms var(--ease-out), width 480ms var(--ease-out), height 480ms var(--ease-out), border-radius 480ms var(--ease-out), box-shadow 300ms; will-change: width, height; contain: layout style; }
+.chat-shell { transition: right 520ms var(--ease-expo), bottom 520ms var(--ease-expo), width 520ms var(--ease-expo), height 520ms var(--ease-expo), border-radius 520ms var(--ease-expo), box-shadow 300ms; will-change: width, height; contain: layout style; }
+/* closing is quicker than opening and accelerates away, like every other exit in the system */
+.chat-shell:not([data-open]) { transition-duration: 320ms, 320ms, 320ms, 320ms, 320ms, 200ms; transition-timing-function: var(--ease-std); }
 .chat-panel { transition: opacity 180ms ease-out; }
 .chat-launcher { transition: opacity 160ms ease-out, transform 140ms var(--ease-out); -webkit-tap-highlight-color: transparent; }
 .chat-teaser { -webkit-tap-highlight-color: transparent; }
@@ -7,9 +9,20 @@
 .chat-bob { animation: chat-bob 4.2s ease-in-out infinite; }
 @keyframes chat-bob { 50% { transform: translateY(-2px); } }
 
+/* a message arrives from the side of whoever said it: yours grows out of the composer corner, theirs out of the avatar */
+.chat-msg { animation: chat-msg 340ms var(--ease-expo) both; transform-origin: 0 100%; }
+.chat-msg[data-me] { transform-origin: 100% 100%; }
+@keyframes chat-msg { from { opacity: 0; transform: translateY(8px) scale(.96) } }
+/* typing: three dots pass a small wave along, they do not bounce */
+.chat-dot { animation: chat-dot 1.15s ease-in-out infinite; }
+@keyframes chat-dot { 0%, 60%, 100% { transform: none; opacity: .45 } 30% { transform: translateY(-3px); opacity: 1 } }
+/* the send arrow leaves upward and a new one comes in from below, once per message */
+.chat-sent svg { animation: chat-sent 420ms var(--ease-out); }
+@keyframes chat-sent { 0% { transform: none; opacity: 1 } 45% { transform: translateY(-14px); opacity: 0 } 46% { transform: translateY(12px); opacity: 0 } 100% { transform: none; opacity: 1 } }
+
 /* phone sheet: the page behind it does not scroll, and our own message list still does */
 .chat-lock, .chat-lock body { overflow: hidden; overscroll-behavior: none; }
 .chat-lock #root .overflow-y-auto:not(.chat-scroll), .chat-lock #root main { overflow: hidden !important; }
 .chat-scroll { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 
-@media (prefers-reduced-motion: reduce) { .chat-shell, .chat-panel, .chat-launcher { transition-duration: 1ms !important; } .chat-bob { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .chat-shell, .chat-panel, .chat-launcher { transition-duration: 1ms !important; } .chat-bob, .chat-dot, .chat-sent svg { animation: none; } .chat-msg { animation-duration: 1ms; } }

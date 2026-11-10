@@ -33,7 +33,7 @@ const Message = memo(function Message({ m, first, last, onAct, onQuick, showQuic
   const me = m.from === 'me'
   return (
     <>
-    <div className={cn('anim-rise flex items-end gap-2', me ? 'flex-row-reverse' : 'flex-row')}>
+    <div data-me={me || undefined} className={cn('chat-msg flex items-end gap-2', me ? 'flex-row-reverse' : 'flex-row')}>
       {!me && <span className={cn('w-7 shrink-0', !last && 'invisible')}>{last && <Who who={m.from} size={28} live={m.from === 'operator'} />}</span>}
       <div className={cn('flex min-w-0 max-w-[82%] flex-col', me ? 'items-end' : 'items-start')}>
         {m.kind === 'file' ? (
@@ -68,7 +68,7 @@ function Typing({ who }) {
   return (
     <div className="flex items-end gap-2" aria-label={`${AGENTS[who].name} is typing`}>
       <Who who={who} size={28} state="thinking" live={who === 'operator'} />
-      <div className="flex gap-1 rounded-2xl rounded-bl-md border border-line bg-white/[0.04] px-3.5 py-3">{[0, 1, 2].map((i) => <i key={i} className="size-1.5 animate-bounce rounded-full bg-dim" style={{ animationDelay: `${i * 130}ms` }} />)}</div>
+      <div className="flex gap-1 rounded-2xl rounded-bl-md border border-line bg-white/[0.04] px-3.5 py-3">{[0, 1, 2].map((i) => <i key={i} className="chat-dot size-1.5 rounded-full bg-fg" style={{ animationDelay: `${i * 150}ms` }} />)}</div>
     </div>
   )
 }
@@ -102,7 +102,7 @@ export function Thread({ onClose }) {
           const sameP = p && p.from === m.from && m.from !== 'system', sameN = n && n.from === m.from && m.from !== 'system'
           return <div key={m.id} className={cn(!sameP && i > 0 && 'pt-2.5')}><Message m={m} first={!sameP} last={!sameN} onAct={act} onQuick={(q) => chat.send(q)} showQuick={onlyGreeting} /></div>
         })}
-        {typing && <div className="anim-rise pt-1"><Typing who={typing} /></div>}
+        {typing && <div className="chat-msg pt-1"><Typing who={typing} /></div>}
       </div>
       <button onClick={() => { const e = box.current; e.scrollTo({ top: e.scrollHeight, behavior: 'smooth' }); setAway(0) }} aria-label="Jump to latest message"
         className={cn('absolute bottom-3 left-1/2 flex h-8 -translate-x-1/2 items-center gap-1.5 rounded-full border border-line-2 bg-[#1a1a1e] px-3 text-[12px] shadow-lg shadow-black/50 outline-none transition-[opacity,transform] duration-200 ease-[var(--ease-out)] focus-visible:ring-2 focus-visible:ring-white/30', away ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-2 opacity-0')}><ArrowDown className="size-3.5" />{away} new</button>
