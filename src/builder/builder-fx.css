@@ -2,9 +2,9 @@
 .dm{display:inline-block;overflow:visible}
 .dm-ghost{fill:currentColor;opacity:.08}
 .dm-anim circle:not(.dm-ghost){animation:dm-on 1.1s var(--ease-spring) both;animation-delay:var(--d,0s)}
-.dm-asm circle:not(.dm-ghost){animation:dm-asm 1.9s var(--ease-spring) both;animation-delay:var(--d,0s)}
+.dm-asm circle:not(.dm-ghost){transform-box:fill-box;transform-origin:center;animation:dm-asm .72s cubic-bezier(.16,1,.3,1) both;animation-delay:var(--d,0s)}
 @keyframes dm-on{0%{opacity:0}40%{opacity:1;fill:var(--brand)}to{opacity:1}}
-@keyframes dm-asm{0%{opacity:0;transform:translate(var(--tx,0),var(--ty,0))}60%{opacity:1}to{opacity:1;transform:none}}
+@keyframes dm-asm{0%{opacity:0;transform:translate(var(--tx,0),var(--ty,0)) scale(.2)}45%{opacity:1}to{opacity:1;transform:none}}
 
 /* ---------- dot progress bar ---------- */
 .dbar{display:flex;gap:4px}

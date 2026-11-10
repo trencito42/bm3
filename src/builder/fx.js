@@ -32,7 +32,9 @@ $:'..X.. .XXXX X.X.. .XXX. ..X.X XXXX. ..X..','%':'XX..X XX..X ...X. ..X.. .X...
 '.':'. . . . . . X',',':'.. .. .. .. .. .X X.','!':'X X X X X . X','?':'.XXX. X...X ....X ...X. ..X.. ..... ..X..',
 ':':'. . X . . X .','-':'... ... ... XXX ... ... ...','_':'..... ..... ..... ..... ..... ..... XXXXX',
 '+':'..... ..X.. ..X.. XXXXX ..X.. ..X.. .....','/':'....X ....X ...X. ..X.. .X... X.... X....',
-'(':'.X X. X. X. X. X. .X',')':'X. .X .X .X .X .X X.','·':'. . . X . . .','\'':'X X . . . . .','&':'.XX.. X..X. X.X.. .X... X.X.X X..X. .XX.X'
+'(':'.X X. X. X. X. X. .X',')':'X. .X .X .X .X .X X.','·':'. . . X . . .','\'':'X X . . . . .','"':'X.X X.X ... ... ... ... ...',
+'<':'...X ..X. .X.. X... .X.. ..X. ...X','>':'X... .X.. ..X. ...X ..X. .X.. X...','=':'.... .... XXXX .... XXXX .... ....',
+'*':'..... X.X.X .XXX. XXXXX .XXX. X.X.X .....','€':'..XXX .X... XXXX. .X... XXXX. .X... ..XXX','&':'.XX.. X..X. X.X.. .X... X.X.X X..X. .XX.X'
 };
 var _gc={};
 function glyph(ch){var k=ch.toUpperCase();if(_gc[k])return _gc[k];var g=GLYPHS[k];if(!g)return null;var rows=g.split(' ');return _gc[k]={w:rows[0].length,rows:rows}}
@@ -56,7 +58,9 @@ function dotText(o){
   if(o.ghost)L.cells.forEach(function(p){svg.appendChild(c(p.x,p.y,'dm-ghost'))});
   L.dots.forEach(function(p,i){
     var e=c(p.x,p.y);e.setAttribute('fill','currentColor');
-    if(o.assemble){e.style.setProperty('--d',(d+Math.abs(rnd(i+7))*500)+'ms');e.style.setProperty('--tx',(rnd(i)*14)+'px');e.style.setProperty('--ty',(rnd(i+99)*9)+'px')}
+    /* assemble: the line lights up in reading order (a sweep of ~8 ms per dot column, capped so long lines are not slow), each dot
+       arriving from a short random offset. It reads as a display switching on, not as confetti landing. */
+    if(o.assemble){var sw=Math.min(8,620/L.width);e.style.setProperty('--d',(d+p.x*sw+Math.abs(rnd(i+7))*200)+'ms');e.style.setProperty('--tx',(rnd(i)*2.6)+'px');e.style.setProperty('--ty',(rnd(i+99)*2.2)+'px')}
     else if(o.animate||o.quick)e.style.setProperty('--d',o.quick?((p.x*3+p.y*2)+'ms'):((d+(off+p.x)*14+p.y*6)+'ms'));
     svg.appendChild(e);
   });
