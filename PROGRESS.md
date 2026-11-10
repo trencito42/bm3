@@ -354,3 +354,8 @@ Not verified
 - Nothing was looked at by eye in this pass (the preview pane could not take screenshots) and no animation was watched in motion. Spacing and density are unreviewed.
 - `blipmade-hosting` was read for routes and structure only. Mock copy and prices are invented.
 - Keyboard-only pass, reduced motion, real touch.
+
+## Loading placeholders in dot-matrix (2026-11-11)
+- `Skeleton` (ui2) is now a fixed-size patch of dots with a light sweeping across it: no transform or size animation, `overflow: hidden`, `contain: paint`, `max-width: 100%`, so it can never grow or spill out of its container. Same API as before, so every existing use changed at once.
+- New `MatrixLoader` (ui2): a dot field that ripples diagonally with a blinking "LOADING_" label, for a whole screen or panel. It replaces the bar skeletons used as Suspense fallbacks for the studio screens. Reduced motion: both are static.
+- Verified: sizes of all skeletons on the Components page are identical before and after 1.5 s of animation; the loader stays inside its parent; no page overflow. Not watched in motion, and I did not know which skeleton you meant, so other loaders (if any) may still look the old way.
