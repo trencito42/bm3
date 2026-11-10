@@ -1,0 +1,220 @@
+<!doctype html>
+<!--
+  Blipmade: the page visitors see while a deploy is in progress, instead of a gateway error.
+
+  ONE FILE, NO DEPENDENCIES. Everything is inline (styles, script, type) and it requests nothing: the app, its bundle and
+  its fonts are exactly what is unavailable while this page is on screen.
+
+  How to serve it
+  - Keep a copy OUTSIDE the directory or container the deploy replaces, and let the reverse proxy answer with it whenever
+    the app is not reachable (502 / 503 / 504), keeping that error status and adding "Retry-After" and "Cache-Control: no-store".
+    nginx, for example:
+        proxy_intercept_errors on;
+        error_page 502 503 504 /deploying.html;
+        location = /deploying.html { root /srv/static; internal; add_header Retry-After 20 always; add_header Cache-Control "no-store" always; }
+  - Do not serve it with status 200 on real URLs: search engines would index it and the page could not tell when the site is back.
+
+  How it leaves
+  - Every few seconds it asks for the current URL again. The first successful answer reloads the page, so visitors land where
+    they were going. Opened directly as /deploying.html (a preview) it does not poll.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0d0d0f">
+<title>Deploying · Blipmade</title>
+<noscript><meta http-equiv="refresh" content="20"></noscript>
+<style>
+  @property --mx { syntax: '<percentage>'; inherits: false; initial-value: 30%; }
+  @property --my { syntax: '<percentage>'; inherits: false; initial-value: 28%; }
+  :root { --bg: #0d0d0f; --fg: #f2f2f3; --mute: #8e8e94; --dim: #6b6b72; --line: #2a2a2f; --brand: #ff2d36; --ok: #4ade80;
+    --ease: cubic-bezier(.16, 1, .3, 1); }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body { min-height: 100dvh; background: var(--bg); color: var(--fg); font: 15px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased; display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; }
+  .mono { font-family: "Geist Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
+
+  /* the surface: a dot grid, and a ring of light that keeps crossing it (the same language as the site's header and footer) */
+  .field, .field::after { position: fixed; inset: 0; pointer-events: none; }
+  .field { background-image: radial-gradient(rgba(255,255,255,.085) 1px, transparent 1.4px); background-size: 22px 22px; background-position: 11px 11px;
+    -webkit-mask-image: radial-gradient(ellipse at 50% 46%, #000 0, transparent 78%); mask-image: radial-gradient(ellipse at 50% 46%, #000 0, transparent 78%); }
+  .field::after { content: ""; background-image: radial-gradient(rgba(255,255,255,.9) 1.1px, transparent 1.6px); background-size: 22px 22px; background-position: 11px 11px;
+    -webkit-mask-image: radial-gradient(circle at 50% 46%, transparent 0, transparent calc(var(--r) - 90px), #000 var(--r), transparent calc(var(--r) + 14px));
+    mask-image: radial-gradient(circle at 50% 46%, transparent 0, transparent calc(var(--r) - 90px), #000 var(--r), transparent calc(var(--r) + 14px));
+    animation: ring 5.2s cubic-bezier(.3, 0, .2, 1) infinite; }
+  @property --r { syntax: '<length>'; inherits: false; initial-value: 0px; }
+  @keyframes ring { 0% { --r: 0px; opacity: 0 } 12% { opacity: .55 } 70% { opacity: .22 } 100% { --r: 900px; opacity: 0 } }
+
+  header, footer { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px clamp(20px, 4vw, 40px); }
+  header { padding-top: max(22px, env(safe-area-inset-top)); }
+  footer { padding-bottom: max(22px, env(safe-area-inset-bottom)); border-top: 1px solid #1c1c20; }
+  .live { display: inline-flex; align-items: center; gap: 8px; color: var(--mute); }
+  .live i { width: 6px; height: 6px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 10px var(--brand); animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .25 } }
+  #clock { font-variant-numeric: tabular-nums; }
+
+  main { position: relative; display: grid; place-items: center; padding: 24px clamp(20px, 4vw, 40px); }
+  .stack { width: 100%; max-width: 760px; display: flex; flex-direction: column; align-items: center; text-align: center; animation: rise 700ms var(--ease) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px) } }
+  /* a pool of darkness behind the words so the grid never competes with them */
+  .stack::before { content: ""; position: absolute; inset: -8% -12%; z-index: -1; background: radial-gradient(closest-side, rgba(0,0,0,.82) 55%, transparent); }
+
+  /* Pip, waiting with you: a matte pearl whose light goes round while it works; it blinks */
+  .pip { position: relative; width: 64px; height: 64px; border-radius: 50%; margin-bottom: 34px;
+    background: radial-gradient(circle at 80% 86%, rgba(160,178,255,.42) 0, rgba(160,178,255,0) 36%), radial-gradient(circle at var(--mx) var(--my), #fff 0, #f4f0e7 20%, #cfcad2 46%, #837e96 74%, #3b3853 100%);
+    box-shadow: 0 0 22px rgba(255,246,225,.2), inset 0 0 0 1px rgba(255,255,255,.16), inset -3px -4px 9px rgba(14,12,40,.5);
+    animation: orbit 2.8s linear infinite, breathe 5.6s ease-in-out infinite; }
+  .pip i { position: absolute; top: 25px; width: 6px; height: 13px; border-radius: 6px; background: #0b0b0d; animation: blink 5.2s infinite; }
+  .pip i:first-child { left: 23px } .pip i:last-child { left: 35px }
+  @keyframes orbit { 0%, 100% { --mx: 30%; --my: 28% } 25% { --mx: 70%; --my: 28% } 50% { --mx: 72%; --my: 68% } 75% { --mx: 30%; --my: 70% } }
+  @keyframes breathe { 50% { transform: scale(1.025) } }
+  @keyframes blink { 0%, 46%, 50%, 100% { transform: none } 48% { transform: scaleY(.1) } }
+
+  /* the headline is a dot-matrix display: canvas, so 400+ dots cost nothing */
+  #type { width: 100%; height: auto; display: block; }
+  h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  p.lead { margin-top: 30px; max-width: 30rem; font-size: 16.5px; line-height: 1.55; color: rgba(242,242,243,.74); text-wrap: pretty; }
+
+  /* progress without a number we would have to invent: a wave travelling along a rail of dots */
+  .rail { margin-top: 36px; display: flex; gap: 7px; }
+  .rail i { width: 5px; height: 5px; border-radius: 50%; background: #fff; opacity: .12; animation: wave 2.1s ease-in-out infinite; animation-delay: calc(var(--i) * 62ms); }
+  @keyframes wave { 0%, 60%, 100% { opacity: .12; transform: none } 22% { opacity: 1; transform: translateY(-2px) } }
+  .steps { margin-top: 18px; height: 16px; }
+  .steps span { display: inline-block; animation: step 320ms var(--ease) both; }
+  @keyframes step { from { opacity: 0; transform: translateY(5px) } }
+
+  @media (max-width: 520px) { .rail { gap: 5px } .rail i:nth-child(n+19) { display: none } p.lead { font-size: 15.5px } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important } .field::after { display: none } }
+</style>
+</head>
+<body>
+<div class="field" aria-hidden="true"></div>
+
+<header>
+  <canvas id="mark" width="0" height="0" role="img" aria-label="Blipmade" style="height:13px"></canvas>
+  <span class="mono live"><i></i>Deploy in progress</span>
+</header>
+
+<main>
+  <div class="stack">
+    <div class="pip" aria-hidden="true"><i></i><i></i></div>
+    <h1>We are deploying an update</h1>
+    <canvas id="type" aria-hidden="true"></canvas>
+    <p class="lead">We are shipping a new version of the site. Nothing is broken and your services keep running. This page will bring you back by itself, usually within a minute.</p>
+    <div class="rail" aria-hidden="true"></div>
+    <div class="steps mono" aria-live="polite"><span id="step">Building</span></div>
+  </div>
+</main>
+
+<footer>
+  <span class="mono">Waiting <span id="clock">00:00</span></span>
+  <span class="mono" id="note">Checking every few seconds</span>
+</footer>
+
+<noscript><p style="position:fixed;left:0;right:0;bottom:70px;text-align:center;color:#8e8e94">This page reloads every 20 seconds until the site is back.</p></noscript>
+
+<script>
+(function () {
+  'use strict'
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  /* ---------- 5x7 dot-matrix type (the Blipmade face) ---------- */
+  var G = {
+    A:'.XXX. X...X X...X XXXXX X...X X...X X...X', B:'XXXX. X...X X...X XXXX. X...X X...X XXXX.', C:'.XXX. X...X X.... X.... X.... X...X .XXX.',
+    D:'XXXX. X...X X...X X...X X...X X...X XXXX.', E:'XXXXX X.... X.... XXXX. X.... X.... XXXXX', G:'.XXX. X...X X.... X.XXX X...X X...X .XXX.',
+    I:'XXX .X. .X. .X. .X. .X. XXX', L:'X.... X.... X.... X.... X.... X.... XXXXX', M:'X...X XX.XX X.X.X X.X.X X...X X...X X...X',
+    N:'X...X XX..X X.X.X X.X.X X.X.X X..XX X...X', O:'.XXX. X...X X...X X...X X...X X...X .XXX.', P:'XXXX. X...X X...X XXXX. X.... X.... X....',
+    S:'.XXXX X.... X.... .XXX. ....X ....X XXXX.', T:'XXXXX ..X.. ..X.. ..X.. ..X.. ..X.. ..X..', U:'X...X X...X X...X X...X X...X X...X .XXX.',
+    V:'X...X X...X X...X X...X X...X .X.X. ..X..', Y:'X...X X...X .X.X. ..X.. ..X.. ..X.. ..X..', '.':'. . . . . . X', ' ':'... ... ... ... ... ... ...'
+  }
+  function layout(text) {            /* -> { cols, on: {"x,y": charIndex} } */
+    var x = 0, on = {}
+    text.split('').forEach(function (ch, ci) {
+      var rows = (G[ch] || G[' ']).split(' ')
+      rows.forEach(function (row, y) { for (var i = 0; i < row.length; i++) if (row[i] === 'X') on[(x + i) + ',' + y] = ci })
+      x += rows[0].length + 1
+    })
+    return { cols: x - 1, on: on, chars: text.length }
+  }
+
+  /* ---------- wordmark, static ---------- */
+  ;(function () {
+    var c = document.getElementById('mark'), L = layout('BLIPMADE'), p = 13 / 7, dpr = Math.min(devicePixelRatio || 1, 3)
+    c.width = Math.ceil(L.cols * p * dpr); c.height = Math.ceil(13 * dpr); c.style.width = L.cols * p + 'px'
+    var k = c.getContext('2d'); k.scale(dpr, dpr); k.fillStyle = '#f2f2f3'
+    Object.keys(L.on).forEach(function (key) { var q = key.split(','); k.beginPath(); k.arc(+q[0] * p + p / 2, +q[1] * p + p / 2, p * .4, 0, 6.3); k.fill() })
+  })()
+
+  /* ---------- the headline: decodes out of noise, holds, falls apart, next word ----------
+     Each word starts as random lit dots across the whole display. The real letters lock in from left to right while the noise
+     thins out, so it reads as a message being received, one character at a time. */
+  var WORDS = ['BUILDING.', 'DEPLOYING.', 'ALMOST LIVE.']
+  var LAY = WORDS.map(layout), COLS = Math.max.apply(null, LAY.map(function (l) { return l.cols })) + 2
+  var cv = document.getElementById('type'), ctx = cv.getContext('2d'), pitch = 10, W = 0, H = 0
+  function size() {
+    var w = cv.parentNode.clientWidth, dpr = Math.min(devicePixelRatio || 1, 3)
+    pitch = Math.max(4, Math.min(11, Math.floor(w / COLS))); W = COLS * pitch; H = 7 * pitch
+    cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.maxWidth = '100%'; cv.style.margin = '0 auto'
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  }
+  var word = 0, t0 = performance.now(), noise = {}, lastNoise = 0
+  var DECODE = 1100, HOLD = 2600, FALL = 420
+  function reseed(density) { noise = {}; for (var x = 0; x < COLS; x++) for (var y = 0; y < 7; y++) if (Math.random() < density) noise[x + ',' + y] = 1 }
+  function draw(now) {
+    var L = LAY[word], off = Math.floor((COLS - L.cols) / 2), t = now - t0
+    var phase = t < DECODE ? 0 : t < DECODE + HOLD ? 1 : 2
+    var k = phase === 0 ? t / DECODE : phase === 2 ? (t - DECODE - HOLD) / FALL : 1
+    if (phase !== 1 && now - lastNoise > 55) { reseed(phase === 0 ? .34 * (1 - k) + .04 : .3 * k); lastNoise = now }
+    ctx.clearRect(0, 0, W, H)
+    for (var x = 0; x < COLS; x++) for (var y = 0; y < 7; y++) {
+      var ci = L.on[(x - off) + ',' + y], lit = 0
+      if (ci !== undefined) {
+        /* a character is locked once the sweep has passed it; before that it flickers with the noise */
+        var locked = phase === 0 ? k * (L.chars + 1.5) > ci + 1 : true
+        if (phase === 2) lit = Math.random() > k * 1.15 ? 1 : 0
+        else lit = locked ? 1 : (noise[x + ',' + y] ? .5 : 0)
+      } else if (phase !== 1 && noise[x + ',' + y]) lit = phase === 0 ? .42 : .3
+      ctx.globalAlpha = lit ? lit : .07
+      ctx.fillStyle = '#fff'
+      ctx.beginPath(); ctx.arc(x * pitch + pitch / 2, y * pitch + pitch / 2, pitch * (lit ? .4 : .3), 0, 6.3); ctx.fill()
+    }
+    ctx.globalAlpha = 1
+    if (t > DECODE + HOLD + FALL) { word = (word + 1) % WORDS.length; t0 = now; setStep() }
+    if (!reduce) requestAnimationFrame(draw)
+  }
+  var STEPS = ['Building', 'Shipping', 'Warming up']
+  function setStep() { var s = document.getElementById('step'), n = s.cloneNode(false); n.textContent = STEPS[word]; s.parentNode.replaceChild(n, s) }
+  size(); addEventListener('resize', function () { size(); if (reduce) still() })
+  function still() { word = 1; t0 = performance.now() - DECODE - 1; draw(performance.now()) }
+  if (reduce) still(); else requestAnimationFrame(draw)
+
+  /* ---------- rail ---------- */
+  var rail = document.querySelector('.rail')
+  for (var i = 0; i < 26; i++) { var d = document.createElement('i'); d.style.setProperty('--i', i); rail.appendChild(d) }
+
+  /* ---------- how long you have been here ---------- */
+  var start = Date.now(), clock = document.getElementById('clock')
+  setInterval(function () { var s = Math.floor((Date.now() - start) / 1000); clock.textContent = ('0' + Math.floor(s / 60)).slice(-2) + ':' + ('0' + s % 60).slice(-2) }, 1000)
+
+  /* ---------- come back by itself ----------
+     Ask for the page we are standing on. While the deploy runs the proxy answers with an error status (and this document);
+     the first successful answer means the site is back, so reload and let the visitor continue where they were going.
+     Backs off gently, and does nothing when this file is opened directly (a preview would otherwise reload forever). */
+  var note = document.getElementById('note')
+  if (/deploying\.html$/.test(location.pathname)) { note.textContent = 'Preview: not checking'; return }
+  var wait = 3000
+  function check() {
+    fetch(location.href, { method: 'HEAD', cache: 'no-store', credentials: 'same-origin' })
+      .then(function (r) { if (r.ok) { note.textContent = 'Back online'; location.reload() } else next() })
+      .catch(next)
+  }
+  function next() { wait = Math.min(wait * 1.25, 10000); setTimeout(check, wait) }
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) check() })
+  setTimeout(check, wait)
+})()
+</script>
+</body>
+</html>
