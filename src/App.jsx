@@ -36,6 +36,10 @@ import Orbs from './workspace/Orbs.jsx'
 import Emails from './workspace/Emails.jsx'
 import System from './workspace/System.jsx'
 import Pages from './workspace/Pages.jsx'
+import Advanced from './workspace/Advanced.jsx'
+import Deploy from './workspace/Deploy.jsx'
+import { InstancePage } from './workspace/Studios.jsx'
+import { FrameScreen } from './studio/screens.jsx'
 import AdminApp from './admin/AdminApp.jsx'
 import SiteApp from './site/SiteApp.jsx'
 
@@ -268,6 +272,8 @@ function Root() {
   const ds = pathname.startsWith('/ds/')
   const admin = pathname.startsWith('/admin')
   const site = pathname.startsWith('/site')
+  /* a screen on its own, without the workspace bar: what the "Mobile" previews load */
+  if (pathname.startsWith('/frame/')) return <div className="h-dvh overflow-y-auto"><FrameScreen id={pathname.split('/')[2]} /></div>
   return (
     <div className="flex h-dvh flex-col">
       <WorkspaceBar />
@@ -284,6 +290,9 @@ function Root() {
             <Route path="/ds/emails" element={<Emails />} />
             <Route path="/ds/system" element={<System />} />
             <Route path="/ds/pages" element={<Pages />} />
+            <Route path="/ds/advanced" element={<Advanced />} />
+            <Route path="/ds/deploy" element={<Deploy />} />
+            <Route path="/ds/instance" element={<InstancePage />} />
             <Route path="*" element={<NotFoundScene home="/ds/foundations" homeLabel="Back to foundations" />} />
           </Routes>
         ) : admin ? <AdminApp /> : site ? <SiteApp /> : <Layout />}

@@ -19,7 +19,10 @@ const SECTIONS = [
   ['11', 'Blip lab', '/ds/orbs', (p) => p.startsWith('/ds/orbs')],
   ['12', 'Email', '/ds/emails', (p) => p.startsWith('/ds/emails')],
   ['13', 'System pages', '/ds/system', (p) => p.startsWith('/ds/system')],
-  ['14', 'All pages', '/ds/pages', (p) => p.startsWith('/ds/pages')],
+  ['14', 'Advanced patterns', '/ds/advanced', (p) => p.startsWith('/ds/advanced')],
+  ['15', 'Deploy Studio', '/ds/deploy', (p) => p.startsWith('/ds/deploy')],
+  ['16', 'Instance', '/ds/instance', (p) => p.startsWith('/ds/instance')],
+  ['17', 'All pages', '/ds/pages', (p) => p.startsWith('/ds/pages')],
 ]
 
 export default function WorkspaceBar() {

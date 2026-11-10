@@ -162,6 +162,13 @@ button { cursor: pointer; }
 /* status page: the 90-day strip draws itself left to right the first time it is seen */
 .up-strip[data-seen] > i { transform-origin: 50% 100%; animation: up-bar 460ms var(--ease-expo) both; animation-delay: calc(var(--n) * 5ms); }
 @keyframes up-bar { from { opacity: 0; transform: scaleY(.2) } }
+/* dot rail: the light that travels along a running progress row */
+.rail-wave { animation: rail-wave 1.1s ease-in-out infinite; }
+@keyframes rail-wave { 50% { transform: scale(1.7); opacity: 1 } 0%, 100% { opacity: .55 } }
+/* step content: new content decodes in, never pops */
+.step-in { animation: step-in 360ms var(--ease-expo) both; }
+@keyframes step-in { from { opacity: 0; transform: translateY(10px) } }
+@media (prefers-reduced-motion: reduce) { .rail-wave, .step-in { animation: none } }
 /* cookie choice: rises in after the page has landed, leaves faster than it came */
 .cookie-in { animation: cookie-in 420ms var(--ease-expo) both; }
 .cookie-out { animation: cookie-out 170ms var(--ease-in) both; }
