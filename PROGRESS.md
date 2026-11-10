@@ -256,3 +256,33 @@ Rebuilt from the old demo widget into a global chat on the public site and in th
 - **Not verified:** a real iPhone (visualViewport logic, keyboard, toolbar collapse), screen readers, reduced-motion CSS, frame-by-frame smoothness of the morph (the preview throttles animation), focus trap inside the phone sheet (focus moves in, Tab can still leave it).
 
 Chat fixes (from a screenshot): the attachment chip with a long file name overflowed its column to the left (no truncation) and the invoice card shrink-wrapped to 198 px so "Open invoice" was cut. Chip is now `max-w-[280px]` with an ellipsis name and a `title`; the invoice card is a fixed 272 px (`max-w-full`) with non-wrapping buttons. Measured: card 272, buttons 118/120 without overflow, long name truncated.
+
+## Homepage v2: marketing pass + motion polish
+Homepage rewritten as a sales page; copy, prices and promises moved to `site/homeContent.js` (each one is a claim to verify before it ships; `QUOTES` are sample copy and must not be published).
+- **Story:** hero ("YOUR IDEA. / LIVE IN SECONDS.", dot type sized to its width) -> stage -> stack -> products grid (from the catalogue, dot prices) -> Meet the Blips (`BlipCast` + three trust points) -> panel bento -> included grid -> configurator -> stats -> free migration -> customers -> FAQ (sticky heading) -> final CTA.
+- **Hero stage:** "What are you launching?" tabs (Website / App / Game / VPS) switch the product window: Forge building a site, deploy log + live metrics, game console + Glitch, VPS spec + metrics. Auto-rotates until the visitor picks; the active tab's hairline fills over 7 s and its `animationend` advances (no timers); paused on hover, focus and off-screen; arrow keys; each scene carries its own "from" price and CTA.
+- **New pieces:** deploy `Pipeline` (push/build/provision/live), region chips that light their pin, configurator presets (thumbs glide to the preset, 1:1 while dragging) with an hourly price, self-drawing checks, cards that lift 2 px.
+- **Motion:** `--ease-expo`; scroll reveals are 16 px / 620 ms / expo-out with 70 ms stagger (`.anim-reveal`, `.reveal-grid`); Button arrows nudge on hover/press everywhere; all new classes are covered by the reduced-motion block.
+- **Fixed:** React 19 `inert=""` warning in the chat launcher.
+- **Verified in the browser:** every section at 1280 px and at 375 px (real scrolls, all reveals appear); stage rotation and scenes; Growth preset -> sliders 4 / 8 / 160 and $24.80; 0 horizontal overflow at 375 px; production build passes.
+- **Not verified:** reduced-motion CSS, real touch, keyboard walk-through of the stage tabs, widths between 375 and 1280, frame-by-frame smoothness. `blipmade-hosting` is private and was not inspected: products and prices on the page are the bm3 mock catalogue.
+
+## Homepage v3: less, and in order (supersedes v2's section list)
+Feedback on v2: components piled up without a logic, numbered eyebrows were off-direction, the headline should change.
+- **Cut:** hero badge, "What are you launching?" label, section numbers, the six-card bento (now three cards: deploy, regions, observe), the eight-card "Included" section (now one line of checks under the price), testimonials (sample quotes; gone until there are real ones), the three Blip trust points, the FAQ side column. 12 sections -> 9, each with more vertical space (`py-24 md:py-36`).
+- **Hero:** one state drives the headline and the stage. Line one rotates with the selected product ("YOUR WEBSITE." / "YOUR APP." / "YOUR GAME SERVER." / "YOUR SERVER."), line two stays ("LIVE IN SECONDS.", dimmed). Old words blur and lift away in 190 ms, new ones assemble.
+- **Products** are a price list (rows with icon, name, one line, dot price), not cards.
+- **Dot-matrix type:** assemble is now a reading-order sweep (about 8 ms per column, capped at 620 ms per line, 720 ms per dot, 2-3 dot offsets, scale from .2) instead of dots flying in from up to 14 columns away over 1.9 s; applies everywhere `assemble` is used (BlipCast, 404, CTA). New glyphs: `< > = " * €`.
+- **Chat:** messages arrive from their sender's corner (scale .96 + 8 px, expo-out), typing dots pass a wave instead of Tailwind's bounce, the send arrow exits upward once per message, the launcher-to-panel morph lands on expo-out (520 ms) and closes faster (320 ms).
+- **Verified:** hero rotation and assemble at 1280 px, every section at 1280 px by real scrolling, chat open with a Glitch hand-off (before the motion changes), 0 horizontal overflow at 375 px, production build passes.
+- **Not verified:** the new chat animations and the send-arrow exit were not watched in motion; mobile hero and product rows were not looked at after this pass (only stats, migration, FAQ, CTA, footer at 375 px); reduced motion; real touch.
+
+## Cast, second pass (`components/cast.css`): Pip, Forge, Byte, Glitch only
+- **Look:** Pip gets a cool bounce light on its shadow side and a hairline rim; Forge keeps its spectrum but stops cycling the whole rainbow (colours sway about 40 degrees), gains a lighter table facet under the eyes and a glint that crosses the stone; Byte gets a second small specular; Glitch gets deeper gel (lit belly, darker rim).
+- **One behaviour each while thinking:** Pip's light circles; Forge's facet shading turns in six steps; Byte has a line of light scanning top to bottom; Glitch has a slice that slips sideways for two frames (rare when idle, constant when thinking, frantic on error).
+- **Whole-character reactions:** happy is a squash-and-stretch hop of the root (eyes no longer hop alone inside a still body); Pip and Byte breathe; Pip, Forge and Byte pulse while speaking; error desaturates Pip and Forge and shifts Byte to red.
+- **Manners:** every Blip on the page closes its eyes while a password field, or anything marked `data-private`, has focus (pure CSS `:has()`, nothing reads what is typed). `PasswordInput` carries `data-private`, so the eyes stay shut even when the password is shown as text.
+- Chat launcher: two-line pill (who, and what it costs in waiting), paper-white avatar for the human operator.
+- Panel cards: two columns on tablets, three from 1024 px; fixed gauges overflowing their card at 820 px.
+- **Verified:** all four in the Blip lab, idle and thinking (looked at; computed animations `mo-orbit`, `pr-turn`, `gl-scan`, `pr-glint`, slice at 1.7 s); login page: focusing the password closes 6 of 6 eyes, blur reopens them; chat pill on real hover (Glitch); 0 overflow at 820 and 1024 px; production build passes.
+- **Not verified:** any of it in motion (the preview freezes frames), the happy hop, speaking and error states visually, the operator pill after the change, devicePixelRatio 2, reduced motion.
