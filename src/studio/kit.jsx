@@ -85,25 +85,35 @@ export function ScreenFrame({ id, children, height = 720, mobile = true, label }
 }
 
 /* ---- the signature effects, shared by every screen so they all feel like the deploying page ---- */
-const NOISE = '█▓▒░#%&*+=<>/|01'
 const calm = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
-/* text that decodes out of noise, one character after another, whenever `text` changes */
+const LOW = 'abcdefghijklmnopqrstuvwxyz', UP = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', NUM = '0123456789'
+/* a stand-in for one character that is not decoded yet: a letter for a letter, a digit for a digit, punctuation stays itself,
+   so the noise is about as wide as the real text (never a wide block glyph) */
+const scramble = (c, k) => (/[a-z]/.test(c) ? LOW[k % 26] : /[A-Z]/.test(c) ? UP[k % 26] : /[0-9]/.test(c) ? NUM[k % 10] : c)
+/* Text that decodes out of noise, one character after another, whenever `text` changes.
+   The real text is always laid out (hidden while it decodes) and the noise is drawn on top of it in the same grid cell and clipped,
+   so the box has the final size from the first frame: it cannot grow, shrink, wrap differently or push anything around. */
 export function Decode({ text, className, tone = 'fg', delay = 0, per = 28 }) {
-  const [out, setOut] = useState(text)
+  const [noise, setNoise] = useState(null)
   useEffect(() => {
-    if (calm()) { setOut(text); return }
+    if (calm()) { setNoise(null); return }
     let raf = 0, t0 = 0
     const run = (now) => {
       if (!t0) t0 = now
       const e = now - t0 - delay
-      const s = [...text].map((c, i) => (c === ' ' ? ' ' : e > per * i + 220 ? c : e > 0 ? NOISE[(Math.floor(now / 55) + i * 7) % NOISE.length] : ' ')).join('')
-      setOut(s)
-      if (e < per * text.length + 260) raf = requestAnimationFrame(run); else setOut(text)
+      if (e > per * text.length + 260) { setNoise(null); return }
+      setNoise([...text].map((c, i) => (e > per * i + 220 || c === ' ' ? c : e > 0 ? scramble(c, Math.floor(now / 55) + i * 7) : ' ')).join(''))
+      raf = requestAnimationFrame(run)
     }
     raf = requestAnimationFrame(run)
-    return () => cancelAnimationFrame(raf)
+    return () => { cancelAnimationFrame(raf); setNoise(null) }
   }, [text, delay, per])
-  return <span className={cn(tone === 'bad' && 'text-bad', tone === 'ok' && 'text-ok', className)}><span className="sr-only">{text}</span><span aria-hidden>{out}</span></span>
+  return (
+    <span className={cn('dc', tone === 'bad' && 'text-bad', tone === 'ok' && 'text-ok', className)}>
+      <span className={noise ? 'dc-ghost' : undefined}>{text}</span>
+      {noise && <span aria-hidden className="dc-noise">{noise}</span>}
+    </span>
+  )
 }
 
 /* a row of dots that fills with progress; a light travels along it while it runs, it stops red on failure and fills green on success */

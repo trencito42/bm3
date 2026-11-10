@@ -194,20 +194,8 @@ export const CodeBlock = ({ code, lang }) => (
 )
 
 /* ---------- Feedback ---------- */
-/* Loading placeholders in the dot-matrix language. A Skeleton is a patch of dots that a light sweeps across; it has the size the
-   content will have (it never grows, clips what it draws and is inert for assistive tech). MatrixLoader is the page-level version:
-   a field of dots that ripples diagonally, for a whole screen or panel that is still on its way. */
-export const Skeleton = ({ className }) => <div aria-hidden className={cn('sk', className)} />
-export function MatrixLoader({ rows = 5, cols = 26, label = 'Loading', className }) {
-  return (
-    <div role="status" aria-live="polite" aria-label={label} className={cn('mx-auto flex w-full max-w-full flex-col items-center gap-5 overflow-hidden py-10', className)}>
-      <div aria-hidden className="grid max-w-full gap-[7px]" style={{ gridTemplateColumns: `repeat(${cols}, 4px)`, gridTemplateRows: `repeat(${rows}, 4px)` }}>
-        {Array.from({ length: rows * cols }, (_, k) => { const r = Math.floor(k / cols), c = k % cols; return <i key={k} className="mx-dot" style={{ animationDelay: `${c * 42 + r * 85}ms` }} /> })}
-      </div>
-      <span className="font-mono text-[10.5px] uppercase tracking-[.14em] text-dim">{label}<span className="mx-cursor">_</span></span>
-    </div>
-  )
-}
+/* Loading placeholders (dot-matrix, glitchy): see loaders.jsx */
+export { Skeleton, MatrixLoader } from './loaders.jsx'
 const ALERT = { info: [Info, 'border-info/25 bg-info/[0.06] text-info'], ok: [CheckCircle2, 'border-ok/25 bg-ok/[0.06] text-ok'], warn: [AlertTriangle, 'border-warn/25 bg-warn/[0.06] text-warn'], bad: [XCircle, 'border-bad/25 bg-bad/[0.06] text-bad'] }
 export const InlineAlert = ({ tone = 'info', title, children, action }) => {
   const [Icon, cls] = ALERT[tone]

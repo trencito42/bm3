@@ -162,17 +162,11 @@ button { cursor: pointer; }
 /* status page: the 90-day strip draws itself left to right the first time it is seen */
 .up-strip[data-seen] > i { transform-origin: 50% 100%; animation: up-bar 460ms var(--ease-expo) both; animation-delay: calc(var(--n) * 5ms); }
 @keyframes up-bar { from { opacity: 0; transform: scaleY(.2) } }
-/* skeleton: a fixed-size patch of dots with a light sweeping across it. Nothing in here changes the box (no transform, no
-   size animation); `contain: paint` and `overflow: hidden` keep every pixel inside it. */
-.sk { position: relative; display: block; overflow: hidden; max-width: 100%; min-height: 8px; border-radius: 6px; contain: paint; background-color: rgba(255,255,255,.025); background-image: radial-gradient(rgba(255,255,255,.17) 1px, transparent 1.4px); background-size: 7px 7px; }
-.sk::after { content: ''; position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,.85) 1px, transparent 1.5px); background-size: 7px 7px; -webkit-mask-image: linear-gradient(100deg, transparent 38%, #000 50%, transparent 62%); mask-image: linear-gradient(100deg, transparent 38%, #000 50%, transparent 62%); -webkit-mask-size: 320% 100%; mask-size: 320% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; animation: sk-sweep 1.7s linear infinite; }
-@keyframes sk-sweep { from { -webkit-mask-position: 100% 0; mask-position: 100% 0 } to { -webkit-mask-position: 0 0; mask-position: 0 0 } }
-/* matrix loader: each dot breathes on its own delay, so the field ripples diagonally */
-.mx-dot { display: block; width: 4px; height: 4px; border-radius: 50%; background: #fff; opacity: .14; animation: mx-dot 1.5s ease-in-out infinite; }
-@keyframes mx-dot { 0%, 100% { opacity: .12; transform: scale(.7) } 45% { opacity: .95; transform: scale(1.15) } }
-.mx-cursor { margin-left: 2px; animation: mx-blink 1s steps(1) infinite; }
-@keyframes mx-blink { 50% { opacity: 0 } }
-@media (prefers-reduced-motion: reduce) { .sk::after, .mx-dot, .mx-cursor { animation: none } .sk::after { display: none } }
+/* decoding text: real text reserves the box, noise sits on top of it and is clipped to it */
+.dc { display: inline-grid; max-width: 100%; vertical-align: baseline; }
+.dc > * { grid-area: 1 / 1; min-width: 0; }
+.dc-ghost { visibility: hidden; }
+.dc-noise { overflow: hidden; white-space: pre-wrap; word-break: break-all; font-variant-ligatures: none; }
 /* dot rail: the light that travels along a running progress row */
 .rail-wave { animation: rail-wave 1.1s ease-in-out infinite; }
 @keyframes rail-wave { 50% { transform: scale(1.7); opacity: 1 } 0%, 100% { opacity: .55 } }
