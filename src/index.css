@@ -46,6 +46,7 @@ button { cursor: pointer; }
   --ease-out: cubic-bezier(.22, .8, .24, 1);
   --ease-in: cubic-bezier(.4, 0, 1, 1);
   --ease-std: cubic-bezier(.4, 0, .2, 1);
+  --ease-expo: cubic-bezier(.16, 1, .3, 1);   /* long, soft landings: scroll reveals, scene changes */
   --t-fast: 120ms; --t-sel: 180ms; --t-menu: 150ms; --t-dialog: 240ms; --t-drawer: 280ms;
 }
 @keyframes fade-in { from { opacity: 0 } }
@@ -113,12 +114,50 @@ button { cursor: pointer; }
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 9%, transparent 18%); mask-image: linear-gradient(90deg, transparent 0, #000 9%, transparent 18%); mask-size: 400% 100%; -webkit-mask-size: 400% 100%; }
 .dotrule[data-seen]::after { animation: dotrule-sweep 1500ms var(--ease-out) both; }
 @keyframes dotrule-sweep { from { opacity: 1; -webkit-mask-position: 0% 0; mask-position: 0% 0; } 85% { opacity: 1; } to { opacity: 0; -webkit-mask-position: 100% 0; mask-position: 100% 0; } }
+/* Scroll reveals travel a little further and land softer than UI transitions (they cover more distance and nobody is
+   waiting on them): 16 px, 620 ms, expo-out. Siblings follow 70 ms apart, capped so the last card is never late. */
 .reveal-grid > * { opacity: 0; }
-.reveal-grid[data-seen] > * { opacity: 1; animation: rise 360ms var(--ease-out) both; }
-.reveal-grid[data-seen] > *:nth-child(2) { animation-delay: 60ms; }
-.reveal-grid[data-seen] > *:nth-child(3) { animation-delay: 120ms; }
-.reveal-grid[data-seen] > *:nth-child(4) { animation-delay: 180ms; }
-.reveal-grid[data-seen] > *:nth-child(n+5) { animation-delay: 240ms; }
+.reveal-grid[data-seen] > * { opacity: 1; animation: reveal 620ms var(--ease-expo) both; }
+.reveal-grid[data-seen] > *:nth-child(2) { animation-delay: 70ms; }
+.reveal-grid[data-seen] > *:nth-child(3) { animation-delay: 140ms; }
+.reveal-grid[data-seen] > *:nth-child(4) { animation-delay: 210ms; }
+.reveal-grid[data-seen] > *:nth-child(5) { animation-delay: 280ms; }
+.reveal-grid[data-seen] > *:nth-child(6) { animation-delay: 350ms; }
+.reveal-grid[data-seen] > *:nth-child(7) { animation-delay: 420ms; }
+.reveal-grid[data-seen] > *:nth-child(n+8) { animation-delay: 490ms; }
+.anim-reveal { animation: reveal 620ms var(--ease-expo) both; animation-delay: calc(var(--i, 0) * 70ms); }
+@keyframes reveal { from { opacity: 0; transform: translateY(16px) } }
+
+/* ---------- public site: hero stage ---------- */
+/* The active tab carries a hairline that fills while its scene is on screen; when it is full the next scene starts
+   (animationend drives the rotation, so there is no timer to leak). Hovering the stage holds it. */
+.stage-progress { transform-origin: 0 50%; animation: stage-progress 7s linear both; }
+.stage:hover .stage-progress, .stage:focus-within .stage-progress, .stage[data-live=false] .stage-progress { animation-play-state: paused; }
+@keyframes stage-progress { from { transform: scaleX(0) } }
+/* a scene replaces another: the old one is already gone, the new one settles in from slightly below and out of focus */
+.stage-scene { animation: stage-scene 420ms var(--ease-expo) both; }
+@keyframes stage-scene { from { opacity: 0; transform: translateY(8px) scale(.992); filter: blur(4px) } }
+/* log lines: each one lands from the left, like output being printed */
+.log-line { animation: log-line 260ms var(--ease-out) both; }
+@keyframes log-line { from { opacity: 0; transform: translateX(-6px) } }
+
+/* card that answers the pointer: one hairline of lift, a brighter edge, never a shadow bloom */
+.lift { transition: transform 260ms var(--ease-out), border-color 200ms var(--ease-std), background-color 200ms var(--ease-std); }
+@media (hover: hover) { .lift:hover { transform: translateY(-2px); } }
+.lift:active { transform: translateY(0); transition-duration: 80ms; }
+
+/* check mark that draws itself when its row is revealed */
+.draw-check path { stroke-dasharray: 24; stroke-dashoffset: 24; }
+[data-seen] .draw-check path, .draw-check[data-on] path { animation: draw-check 420ms var(--ease-out) forwards; animation-delay: calc(var(--i, 0) * 90ms + 200ms); }
+@keyframes draw-check { to { stroke-dashoffset: 0 } }
+
+/* slider thumbs travel to a preset value (class is only present for the jump; dragging stays 1:1 with the finger) */
+.slider-glide > span { transition: left 460ms var(--ease-expo); }
+.slider-glide > span > span { transition: left 460ms var(--ease-expo), right 460ms var(--ease-expo); }
+
+/* underline that grows from the left on hover (text links on the public site) */
+.link-grow { background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; transition: background-size 260ms var(--ease-out), color 150ms; }
+.link-grow:hover, .link-grow:focus-visible { background-size: 100% 1px; }
 .marquee { animation: marquee 40s linear infinite; }
 .group:hover .marquee { animation-play-state: paused; }
 @keyframes marquee { to { transform: translateX(-50%) } }
@@ -134,6 +173,9 @@ button { cursor: pointer; }
   .mega-viewport { transition-duration: 1ms !important; }
   .marquee { animation: none !important; }
   .torch::before, .torch::after, .dotrule::after { display: none; }
+  .stage-progress { animation: none !important; transform: scaleX(1); }
+  .draw-check path { stroke-dashoffset: 0; animation: none !important; }
+  .lift, .lift:hover { transform: none; }
 }
 
 /* one focus language for everything keyboard-reachable (inputs use border + soft ring instead) */

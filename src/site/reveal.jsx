@@ -45,7 +45,7 @@ export const RevealGrid = ({ className, children }) => {
 export const Reveal = ({ i = 0, className, children, as: T = 'div', ...p }) => {
   const ref = useRef(null)
   const seen = useSeen(ref)
-  return <T ref={ref} className={cn(seen ? 'anim-rise' : 'opacity-0', className)} style={{ '--i': i }} {...p}>{children}</T>
+  return <T ref={ref} data-seen={seen || undefined} className={cn(seen ? 'anim-reveal' : 'opacity-0', className)} style={{ '--i': i }} {...p}>{children}</T>
 }
 
 export const DotRule = () => {

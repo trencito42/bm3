@@ -19,7 +19,7 @@ import { DotNum } from './DotViz.jsx'
 /* ------------------------------ Button ------------------------------ */
 /* Press feedback is a tonal step (no scale): hover 150 ms, press is instant (duration-0 while :active) so it feels physical. */
 const buttonCva = cva(
-  'relative inline-flex select-none items-center justify-center whitespace-nowrap rounded-lg text-[13px] font-medium transition-[background-color,border-color,color,opacity] duration-150 ease-[var(--ease-std)] active:duration-0 disabled:pointer-events-none disabled:opacity-40 [&_svg]:size-4 [&_svg]:shrink-0',
+  'relative inline-flex select-none items-center justify-center whitespace-nowrap rounded-lg text-[13px] font-medium transition-[background-color,border-color,color,opacity] duration-150 ease-[var(--ease-std)] active:duration-0 disabled:pointer-events-none disabled:opacity-40 [&_svg]:size-4 [&_svg]:shrink-0 [&_svg.lucide-arrow-right]:transition-transform [&_svg.lucide-arrow-right]:duration-200 [&_svg.lucide-arrow-right]:ease-[var(--ease-out)] hover:[&_svg.lucide-arrow-right]:translate-x-0.5 active:[&_svg.lucide-arrow-right]:translate-x-1',
   {
     variants: {
       variant: {
