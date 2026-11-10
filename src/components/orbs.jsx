@@ -6,6 +6,7 @@ import '../builder/fx.js'
 import './orbs.css'
 import './orbs2.css'
 import './orbs3.css'
+import './cast.css'
 import './snap.css'
 import { Code2, Gamepad2, MessageCircle, Wand2 } from 'lucide-react'
 import { cn } from '../lib/utils'
@@ -184,15 +185,15 @@ function WaveBody({ size, state, live }) {
 /* ---------- registry ---------- */
 const bodies = {
   plasma: () => <span className="ob ob-plasma"><i /><i /><i /><i /></span>,
-  glass: () => <span className="ob ob-glass" />,
+  glass: () => <span className="ob ob-glass"><i className="scan" /></span>,
   nebula: () => <span className="ob ob-nebula"><span className="arm a" /><span className="arm b" /><span className="stars" /></span>,
   bubble: () => <span className="ob ob-bubble" />,
   moon: () => <span className="ob ob-moon" />,
   halo: () => <span className="ob ob-halo" />,
   goo: () => <GooBody />,
-  jelly: () => <span className="ob ob-jelly" />,
+  jelly: () => <span className="ob ob-jelly"><i className="slice" /></span>,
   eclipse: () => <span className="ob ob-eclipse" />,
-  prism: () => <span className="ob ob-prism"><i className="gem" /><i className="spark" /></span>,
+  prism: () => <span className="ob ob-prism"><i className="gem"><b className="glint" /></i><i className="spark" /></span>,
   sonar: () => <span className="ob ob-sonar"><i /><i /><i /></span>,
   cloud: () => <span className="ob ob-cloud"><i /><i /><i /></span>,
   marble: () => <span className="ob ob-marble"><span className="ob-marble-shine" /></span>,

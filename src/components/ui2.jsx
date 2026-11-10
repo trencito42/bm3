@@ -135,7 +135,8 @@ export const PasswordInput = React.forwardRef(({ className, ...p }, ref) => {
   const [show, setShow] = React.useState(false)
   return (
     <div className="relative">
-      <input ref={ref} type={show ? 'text' : 'password'} autoComplete="current-password" className={cn(inputCls(), 'pr-10', className)} {...p} />
+      {/* data-private: Blips keep their eyes shut here even while the password is shown as text */}
+      <input ref={ref} data-private type={show ? 'text' : 'password'} autoComplete="current-password" className={cn(inputCls(), 'pr-10', className)} {...p} />
       <button type="button" aria-label={show ? 'Hide password' : 'Show password'} aria-pressed={show} onMouseDown={(e) => e.preventDefault()} onClick={() => setShow((s) => !s)} className="absolute right-1 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-md text-dim transition-colors duration-150 hover:text-fg">
         <Eye className={cn('absolute size-4 transition-[opacity,transform] duration-150', show ? 'scale-75 opacity-0' : 'opacity-100')} />
         <EyeOff className={cn('absolute size-4 transition-[opacity,transform] duration-150', show ? 'opacity-100' : 'scale-75 opacity-0')} />

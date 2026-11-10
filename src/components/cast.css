@@ -1,0 +1,98 @@
+/* =================== THE CAST, second pass ===================
+   Pip, Forge, Byte and Glitch only (the other skins are untouched). Loaded after orbs*.css, so these rules win.
+   What changed: each body has more depth, each character has ONE behaviour of its own for "thinking" (Pip's light orbits,
+   Forge turns facet by facet, Byte scans, Glitch glitches), reactions that move the whole character (hop, breathe, speak)
+   so body and face never drift apart, and a shared manners rule: a Blip closes its eyes while you type a secret. */
+
+@property --pa { syntax: '<angle>'; inherits: true; initial-value: 0deg; }
+
+/* ---------- shared reactions ---------- */
+/* happy: the whole character hops with squash and stretch (the eyes no longer hop on their own inside a still body) */
+.orbx[data-state=happy] { animation: bl-hop .64s var(--spring, ease-out) 2; }
+.orbx[data-state=happy] .kl-face-eyes { animation: none; }
+@keyframes bl-hop { 0%, 100% { transform: none } 20% { transform: translateY(3%) scale(1.07, .91) } 50% { transform: translateY(-13%) scale(.95, 1.06) } 80% { transform: translateY(0) scale(1.04, .96) } }
+@keyframes bl-breathe { 0%, 100% { transform: scale(1) } 50% { transform: scale(1.022) } }
+@keyframes bl-speak { from { transform: scale(.985, 1.012) } to { transform: scale(1.03, .985) } }
+
+/* ---------- manners: eyes closed while a secret is being typed ----------
+   Any focused password field, or any element marked data-private (card number, API key, recovery code), closes the eyes of
+   every Blip on the page. Pure CSS: nothing listens to what is typed. The eyes ease shut, stay shut, and ease open on blur. */
+.kl-face .kl-face-eye { transition: opacity .2s, transform .22s cubic-bezier(.3, 0, .2, 1); }
+:root:has(:is(input[type=password], [data-private]):focus) .kl-face .kl-face-eye { animation: none !important; transform: scale(1.12, .1) !important; opacity: 1 !important; }
+:root:has(:is(input[type=password], [data-private]):focus) .kl-face .kl-face-eyes { animation: none !important; transform: translateY(3%) !important; }
+:root:has(:is(input[type=password], [data-private]):focus) .kl-face .kl-face-joy { opacity: 0 !important; }
+:root:has(:is(input[type=password], [data-private]):focus) .kl-face .kl-face-look { transform: none !important; }
+
+/* ---------- PIP: matte pearl ---------- */
+/* a key light that drifts, plus a cool bounce light on the shadow side so the dark half is never mud */
+.ob-moon {
+  background:
+    radial-gradient(circle at 80% 86%, rgba(160, 178, 255, .42) 0, rgba(160, 178, 255, 0) 36%),
+    radial-gradient(circle at var(--mx) var(--my), #ffffff 0, #f4f0e7 20%, #cfcad2 46%, #837e96 74%, #3b3853 100%);
+  box-shadow: 0 0 calc(var(--orb) * .34) rgba(255, 246, 225, .2), inset 0 0 0 max(1px, calc(var(--orb) * .008)) rgba(255, 255, 255, .16), inset calc(var(--orb) * -.05) calc(var(--orb) * -.07) calc(var(--orb) * .14) rgba(14, 12, 40, .5);
+  animation: mo-light calc(14s / var(--spd)) ease-in-out infinite, bl-breathe 5.6s ease-in-out infinite;
+  transition: filter .5s;
+}
+/* thinking: the light stops wandering and circles, like an idea going round */
+.orbx[data-state=thinking] .ob-moon { animation: mo-orbit 2.6s linear infinite, bl-breathe 5.6s ease-in-out infinite; }
+@keyframes mo-orbit { 0%, 100% { --mx: 30%; --my: 28% } 25% { --mx: 70%; --my: 28% } 50% { --mx: 72%; --my: 68% } 75% { --mx: 30%; --my: 70% } }
+.orbx[data-state=speaking] .ob-moon { animation: mo-light 9s ease-in-out infinite, bl-speak .44s ease-in-out infinite alternate; }
+.orbx[data-state=error] .ob-moon { filter: saturate(.2) brightness(.72); }
+
+/* ---------- FORGE: cut gem ---------- */
+/* same spectrum, but it no longer cycles the whole rainbow: the colours sway a little, a glint crosses the stone, and the
+   facet shading can turn in six steps (that is what "working" looks like for a builder) */
+.ob-prism { filter: drop-shadow(0 calc(var(--orb) * .06) calc(var(--orb) * .14) rgba(120, 96, 255, .55)); }
+.ob-prism .gem { overflow: hidden; animation: pr-sway calc(9s / var(--spd)) ease-in-out infinite; }
+.ob-prism .gem::before { background: conic-gradient(from var(--pa) at 50% 50%, rgba(255,255,255,.46) 0 60deg, rgba(0,0,0,.3) 60deg 120deg, rgba(255,255,255,.1) 120deg 180deg, rgba(0,0,0,.42) 180deg 240deg, rgba(255,255,255,.3) 240deg 300deg, rgba(0,0,0,.14) 300deg 360deg); }
+/* the table: the flat top facet, lighter, so the dark eyes sit on a calm surface */
+.ob-prism .gem::after { inset: 20%; background: linear-gradient(155deg, rgba(255,255,255,.5), rgba(255,255,255,.14) 55%, rgba(255,255,255,.26)); }
+.ob-prism .glint { position: absolute; inset: -10% -40%; background: linear-gradient(112deg, transparent 44%, rgba(255,255,255,.7) 50%, transparent 56%); transform: translateX(-70%); animation: pr-glint calc(5.4s / var(--spd)) cubic-bezier(.4, 0, .2, 1) infinite; z-index: 1; }
+@keyframes pr-sway { 0%, 100% { filter: hue-rotate(-16deg) } 50% { filter: hue-rotate(22deg) } }
+@keyframes pr-glint { 0%, 62% { transform: translateX(-70%) } 100% { transform: translateX(70%) } }
+@keyframes pr-turn { to { --pa: 360deg } }
+.orbx[data-state=thinking] .ob-prism .gem { animation: pr-sway 4s ease-in-out infinite, pr-turn 2.7s steps(6) infinite; }
+.orbx[data-state=speaking] .ob-prism .gem { animation: pr-sway 5s ease-in-out infinite, bl-speak .44s ease-in-out infinite alternate; }
+.orbx[data-state=error] .ob-prism .gem { animation: none; filter: saturate(.22) brightness(.7); }
+.orbx[data-state=error] .ob-prism :is(.glint, .spark) { display: none; }
+
+/* ---------- BYTE: blue glass ---------- */
+.ob-glass { animation: bl-breathe 6.2s ease-in-out infinite; transition: filter .5s; }
+/* inside the glass: a second small specular, and a line of light that reads top to bottom while Byte thinks */
+.ob-glass .scan { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; }
+.ob-glass .scan::after { content: ""; position: absolute; right: 21%; bottom: 24%; width: 7%; height: 7%; border-radius: 50%; background: rgba(255, 255, 255, .85); filter: blur(calc(var(--orb) * .008)); }
+.ob-glass .scan::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 20%; background: linear-gradient(180deg, rgba(190, 240, 255, 0), rgba(190, 240, 255, .4) 80%, rgba(255, 255, 255, .95)); opacity: 0; transform: translateY(-100%); transition: opacity .3s; }
+.orbx[data-state=thinking] .ob-glass .scan::before { opacity: 1; animation: gl-scan 1.5s cubic-bezier(.45, 0, .55, 1) infinite; }
+@keyframes gl-scan { from { transform: translateY(-100%) } to { transform: translateY(520%) } }
+.orbx[data-state=speaking] .ob-glass { animation: bl-speak .44s ease-in-out infinite alternate; }
+.orbx[data-state=error] .ob-glass { filter: hue-rotate(128deg) saturate(.85); }
+
+/* ---------- GLITCH: green gel that glitches ---------- */
+/* deeper gel (a lit belly and a darker rim), and the thing its name promises: now and then a slice of it slips sideways for
+   two frames. Rare when idle, constant when thinking, frantic on error. */
+.ob-jelly {
+  overflow: visible;
+  background:
+    radial-gradient(circle at 33% 24%, rgba(255, 255, 255, .88) 0, rgba(255, 255, 255, 0) 17%),
+    radial-gradient(circle at 64% 82%, rgba(200, 255, 226, .6) 0, rgba(200, 255, 226, 0) 30%),
+    radial-gradient(circle at 50% 56%, #a2ffca 0, #31d896 44%, #0f9c6a 78%, #06573f 100%);
+  box-shadow: inset 0 0 0 max(1px, calc(var(--orb) * .008)) rgba(214, 255, 232, .24), inset 0 calc(var(--orb) * -.12) calc(var(--orb) * .2) rgba(0, 70, 40, .5), inset 0 calc(var(--orb) * .06) calc(var(--orb) * .1) rgba(255, 255, 255, .5), 0 calc(var(--orb) * .16) calc(var(--orb) * .3) -3px rgba(20, 200, 130, .55);
+}
+.ob-jelly .slice { position: absolute; inset: 0; border-radius: 50%; background: inherit; opacity: 0; animation: je-glitch 7s steps(1, end) infinite; }
+@keyframes je-glitch {
+  0%, 100% { opacity: 0 }
+  61% { opacity: 1; clip-path: inset(28% 0 54% 0); transform: translateX(8%); filter: hue-rotate(50deg) }
+  62.4% { opacity: 1; clip-path: inset(58% 0 22% 0); transform: translateX(-7%); filter: hue-rotate(-40deg) }
+  63.8% { opacity: 0 }
+}
+.orbx[data-state=thinking] .ob-jelly .slice { animation-duration: 1.7s; }
+.orbx[data-state=error] .ob-jelly .slice { animation-duration: .8s; }
+.orbx[data-state=happy] .ob-jelly { animation: je-idle 3.4s ease-in-out infinite; }   /* the root hop carries it */
+
+/* tiny sizes: details that cannot be seen are not drawn */
+.orbx:is([data-s=xs]) :is(.glint, .slice, .scan) { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .orbx[data-state=happy], .ob-moon, .ob-glass, .ob-prism .gem, .ob-prism .glint, .ob-glass .scan::before, .ob-jelly .slice { animation: none !important; }
+  .ob-prism .glint, .ob-jelly .slice { display: none; }
+}
