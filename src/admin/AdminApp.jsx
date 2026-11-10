@@ -3,7 +3,7 @@ import { Brand } from '../components/logos.jsx'
 import { useMemo, useState } from 'react'
 import { NavLink, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
-import { Activity, AlertTriangle, BarChart3, Bell, BookOpen, Boxes, Cloud, CreditCard, FileText, Globe, HardDrive, LayoutDashboard, LifeBuoy, Mail, Megaphone, Package, Plus, Search, Server, Settings, Shield, ShieldAlert, Tag, Users, Workflow, ScrollText, UserCog, Cpu, Receipt, Network, X } from 'lucide-react'
+import { Bot, Zap, Activity, AlertTriangle, BarChart3, Bell, BookOpen, Boxes, Cloud, CreditCard, FileText, Globe, HardDrive, LayoutDashboard, LifeBuoy, Mail, Megaphone, Package, Plus, Search, Server, Settings, Shield, ShieldAlert, Tag, Users, Workflow, ScrollText, UserCog, Cpu, Receipt, Network, X } from 'lucide-react'
 import { BackLink, MobileSheet, Badge, Button, Card, CardBody, CardHeader, CardTitle, ChipTabs, Dialog, DialogContent, Input, Segmented, Separator, StatusBadge, Switch, Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui.jsx'
 import { Checkbox, DataTable, FormField, InlineAlert, Select, inputCls } from '../components/ui2.jsx'
 import { DotBars, DotNum } from '../components/DotViz.jsx'
@@ -16,11 +16,11 @@ import { cn, money } from '../lib/utils'
 const GROUPS = [
   ['Overview', [['', 'Dashboard', LayoutDashboard]]],
   ['Customers', [['customers', 'Customers', Users], ['orders', 'Orders', Receipt], ['services', 'Services', Server], ['vps', 'VPS', Cloud]]],
-  ['Catalog', [['products', 'Products', Package], ['pricing', 'Pricing', Tag], ['promotions', 'Promotions', Megaphone]]],
-  ['Insights', [['reports', 'Reports', BarChart3], ['crm', 'CRM', Users]]],
-  ['Support', [['support', 'Console', LifeBuoy], ['automations', 'Automations', Workflow], ['kb', 'Knowledge base', BookOpen], ['abuse', 'Abuse reports', ShieldAlert]]],
+  ['Catalog', [['products', 'Catalogue studio', Package], ['editor', 'Product editor', FileText], ['pricing', 'Pricing & promotions', Tag]]],
+  ['Insights', [['reports', 'Reports', BarChart3], ['crm', 'CRM', Users], ['analytics', 'Support numbers', Activity]]],
+  ['Support', [['support', 'Support desk', LifeBuoy], ['bots', 'Bots', Bot], ['automations', 'Automations', Workflow], ['kb', 'Knowledge base', BookOpen], ['abuse', 'Abuse reports', ShieldAlert]]],
   ['Platform', [['infrastructure', 'Infrastructure', Network], ['incidents', 'Incidents', AlertTriangle], ['operations', 'Operations', Cpu], ['backups', 'Backups', HardDrive], ['mail', 'Mail hosting', Mail]]],
-  ['System', [['templates', 'Email templates', FileText], ['notifications', 'Notifications', Bell], ['staff', 'Staff & roles', UserCog], ['settings', 'Settings', Settings], ['audit', 'Audit log', ScrollText]]],
+  ['System', [['templates', 'Email wording', FileText], ['notifications', 'Notifications', Bell], ['staff', 'Staff & roles', UserCog], ['integrations', 'Integrations', Zap], ['settings', 'Settings', Settings], ['audit', 'Audit log', ScrollText]]],
 ]
 const ALL = GROUPS.flatMap(([, i]) => i)
 
@@ -122,7 +122,11 @@ const Audit = () => { const [q, setQ] = useState(''); return <Page title="Audit 
 const Reports = () => <Page title="Reports" desc="Sales analytics." actions={<Segmented value="12m" onValueChange={() => {}} options={[['3m', '3M'], ['12m', '12M'], ['all', 'All']]} />}><div className="grid gap-4 sm:grid-cols-3"><KPI label="Revenue" value="$412K" delta="+18%" /><KPI label="Churn" value="2.1%" delta="−0.4" /><KPI label="ARPU" value="$38" delta="+$2" /></div><Card><CardHeader><CardTitle>Monthly revenue</CardTitle></CardHeader><CardBody><DotBars values={REVENUE} rows={12} unit="K" /></CardBody></Card></Page>
 const Pricing = () => <Page title="Pricing" desc="Price books and regional overrides."><Card className="overflow-hidden"><DataTable columns={[{ key: 'p', label: 'Product' }, { key: 'm', label: 'Monthly', align: 'right' }, { key: 'q', label: 'Quarterly', align: 'right' }, { key: 'y', label: 'Yearly', align: 'right' }, { key: 'e', label: 'EU VAT', align: 'right' }]} rows={[{ id: 1, p: 'VPS Nano', m: '$4.00', q: '$11.04', y: '$38.40', e: '19%' }, { id: 2, p: 'VPS Pro', m: '$12.00', q: '$33.12', y: '$115.20', e: '19%' }, { id: 3, p: 'VPS Max', m: '$29.00', q: '$80.04', y: '$278.40', e: '19%' }]} /></Card></Page>
 
-const SECTIONS = { '': <Dashboard />, customers: <Customers />, orders: <Orders />, products: <Products />, pricing: <Pricing />, reports: <Reports />, support: <SupportConsole />, infrastructure: <Infra />, incidents: <Incidents />, operations: <Operations />, staff: <Staff />, audit: <Audit />, ...GEN }
+/* The workflow screens designed in the studio replace the generic list pages wherever there is one. The older
+   components above stay only as the base the studio versions grew from (and as the fallback for sections without one). */
+import * as Studio from '../studio/AdminCommerce.jsx'
+import * as StudioOps from '../studio/AdminOps.jsx'
+const SECTIONS = { '': <Dashboard />, ...GEN, customers: <Studio.Customers />, orders: <Studio.Orders />, services: <Studio.Services />, products: <Studio.CatalogStudio />, editor: <Studio.ProductEditor />, pricing: <Studio.Pricing />, promotions: <Studio.Pricing />, reports: <StudioOps.Reports />, support: <StudioOps.SupportDesk />, bots: <StudioOps.BotBuilder />, automations: <StudioOps.Automations />, analytics: <StudioOps.SupportStats />, abuse: <StudioOps.Abuse />, infrastructure: <StudioOps.Infra />, incidents: <StudioOps.Incidents />, operations: <StudioOps.Operations />, backups: <StudioOps.Backups />, mail: <StudioOps.MailAdmin />, templates: <StudioOps.Content />, staff: <StudioOps.Staff />, audit: <StudioOps.AuditLog />, integrations: <StudioOps.Integrations /> }
 
 export default function AdminApp() {
   const { pathname } = useLocation()

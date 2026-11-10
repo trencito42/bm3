@@ -22,7 +22,11 @@ const SECTIONS = [
   ['14', 'Advanced patterns', '/ds/advanced', (p) => p.startsWith('/ds/advanced')],
   ['15', 'Deploy Studio', '/ds/deploy', (p) => p.startsWith('/ds/deploy')],
   ['16', 'Instance', '/ds/instance', (p) => p.startsWith('/ds/instance')],
-  ['17', 'All pages', '/ds/pages', (p) => p.startsWith('/ds/pages')],
+  ['17', 'VPS', '/ds/vps', (p) => p.startsWith('/ds/vps')],
+  ['18', 'Email hosting', '/ds/mail', (p) => p.startsWith('/ds/mail')],
+  ['19', 'Billing', '/ds/billing', (p) => p.startsWith('/ds/billing')],
+  ['20', 'Admin studio', '/ds/adminstudio', (p) => p.startsWith('/ds/adminstudio')],
+  ['21', 'All pages', '/ds/pages', (p) => p.startsWith('/ds/pages')],
 ]
 
 export default function WorkspaceBar() {

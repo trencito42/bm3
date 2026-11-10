@@ -271,7 +271,7 @@ export default function DeployStudio({ initialType = 'app', initialScenario = 'o
 
       <div className="grid items-start gap-6 lg:grid-cols-[1fr_300px]">
         <div className="min-w-0 space-y-6">
-          {phase === 'configure' && <Stepper steps={steps} current={step} onStep={setStep} />}
+          {phase === 'configure' && <div className="-mx-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none]"><div className="min-w-max"><Stepper steps={steps} current={step} onStep={setStep} /></div></div>}
           <div ref={body} key={phase + (phase === 'configure' ? name + type : run)} className="step-in min-h-[320px]">
             {phase === 'configure' && (name === 'Review' ? <Review c={c} set={set} type={type} q={q} go={setStep} /> : <Step c={c} set={set} type={type} />)}
             {phase === 'checkout' && <Checkout c={c} set={set} q={q} scenario={scenario} onPaid={() => setPhase('provision')} />}

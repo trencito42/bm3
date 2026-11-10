@@ -333,3 +333,24 @@ Verified
 
 Not verified
 - Not looked at by eye (the preview pane would not render screenshots), and not opened in real mail clients.
+
+## Studio: the product screens (2026-11-11)
+
+What changed
+- `src/studio/` is the new layer. `kit.jsx` (Panel, Tile, Kv, ScreenHead, SaveBar, ScreenFrame with a real 390 px iframe preview, `Decode`, `DotRail`, `StateHero`), `patterns.jsx` (log viewer, job timeline, diff viewer, JSON/config editor, resource allocator, permission matrix, audit inspector, multi-step destructive dialog, async operation states, bulk table).
+- Screens: `DeployStudio` (seven products, declined-card and no-capacity scenarios, retry paths), `Instance` (app, game server, database: 11 tabs), `Vps`, `Mail` (multi-domain), `Billing`, `AdminCommerce` and `AdminOps` (21 admin workflows) behind `AdminStudio`.
+- Workspace bar: 15 Advanced patterns, 16 Deploy Studio, 17 Instance, 18 VPS, 19 Email hosting, 20 Billing, 21 Admin studio, 22 All pages. Every screen has a Mobile preview (`#/frame/<id>`).
+- The same screens are mounted in the mock apps: customer `/catalog`, `/vps`, `/email`, `/billing`, `/apps/:id`; admin: customers, orders, services, catalogue, editor, pricing, reports, support desk, bots, automations, analytics, abuse, infrastructure, incidents, operations, backups, mail, email wording, staff, audit, integrations.
+- Motion is spent where it means something (building, failure, success, empty and powered-off states, boot replay, Glitch's advice), not on every heading.
+- Existing components were reused (ServerCard-family, PowerControls, FileExplorer, SnapshotList, SSHKeyList, FirewallRules, Webmail, DNSRecordTable, DatabaseCredentials, TicketThread, DotBars, DotNum, AnimatedPrice). The ui3 selectors (preset, add-on, version) are uncontrolled demos, so the Deploy Studio has controlled versions of them.
+
+Verified (scripted, in the preview)
+- Every tab of every screen renders without errors; all 21 admin sections and all 27 admin nav entries; customer app routes still open.
+- Deploy Studio: all seven products reach review; checkout, 3-D Secure step, provisioning, success, declined card and no-capacity failure paths work.
+- Destructive dialog, billing retry, incident declare, refund dialog, email wording validation work end to end.
+- At 390 px no horizontal overflow except the Deploy Studio stepper, which now scrolls sideways.
+
+Not verified
+- Nothing was looked at by eye in this pass (the preview pane could not take screenshots) and no animation was watched in motion. Spacing and density are unreviewed.
+- `blipmade-hosting` was read for routes and structure only. Mock copy and prices are invented.
+- Keyboard-only pass, reduced motion, real touch.

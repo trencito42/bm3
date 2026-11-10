@@ -38,8 +38,8 @@ import System from './workspace/System.jsx'
 import Pages from './workspace/Pages.jsx'
 import Advanced from './workspace/Advanced.jsx'
 import Deploy from './workspace/Deploy.jsx'
-import { InstancePage } from './workspace/Studios.jsx'
-import { FrameScreen } from './studio/screens.jsx'
+import { AdminStudioPage, BillingStudioPage, InstancePage, MailPage, VpsPage } from './workspace/Studios.jsx'
+import { FrameScreen, Screen } from './studio/screens.jsx'
 import AdminApp from './admin/AdminApp.jsx'
 import SiteApp from './site/SiteApp.jsx'
 
@@ -118,7 +118,7 @@ function SideBody({ rail, setRail, openPalette, onNavigate = () => {} }) {
         {rail ? <CreditCard className="size-4 text-mute" /> : (
           <>
             <DotNum text={store.balance.toFixed(2)} height={30} animate={false} />
-            <div className="mt-2 font-mono text-[10.5px] uppercase tracking-[.08em] text-dim">Credit · add funds</div>
+            <div className="mt-2 font-mono text-[10.5px] uppercase tracking-[.08em] text-dim">Credit Â· add funds</div>
           </>
         )}
       </button>
@@ -170,7 +170,7 @@ function Palette({ open, setOpen }) {
           <DialogP.Title className="sr-only">Command palette</DialogP.Title>
           <DialogP.Description className="sr-only">Search pages, services and actions</DialogP.Description>
           <Command>
-            <Command.Input placeholder="Type a command or search…" autoFocus />
+            <Command.Input placeholder="Type a command or searchâ€¦" autoFocus />
             <Command.List>
               <Command.Empty>No results.</Command.Empty>
               <Command.Group heading="Pages">
@@ -245,13 +245,13 @@ function Layout() {
                 <Route path="/domains" element={<Domains />} />
                 <Route path="/support" element={<Support />} />
                 <Route path="/builder" element={<Builder />} />
-                <Route path="/catalog" element={<Catalog />} />
+                <Route path="/catalog" element={<Screen id="deploy" hideSwitch />} />
                 <Route path="/apps" element={<Apps />} />
-                <Route path="/apps/:id" element={<AppDetail />} />
-                <Route path="/vps" element={<VpsList />} />
+                <Route path="/apps/:id" element={<Screen id="instance" hideSwitch />} />
+                <Route path="/vps" element={<Screen id="vps" />} />
                 <Route path="/vps/:id" element={<VpsDetail />} />
-                <Route path="/email" element={<EmailPage />} />
-                <Route path="/billing" element={<BillingPage />} />
+                <Route path="/email" element={<Screen id="mail" />} />
+                <Route path="/billing" element={<Screen id="billing" />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/account" element={<AccountPage />} />
                 <Route path="*" element={<NotFoundScene home="/" homeLabel="Back to overview" links={APP_LINKS} />} />
@@ -293,6 +293,10 @@ function Root() {
             <Route path="/ds/advanced" element={<Advanced />} />
             <Route path="/ds/deploy" element={<Deploy />} />
             <Route path="/ds/instance" element={<InstancePage />} />
+            <Route path="/ds/vps" element={<VpsPage />} />
+            <Route path="/ds/mail" element={<MailPage />} />
+            <Route path="/ds/billing" element={<BillingStudioPage />} />
+            <Route path="/ds/adminstudio" element={<AdminStudioPage />} />
             <Route path="*" element={<NotFoundScene home="/ds/foundations" homeLabel="Back to foundations" />} />
           </Routes>
         ) : admin ? <AdminApp /> : site ? <SiteApp /> : <Layout />}
@@ -309,3 +313,4 @@ export default function App() {
     </StoreProvider>
   )
 }
+

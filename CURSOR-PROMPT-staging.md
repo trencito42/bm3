@@ -119,3 +119,16 @@ Looked at `staging.blipmade.com` on 2026-11-10.
 - **Workspace**: `#/ds/pages` lists every screen and the known gaps (about, careers, real docs, sharing image and icons, invoice PDF). Do not invent those.
 
 Marketing mail rules: every email has one idea and one action, an unsubscribe footer and a plain-text part. Send only to people who opted in. The offers (sale code, referral credit, plan prices) are sample values: take real ones from the catalogue and the promotions we actually run, or do not send that email. Never put an invented quote or customer logo in any of them.
+
+## Round 3: the product screens now exist in bm3 (port these, do not redesign them)
+
+Source of truth: `src/studio/*` and the workspace pages `#/ds/deploy`, `#/ds/instance`, `#/ds/vps`, `#/ds/mail`, `#/ds/billing`, `#/ds/adminstudio`, `#/ds/advanced`. Every screen has a Mobile preview and a direct URL, `#/frame/<id>` (and `#/frame/adminstudio?s=<section>`).
+
+Map to the real routes (names from `web/src/routes.tsx`):
+- Deploy Studio replaces `app/deploy/*` (catalog, family, per-product steps, review, checkout, provisioning). The step list per product is in `TYPES` in `DeployStudio.jsx`; keep the order and the result screens. Scenarios (declined card, no capacity) are the failure states to implement for real.
+- Instance replaces `app/instance/*` (overview, console, files, git, startup, schedules, backups, databases, network, access, game, settings) including the dedicated editor pages (`schedules/new`, `backups/:id/restore`, `git/.../rollback`, `access/invite`, `env-files/:name/edit`...), which are dialogs or side panels in the design; keep them as routes if the real app needs deep links, using the same content.
+- Vps replaces `app/Vps.tsx` and `VpsEditors.tsx`. Mail replaces `app/mail/*` and `EmailHosting.tsx`. Billing replaces `app/Billing*`, `SubscriptionChange`, `InvoiceView`, `OrderView`.
+- Admin: `AdminCommerce.jsx` and `AdminOps.jsx` replace the matching `admin/*` pages (catalog families, product, pricing, promotions, customers, orders, services, infrastructure, queues, backups, incidents, abuse, staff, support desk, bots, automations, analytics, mail, email wording, reports, audit, integrations).
+- Shared patterns in `patterns.jsx` are the components to build once and reuse: LogViewer (console, build logs, worker logs), JobTimeline (provisioning, jobs, subscription lifecycle), DiffViewer, ConfigEditor, ResourceAllocator, PermissionMatrix (access, staff, file modes), AuditInspector, DestructiveDialog (every delete, reinstall, restore, suspend), AsyncOperation, BulkTable.
+
+Rules: all data in these files is mock; connect each screen to the existing API and keep the states shown (loading, empty, error, disabled, failure with retry). Effects (`Decode`, `DotRail`, `StateHero`, dot-matrix titles) appear only on moments that earn them: provisioning, success, failure, empty and powered-off states. Do not add them to ordinary headings.

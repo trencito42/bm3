@@ -7,6 +7,10 @@ const L = (f, k) => lazy(() => f().then((m) => ({ default: m[k] || m.default }))
 export const SCREENS = {
   deploy: L(() => import('./DeployStudio.jsx')),
   instance: L(() => import('./Instance.jsx')),
+  vps: L(() => import('./Vps.jsx')),
+  mail: L(() => import('./Mail.jsx')),
+  billing: L(() => import('./Billing.jsx')),
+  adminstudio: L(() => import('./AdminStudio.jsx')),
 }
 
 export function FrameScreen({ id }) {
