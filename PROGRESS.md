@@ -319,3 +319,17 @@ Not verified
 - Emails in real clients (Gmail, Outlook, Apple Mail). The Blip PNGs are simple drawings, not exports of the animated characters.
 - Status history, incidents, changelog entries are invented sample data. Numbers in the homepage stats strip and the regions card are still mock.
 - Print layout of legal pages, reduced motion, keyboard pass on the new pages.
+
+## Marketing email pass (2026-11-11)
+
+What changed
+- Seven new marketing templates, ten in total: Welcome, Finish setup, Teams (announcement), Seasonal sale, Migration, Refer a friend, Win-back, next to the existing launch, digest and upgrade. The picker groups them: Onboarding, Announcements, Offers, Growth.
+- Three new dot headline images (WELCOME, TEAMS, SALE, dark and light) in `public/email`. Total: 25 templates.
+- No customer quotes, no invented logos. Offers (BLIP20, $10 referral, plan prices) are sample values and flagged as such in the Cursor prompt.
+
+Verified
+- All 25 emails at 375 and 680 px: no horizontal overflow, no missing image, no distorted image, no leftover merge tags, no dashes in subject or text (scripted).
+- Production build passes.
+
+Not verified
+- Not looked at by eye (the preview pane would not render screenshots), and not opened in real mail clients.

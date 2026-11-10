@@ -285,6 +285,103 @@ ${small('Resize takes about a minute and you pay the new price only from that mo
   }
 }
 
+/* ---- more marketing: one idea and one action each ---- */
+
+const welcome = () => ({
+  subject: 'Welcome to Blipmade, {{first_name}}', preheader: 'Three ways to get something online today.',
+  body: marketingTop() + heroCard({ chipText: 'Your account is ready', slug: 'welcome', headline: 'WELCOME', hw: 211, hh: 36, sub: 'Hi {{first_name}}. Pick whichever of these suits you and you will have something online before your coffee is cold.', ctaLabel: 'Open the client area', role: 'chat' }) + gap(22) +
+    featureRows([['chat', 'Ask Pip anything', 'How to point a domain, what a log line means, why a bill changed. Pip is in the corner of every page.'], ['builder', 'Describe a site', 'Tell Forge what you are making and watch the first version assemble. Edit it by chatting.'], ['dev', 'Deploy your own code', 'Connect a repository and Byte builds it, switches on HTTPS and tells you if the build breaks.']]) + footerMarketing(),
+  text: 'Welcome to Blipmade, {{first_name}}\n\nThree ways to get something online today:\n- Ask Pip anything\n- Describe a site and Forge builds the first version\n- Deploy your own code with Byte\n\nOpen the client area: https://blipmade.cloud\n\nUnsubscribe: https://blipmade.cloud/unsubscribe\n',
+})
+
+const checklist = (rows) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rows.map(([label, hint, done], i) => `<tr><td width="34" valign="top" ${i ? `class="bd" style="border-top:1px solid ${D.line};padding:14px 0"` : 'style="padding:14px 0"'}>${done
+  ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="20" height="20" align="center" style="width:20px;height:20px;border-radius:10px;background-color:${D.ok};font-family:${FONT};font-size:12px;line-height:20px;font-weight:700;color:#0d0d0f">✓</td></tr></table>`
+  : `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="18" height="18" class="bd2" style="width:18px;height:18px;border-radius:10px;border:1px solid ${D.line2};font-size:1px;line-height:18px">&nbsp;</td></tr></table>`}</td><td valign="top" ${i ? `class="bd" style="border-top:1px solid ${D.line};padding:14px 0"` : 'style="padding:14px 0"'}><div class="${done ? 'di' : 'fg'}" style="font-family:${FONT};font-size:15px;line-height:22px;font-weight:600;color:${done ? D.dim : D.fg}">${label}</div><div class="mu" style="margin-top:2px;font-family:${FONT};font-size:13.5px;line-height:21px;color:${D.mute}">${hint}</div></td></tr>`).join('')}</table>`
+
+const finishSetup = () => ({
+  subject: 'Two steps left on your Blipmade setup', preheader: 'You are halfway. The rest takes about three minutes.',
+  body: marketingTop() + shellCard(`
+${eyebrow('Setup · 2 of 4 done')}
+<h1 class="h1 fg" style="margin:12px 0 0 0;font-family:${FONT};font-size:30px;line-height:36px;font-weight:600;letter-spacing:-.025em;color:${D.fg}">You are halfway there, {{first_name}}</h1>
+<p class="mu" style="margin:12px 0 0 0;font-family:${FONT};font-size:15.5px;line-height:25px;color:${D.mute}">Two things are left before your first project can go live.</p>
+${spacer(20)}
+${bar(50)}
+${spacer(8)}
+${checklist([['Create your account', 'Done on Nov 09.', true], ['Confirm your email', 'Done on Nov 09.', true], ['Add a payment method', 'Only needed when you launch something. Nothing is charged now.', false], ['Launch your first project', 'A site, an app or a server. Pick a size and we set it up.', false]])}
+${spacer(26)}
+${pill('Add a payment method', '14px 28px')}
+${spacer(14)}
+${small('Stuck on something? Reply to this email and a person will help.')}
+${spacer(8)}`, '36px 36px 28px 36px') + footerMarketing(),
+  text: 'Two steps left on your Blipmade setup\n\nDone: create your account, confirm your email.\nLeft: add a payment method (only needed when you launch), launch your first project.\n\nContinue: https://blipmade.cloud/billing\n\nUnsubscribe: https://blipmade.cloud/unsubscribe\n',
+})
+
+const teamsLaunch = () => ({
+  subject: 'Invite your team to Blipmade', preheader: 'Give someone access to one project without sharing your whole account.',
+  body: marketingTop() + heroCard({ chipText: 'New · Teams', slug: 'teams', headline: 'TEAMS', hw: 149, hh: 36, sub: 'Work on the same projects without sharing a password. Each person gets exactly the access you give them.', ctaLabel: 'Invite your team', role: 'dev' }) + gap(22) +
+    featureRows([['chat', 'One project at a time', 'Invite a freelancer to a single site. They see that site and nothing else.'], ['dev', 'Roles that mean something', 'Owner, developer or billing only. Change a role at any moment and it applies immediately.'], ['game', 'Everything is logged', 'The audit log shows who changed what and when, for every project.']]) + footerMarketing(),
+  text: 'Invite your team to Blipmade\n\nGive people access to one project without sharing your account. Roles: owner, developer, billing only. Everything is in the audit log.\n\nInvite your team: https://blipmade.cloud/team\n\nUnsubscribe: https://blipmade.cloud/unsubscribe\n',
+})
+
+const migrationOffer = () => ({
+  subject: 'Moving from another host? We help you move', preheader: 'You say where things live today. We plan the move with you.',
+  body: marketingTop() + shellCard(`
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td>${blip(64, 'builder')}</td></tr></table>
+${spacer(18)}
+${eyebrow('Switching hosts')}
+<h1 class="h1 fg" style="margin:12px 0 0 0;font-family:${FONT};font-size:30px;line-height:36px;font-weight:600;letter-spacing:-.025em;color:${D.fg}">We help you move</h1>
+<p class="mu" style="margin:12px auto 0 auto;max-width:430px;font-family:${FONT};font-size:15.5px;line-height:25px;color:${D.mute}">Tell us what you run today. We plan the move with you, agree on a time that suits you, and nothing switches until you have checked the result.</p>
+${spacer(26)}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="text-align:left">${[['1', 'Tell us what you run today'], ['2', 'We agree on a time'], ['3', 'We copy it across'], ['4', 'You check before anything switches']].map(([n, t], i) => `<tr><td width="38" valign="top" ${i ? `class="bd" style="border-top:1px solid ${D.line};padding:14px 0"` : 'style="padding:14px 0"'}><span class="di" style="font-family:${MONO};font-size:12px;color:${D.dim}">0${n}</span></td><td valign="top" ${i ? `class="bd" style="border-top:1px solid ${D.line};padding:14px 0"` : 'style="padding:14px 0"'}><span class="fg" style="font-family:${FONT};font-size:15px;line-height:22px;color:${D.fg}">${t}</span></td></tr>`).join('')}</table>
+${spacer(26)}
+${pill('Plan my move', '14px 30px')}
+${spacer(14)}
+${small('Scope and timing depend on what you run today. We tell you both before we start.', 'text-align:center')}`, '38px 36px 34px 36px', 'center') + footerMarketing(),
+  text: 'Moving from another host? We help you move.\n\n1. Tell us what you run today\n2. We agree on a time\n3. We copy it across\n4. You check before anything switches\n\nPlan my move: https://blipmade.cloud/support\n\nUnsubscribe: https://blipmade.cloud/unsubscribe\n',
+})
+
+const referral = () => ({
+  subject: 'Give $10, get $10', preheader: 'Share your link. When a friend pays for the first time, you both get credit.',
+  body: marketingTop() + shellCard(`
+${castRow(48)}
+${spacer(22)}
+${eyebrow('Refer a friend')}
+<h1 class="h1 fg" style="margin:12px 0 0 0;font-family:${FONT};font-size:32px;line-height:38px;font-weight:600;letter-spacing:-.03em;color:${D.fg}">Give $10, get $10</h1>
+<p class="mu" style="margin:12px auto 0 auto;max-width:420px;font-family:${FONT};font-size:15.5px;line-height:25px;color:${D.mute}">When a friend signs up with your link and pays for the first time, you both get $10 of credit.</p>
+${spacer(26)}
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" class="bd2" style="border:1px dashed ${D.line2};border-radius:10px;padding:12px 22px"><span class="di" style="font-family:${FONT};font-size:12px;color:${D.dim}">Your link</span> &nbsp;<span class="fg" style="font-family:${MONO};font-size:15px;color:${D.fg}">blipmade.cloud/r/stefan</span></td></tr></table>
+${spacer(24)}
+${pill('Share your link', '14px 30px')}
+${spacer(14)}
+${small('Credit lands in your balance after your friend&rsquo;s first payment and can be used on any service. Terms apply.', 'text-align:center')}`, '40px 36px 34px 36px', 'center') + footerMarketing(),
+  text: 'Give $10, get $10\n\nWhen a friend signs up with your link and pays for the first time, you both get $10 of credit.\nYour link: https://blipmade.cloud/r/stefan\n\nUnsubscribe: https://blipmade.cloud/unsubscribe\n',
+})
+
+const winback = () => ({
+  subject: 'Your projects are still here', preheader: 'A few things changed since you last signed in.',
+  body: marketingTop() + shellCard(`
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td>${blip(64, 'chat')}</td></tr></table>
+${spacer(18)}
+${eyebrow('It has been a while')}
+<h1 class="h1 fg" style="margin:12px 0 0 0;font-family:${FONT};font-size:30px;line-height:36px;font-weight:600;letter-spacing:-.025em;color:${D.fg}">Your projects are still here, {{first_name}}</h1>
+<p class="mu" style="margin:12px 0 0 0;font-family:${FONT};font-size:15.5px;line-height:25px;color:${D.mute}">Nothing was deleted. Sign in and everything is where you left it. Here is what is different since your last visit.</p>
+${spacer(22)}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${[['New', 'info', 'Teams', 'Invite people to one project without sharing your account.'], ['New', 'info', 'Status page', 'Ninety days of history for every region.'], ['Improved', 'ok', 'Faster deploys', 'Most deploys finish in well under a minute.']].map(([tag, tone, t, d], i) => `<tr><td class="bd" style="padding:14px 0;border-top:1px solid ${D.line}"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td width="84" valign="top" style="padding-top:2px">${chip(tag, tone)}</td><td valign="top"><div class="fg" style="font-family:${FONT};font-size:15px;line-height:22px;font-weight:600;color:${D.fg}">${t}</div><div class="mu" style="margin-top:2px;font-family:${FONT};font-size:14px;line-height:22px;color:${D.mute}">${d}</div></td></tr></table></td></tr>`).join('')}</table>
+${spacer(24)}
+${pill('Sign in', '14px 30px')}
+${spacer(8)}`, '38px 36px 32px 36px') + footerMarketing(),
+  text: 'Your projects are still here\n\nNothing was deleted. New since your last visit: Teams, a status page with 90 days of history, faster deploys.\n\nSign in: https://blipmade.cloud\n\nUnsubscribe: https://blipmade.cloud/unsubscribe\n',
+})
+
+const seasonalSale = () => ({
+  subject: 'Five days: 20% off the first three months of any VPS', preheader: 'Use code BLIP20 before Nov 30.',
+  body: marketingTop() + heroCard({ chipText: 'Until Nov 30', slug: 'sale', headline: 'SALE', hw: 118, hh: 36, sub: '20% off the first three months of any VPS plan. Pick a size, enter the code at checkout, and that is it.', ctaLabel: 'See VPS plans', role: 'dev' }) + gap(22) +
+    `<tr><td align="center"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" class="bd2" style="border:1px dashed ${D.line2};border-radius:10px;padding:12px 22px"><span class="di" style="font-family:${FONT};font-size:12px;color:${D.dim}">Use code</span> &nbsp;<span class="fg" style="font-family:${MONO};font-size:18px;letter-spacing:.14em;color:${D.fg}">BLIP20</span></td></tr></table></td></tr>` + gap(22) +
+    `<tr><td>${tiles([['Nano', '$3.20', null], ['Pro', '$9.60', null], ['Max', '$19.20', null]])}</td></tr>` + gap(10) +
+    `<tr><td align="center" style="padding:6px 20px 0 20px">${small('Prices per month for the first three months, then the regular price. New orders only. Cancel any time.', 'text-align:center')}</td></tr>` + footerMarketing(),
+  text: 'Five days: 20% off the first three months of any VPS\n\nUse code BLIP20 at checkout before Nov 30. Nano $3.20, Pro $9.60, Max $19.20 per month for the first three months, then the regular price. New orders only.\n\nSee VPS plans: https://blipmade.cloud/products/vps\n\nUnsubscribe: https://blipmade.cloud/unsubscribe\n',
+})
+
 export const EMAILS = [
   { id: 'verify', kind: 'system', group: 'Account', name: 'Confirm email', build: verifyEmail },
   { id: 'reset', kind: 'system', group: 'Account', name: 'Password reset', build: passwordReset },
@@ -301,9 +398,16 @@ export const EMAILS = [
   { id: 'crash', kind: 'system', group: 'Services', name: 'Server crashed', build: gameCrash },
   { id: 'maintenance', kind: 'system', group: 'Services', name: 'Maintenance', build: maintenance },
   { id: 'ticket', kind: 'system', group: 'Support', name: 'Ticket reply', build: ticketReply },
-  { id: 'launch', kind: 'marketing', group: 'Marketing', name: 'Product launch', build: launch },
-  { id: 'digest', kind: 'marketing', group: 'Marketing', name: 'Monthly digest', build: digest },
-  { id: 'upgrade', kind: 'marketing', group: 'Marketing', name: 'Upgrade offer', build: upgrade },
+  { id: 'welcome', kind: 'marketing', group: 'Onboarding', name: 'Welcome', build: welcome },
+  { id: 'setup', kind: 'marketing', group: 'Onboarding', name: 'Finish setup', build: finishSetup },
+  { id: 'launch', kind: 'marketing', group: 'Announcements', name: 'Product launch', build: launch },
+  { id: 'teams', kind: 'marketing', group: 'Announcements', name: 'Teams', build: teamsLaunch },
+  { id: 'digest', kind: 'marketing', group: 'Announcements', name: 'Monthly digest', build: digest },
+  { id: 'upgrade', kind: 'marketing', group: 'Offers', name: 'Upgrade offer', build: upgrade },
+  { id: 'sale', kind: 'marketing', group: 'Offers', name: 'Seasonal sale', build: seasonalSale },
+  { id: 'migrate', kind: 'marketing', group: 'Offers', name: 'Migration', build: migrationOffer },
+  { id: 'referral', kind: 'marketing', group: 'Growth', name: 'Refer a friend', build: referral },
+  { id: 'winback', kind: 'marketing', group: 'Growth', name: 'Win-back', build: winback },
 ]
 
 export const MOCK = { first_name: 'Stefan', email: 'stefan@example.com', company_address: 'BLIPMADE · registered company name and postal address go here' }

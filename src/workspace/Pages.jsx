@@ -32,7 +32,7 @@ const APP = [
   ['Support', '/support', 'Tickets and live chat.'], ['Notifications', '/notifications', 'What we tell you about, and where.'], ['Account', '/account', 'Profile, security, sessions.'], ['Site builder', '/builder', 'Describe a site and watch it assemble.'], ['Order', '/order', 'Configure and pay.'],
 ]
 const ADMIN = [['Dashboard', '/admin', 'Operations at a glance.'], ['Customers', '/admin/customers', 'Accounts with the inspector.'], ['Orders', '/admin/orders', 'Recent purchases.']]
-const DS = [['System pages', '/ds/system', 'Deploying, maintenance, error, offline: seven states of one file.'], ['Email', '/ds/emails', 'Eighteen templates, dark and light, desktop and mobile.'], ['States and mobile', '/ds/states', 'Loading, empty and error for every list.']]
+const DS = [['System pages', '/ds/system', 'Deploying, maintenance, error, offline: seven states of one file.'], ['Email', '/ds/emails', 'Twenty-five templates, dark and light, desktop and mobile.'], ['States and mobile', '/ds/states', 'Loading, empty and error for every list.']]
 
 function Grid({ items }) {
   const nav = useNavigate()

@@ -43,7 +43,7 @@ function Viewer() {
       <div className="space-y-2">
         {[...new Set(list.map((e) => e.group))].map((g) => (
           <div key={g} className="flex flex-wrap items-center gap-1">
-            {family === 'system' && <span className="w-[72px] shrink-0 font-mono text-[10.5px] uppercase tracking-[.08em] text-dim">{g}</span>}
+            <span className="w-[96px] shrink-0 font-mono text-[10.5px] uppercase tracking-[.08em] text-dim">{g}</span>
             {list.filter((e) => e.group === g).map((e) => <button key={e.id} onClick={() => setId(e.id)} aria-pressed={cur.id === e.id} className={cn('h-8 rounded-lg px-3 text-[12.5px] transition-colors', cur.id === e.id ? 'bg-fg text-black' : 'bg-white/[0.06] text-mute hover:text-fg')}>{e.name}</button>)}
           </div>
         ))}
@@ -106,7 +106,7 @@ function Rules() {
 }
 
 export default function Emails() {
-  return <Doc title="Email" lead="Eighteen emails in two families, signed by the four Blips. System mail (account, billing, services, support) is quiet and exact; marketing mail (launches, digests, offers) is louder and editorial. Same identity, different layout and energy." sections={[
+  return <Doc title="Email" lead="Twenty-five emails in two families, signed by the four Blips. System mail (account, billing, services, support) is quiet and exact; marketing mail (onboarding, announcements, offers, growth) is louder and editorial. Same identity, different layout and energy." sections={[
     { id: 'templates', title: 'Templates', note: 'preview, mobile, dark and light, HTML and text', node: <Viewer /> },
     { id: 'difference', title: 'System vs marketing', node: <Difference /> },
     { id: 'rules', title: 'Rules', node: <Rules /> },
