@@ -13,6 +13,7 @@ import { DotNum } from '../components/DotViz.jsx'
 import { DotText, Orb } from '../builder/FxBits.jsx'
 import { cn } from '../lib/utils'
 import { openCookieSettings } from './CookieConsent.jsx'
+import { SearchButton } from '../components/Palette.jsx'
 
 /* ------------------------------ menu content ------------------------------ */
 const P = '/site/products/'
@@ -278,8 +279,8 @@ export function SiteHeader() {
           <DotWash wash={wash} vp={vp} />
         </div>
       </NM.Root>
-      <div className="ml-auto hidden items-center gap-2 lg:flex"><Button variant="ghost" onClick={() => nav('/site/login')}>Log in</Button><Button onClick={() => nav('/site/register')}>Get started</Button></div>
-      <button ref={btn} className="ml-auto grid size-9 place-items-center rounded-lg text-mute outline-none transition-colors hover:text-fg focus-visible:text-fg lg:hidden" onClick={() => setMob((o) => !o)} aria-label={mob ? 'Close menu' : 'Open menu'} aria-expanded={mob} aria-controls={pid}>
+      <div className="ml-auto hidden items-center gap-2 lg:flex"><SearchButton compact label="Search the site" /><Button variant="ghost" onClick={() => nav('/site/login')}>Log in</Button><Button onClick={() => nav('/site/register')}>Get started</Button></div>
+      <SearchButton compact label="Search the site" className="ml-auto lg:hidden" /><button ref={btn} className="grid size-9 place-items-center rounded-lg text-mute outline-none transition-colors hover:text-fg focus-visible:text-fg lg:hidden" onClick={() => setMob((o) => !o)} aria-label={mob ? 'Close menu' : 'Open menu'} aria-expanded={mob} aria-controls={pid}>
         <span className="relative grid size-5 place-items-center"><Menu className={cn('absolute size-5 transition-[opacity,transform] duration-150', mob ? 'rotate-90 scale-50 opacity-0' : 'opacity-100')} /><X className={cn('absolute size-5 transition-[opacity,transform] duration-150', mob ? 'opacity-100' : '-rotate-90 scale-50 opacity-0')} /></span>
       </button>
       {mob && <MobilePanel id={pid} onClose={close} />}

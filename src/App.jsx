@@ -2,7 +2,7 @@ import { ChatWidget } from './chat/ChatWidget.jsx'
 import { NotificationCenter } from './components/NotificationCenter.jsx'
 import { ADMIN_LINKS, APP_LINKS, NotFoundScene } from './components/NotFound.jsx'
 import { Brand } from './components/logos.jsx'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { Command } from 'cmdk'
 import * as DialogP from '@radix-ui/react-dialog'
@@ -39,9 +39,11 @@ import Pages from './workspace/Pages.jsx'
 import Advanced from './workspace/Advanced.jsx'
 import Deploy from './workspace/Deploy.jsx'
 import Loading from './workspace/Loading.jsx'
+import WorkspacePalette from './workspace/WorkspacePalette.jsx'
 import { AdminStudioPage, BillingStudioPage, InstancePage, MailPage, VpsPage } from './workspace/Studios.jsx'
 import { FrameScreen, Screen } from './studio/screens.jsx'
 import { PageLoad } from './components/loaders.jsx'
+import { CommandPalette, SearchButton, usePaletteHotkey } from './components/Palette.jsx'
 import { Sk, customerKind } from './components/pageSkeletons.jsx'
 import AdminApp from './admin/AdminApp.jsx'
 import SiteApp from './site/SiteApp.jsx'
@@ -162,39 +164,21 @@ function BottomNav({ onMore }) {
 }
 
 function Palette({ open, setOpen }) {
-  const nav = useNavigate()
   const store = useStore()
-  const go = (p) => { setOpen(false); nav(p) }
-  return (
-    <DialogP.Root open={open} onOpenChange={setOpen}>
-      <DialogP.Portal>
-        <DialogP.Overlay className="anim-overlay fixed inset-0 z-50 bg-black/60 backdrop-blur-[3px]" />
-        <DialogP.Content className="anim-pop fixed left-1/2 top-[18%] z-50 w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 overflow-hidden rounded-2xl border border-line-2 bg-card shadow-2xl outline-none">
-          <DialogP.Title className="sr-only">Command palette</DialogP.Title>
-          <DialogP.Description className="sr-only">Search pages, services and actions</DialogP.Description>
-          <Command>
-            <Command.Input placeholder="Type a command or searchâ€¦" autoFocus />
-            <Command.List>
-              <Command.Empty>No results.</Command.Empty>
-              <Command.Group heading="Pages">
-                {NAV.map((n) => <Command.Item key={n.to} onSelect={() => go(n.to)}><n.icon className="size-4" />{n.label}</Command.Item>)}
-                <Command.Item onSelect={() => go('/builder')}><Wand2 className="size-4" />Site builder</Command.Item>
-              </Command.Group>
-              <Command.Group heading="Services">
-                {store.services.map((s) => <Command.Item key={s.id} onSelect={() => go('/services/' + s.id)}><Server className="size-4" />{s.name}</Command.Item>)}
-              </Command.Group>
-              <Command.Group heading="Actions">
-                <Command.Item onSelect={() => go('/order')}><Plus className="size-4" />Order a new server</Command.Item>
-                <Command.Item onSelect={() => go('/invoices')}><Receipt className="size-4" />Pay outstanding invoices</Command.Item>
-              </Command.Group>
-            </Command.List>
-          </Command>
-        </DialogP.Content>
-      </DialogP.Portal>
-    </DialogP.Root>
-  )
+  const groups = useMemo(() => [
+    { heading: 'Pages', items: [...NAV.map((n) => ({ id: 'p' + n.to, label: n.label, icon: n.icon, to: n.to })), { id: 'p/builder', label: 'Site builder', icon: Wand2, to: '/builder' }, { id: 'p/notifications', label: 'Notifications', icon: Bell, to: '/notifications' }, { id: 'p/account', label: 'Account and security', icon: UserCog, to: '/account', keywords: ['password', '2fa', 'profile', 'security'] }] },
+    { heading: 'Your services', items: store.services.map((s) => ({ id: 's' + s.id, label: s.name, hint: s.type, icon: Server, to: '/services/' + s.id })) },
+    { heading: 'Actions', items: [
+      { id: 'a-deploy', label: 'Deploy something new', icon: Rocket, to: '/catalog', keywords: ['create', 'new', 'launch', 'app', 'database', 'vps', 'game'] },
+      { id: 'a-order', label: 'Order a new server', icon: Plus, to: '/order' },
+      { id: 'a-pay', label: 'Pay outstanding invoices', icon: Receipt, to: '/invoices', keywords: ['billing', 'unpaid'] },
+      { id: 'a-ticket', label: 'Talk to support', icon: LifeBuoy, to: '/support', keywords: ['help', 'ticket', 'chat'] },
+      { id: 'a-domain', label: 'Add a domain', icon: Globe, to: '/domains', keywords: ['dns', 'register', 'transfer'] },
+    ] },
+    { heading: 'Elsewhere', items: [{ id: 'x-site', label: 'Public site', icon: Globe, to: '/site' }, { id: 'x-admin', label: 'Admin', icon: UserCog, to: '/admin' }, { id: 'x-ds', label: 'Design workspace', icon: Boxes, to: '/ds/foundations' }] },
+  ], [store.services])
+  return <CommandPalette open={open} onOpenChange={setOpen} scope="app" placeholder="Search your services, pages and actions…" groups={groups} />
 }
-
 function Layout() {
   const [pal, setPal] = useState(false)
   const [rail, setRail] = useState(false)
@@ -204,11 +188,7 @@ function Layout() {
   const seg = loc.pathname.split('/')[1] || ''
   const [title, Icon] = TITLES[seg] || TITLES['']
   const builder = seg === 'builder'
-  useEffect(() => {
-    const k = (e) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setPal((o) => !o) } }
-    addEventListener('keydown', k)
-    return () => removeEventListener('keydown', k)
-  }, [])
+  usePaletteHotkey(setPal)
   useEffect(() => { setRail(builder) }, [builder])
   return (
     <div className="flex h-full">
@@ -219,6 +199,7 @@ function Layout() {
           <span className="hidden size-8 place-items-center rounded-lg border border-line-2 bg-white/[0.04] text-mute sm:grid"><Icon className="size-4" /></span>
           <h2 className="min-w-0 truncate text-[15px] font-semibold tracking-tight">{title}</h2>
           <div className="flex-1" />
+          <SearchButton className="hidden md:flex" label="Search" /><SearchButton compact className="md:hidden" />
           <NotificationCenter />
           <Menu>
             <MenuTrigger className="flex h-9 items-center gap-2 rounded-full border border-line-2 py-1 pl-1 pr-1 text-[13px] sm:pr-3 font-medium outline-none transition-colors hover:bg-hover">
@@ -282,6 +263,7 @@ function Root() {
   return (
     <div className="flex h-dvh flex-col">
       <WorkspaceBar />
+      {ds && <WorkspacePalette />}
       <div className="min-h-0 flex-1">
         {ds ? (
           <Routes>

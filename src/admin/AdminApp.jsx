@@ -126,16 +126,35 @@ const Pricing = () => <Page title="Pricing" desc="Price books and regional overr
    components above stay only as the base the studio versions grew from (and as the fallback for sections without one). */
 import * as Studio from '../studio/AdminCommerce.jsx'
 import { PageLoad } from '../components/loaders.jsx'
+import { CommandPalette, SearchButton, usePaletteHotkey } from '../components/Palette.jsx'
+import { APPS as MOCK_APPS } from '../lib/mock'
 import { Sk, adminKind } from '../components/pageSkeletons.jsx'
 import * as StudioOps from '../studio/AdminOps.jsx'
 const SECTIONS = { '': <Dashboard />, ...GEN, customers: <Studio.Customers />, orders: <Studio.Orders />, services: <Studio.Services />, products: <Studio.CatalogStudio />, editor: <Studio.ProductEditor />, pricing: <Studio.Pricing />, promotions: <Studio.Pricing />, reports: <StudioOps.Reports />, support: <StudioOps.SupportDesk />, bots: <StudioOps.BotBuilder />, automations: <StudioOps.Automations />, analytics: <StudioOps.SupportStats />, abuse: <StudioOps.Abuse />, infrastructure: <StudioOps.Infra />, incidents: <StudioOps.Incidents />, operations: <StudioOps.Operations />, backups: <StudioOps.Backups />, mail: <StudioOps.MailAdmin />, templates: <StudioOps.Content />, staff: <StudioOps.Staff />, audit: <StudioOps.AuditLog />, integrations: <StudioOps.Integrations /> }
 
+function AdminPalette({ open, setOpen }) {
+  const groups = useMemo(() => [
+    { heading: 'Sections', items: ALL.map(([to, l, I]) => ({ id: 'sec' + to, label: l, icon: I, to: '/admin' + (to ? '/' + to : '') })) },
+    { heading: 'Customers', items: CUSTOMERS.map((c) => ({ id: 'c' + c.id, label: c.name, hint: c.mail, icon: Users, to: '/admin/customers' })) },
+    { heading: 'Orders', items: ORDERS.map((o) => ({ id: 'o' + o.id, label: o.id, hint: `${o.customer} · ${money(o.total)}`, icon: Receipt, to: '/admin/orders', keywords: [o.customer, o.item || ''] })) },
+    { heading: 'Support queue', items: QUEUE.map((t) => ({ id: 't' + t.id, label: t.subj, hint: `${t.id} · ${t.cust}`, icon: LifeBuoy, to: '/admin/support' })) },
+    { heading: 'Services', items: MOCK_APPS.map((a) => ({ id: 's' + a.id, label: a.name, hint: `${a.kind} · ${a.region}`, icon: Server, to: '/admin/services' })) },
+    { heading: 'Infrastructure', items: NODES.map((n) => ({ id: 'n' + n.id, label: n.id, hint: n.region || 'node', icon: Network, to: '/admin/infrastructure' })) },
+    { heading: 'Incidents', items: INCIDENTS.map((i) => ({ id: 'i' + i.id, label: i.t, hint: i.id, icon: AlertTriangle, to: '/admin/incidents' })) },
+    { heading: 'Staff', items: STAFF.map((s) => ({ id: 'st' + s.id, label: s.name, hint: s.role, icon: UserCog, to: '/admin/staff' })) },
+    { heading: 'Actions', items: [{ id: 'a-inc', label: 'Declare an incident', icon: AlertTriangle, to: '/admin/incidents', keywords: ['outage', 'status'] }, { id: 'a-credit', label: 'Give a customer credit', icon: CreditCard, to: '/admin/customers' }, { id: 'a-refund', label: 'Refund an order', icon: Receipt, to: '/admin/orders' }, { id: 'a-invite', label: 'Invite staff', icon: Plus, to: '/admin/staff' }, { id: 'a-promo', label: 'Create a promotion', icon: Megaphone, to: '/admin/promotions', keywords: ['code', 'discount'] }] },
+    { heading: 'Elsewhere', items: [{ id: 'x-app', label: 'Customer area', icon: LayoutDashboard, to: '/' }, { id: 'x-site', label: 'Public site', icon: Globe, to: '/site' }, { id: 'x-ds', label: 'Design workspace', icon: Boxes, to: '/ds/foundations' }] },
+  ], [])
+  return <CommandPalette open={open} onOpenChange={setOpen} scope="admin" placeholder="Search customers, orders, tickets, nodes, pages…" groups={groups} />
+}
 export default function AdminApp() {
   const { pathname } = useLocation()
   const seg = pathname.replace(/^\/admin\/?/, '').split('/')[0]
   const cur = ALL.find((a) => a[0] === seg) || ALL[0]
   const CurIcon = cur[2]
   const [mob, setMob] = useState(false)
+  const [pal, setPal] = useState(false)
+  usePaletteHotkey(setPal)
   const Side = () => (
     <>
       <div className="flex h-14 shrink-0 items-center gap-2 border-b border-line px-5"><Brand height={12} /><Badge tone="bad" dot={false}>Admin</Badge></div>
@@ -147,7 +166,7 @@ export default function AdminApp() {
       <aside className="hidden w-60 shrink-0 flex-col border-r border-line bg-[#0b0b0d] md:flex">{Side()}</aside>
       <MobileSheet open={mob} onClose={() => setMob(false)}>{Side()}</MobileSheet>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line px-5"><button className="grid size-9 place-items-center rounded-lg text-mute md:hidden" onClick={() => setMob(true)} aria-label="Menu"><Boxes className="size-4" /></button><span className="grid size-8 place-items-center rounded-lg border border-line-2 bg-white/[0.04] text-mute"><CurIcon className="size-4" /></span><h2 className="text-[15px] font-semibold tracking-tight">{cur[1]}</h2><div className="flex-1" /><div className="hidden items-center gap-2 rounded-lg border border-line px-2.5 py-1.5 text-[12.5px] text-dim sm:flex"><Search className="size-3.5" />Search everything<kbd className="ml-6 font-mono text-[10px]">⌘K</kbd></div></header>
+        <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line px-5"><button className="grid size-9 place-items-center rounded-lg text-mute md:hidden" onClick={() => setMob(true)} aria-label="Menu"><Boxes className="size-4" /></button><span className="grid size-8 place-items-center rounded-lg border border-line-2 bg-white/[0.04] text-mute"><CurIcon className="size-4" /></span><h2 className="text-[15px] font-semibold tracking-tight">{cur[1]}</h2><div className="flex-1" /><SearchButton className="hidden sm:flex" label="Search everything" /><SearchButton compact className="sm:hidden" /><AdminPalette open={pal} setOpen={setPal} /></header>
         <main className="min-h-0 flex-1 overflow-y-auto"><div className="anim-page mx-auto max-w-6xl p-6 md:p-8" key={pathname}><PageLoad id={pathname} skeleton={<Sk kind={adminKind(seg, pathname)} />}>{SECTIONS[seg] ?? (seg === '' ? SECTIONS[''] : <NotFoundScene home="/admin" homeLabel="Back to dashboard" links={ADMIN_LINKS} />)}</PageLoad></div></main>
       </div>
     </div>

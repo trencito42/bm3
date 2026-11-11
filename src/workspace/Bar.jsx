@@ -3,9 +3,10 @@ import { useEffect, useRef } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { DotText } from '../builder/FxBits.jsx'
 import { cn } from '../lib/utils'
+import { SearchButton } from '../components/Palette.jsx'
 
 /* [number, label, route, is-this-section-current] */
-const SECTIONS = [
+export const SECTIONS = [
   ['01', 'Foundations', '/ds/foundations', (p) => p.startsWith('/ds/foundations')],
   ['02', 'Components', '/ds/components', (p) => p.startsWith('/ds/components')],
   ['03', 'Patterns', '/ds/patterns', (p) => p.startsWith('/ds/patterns')],
@@ -43,7 +44,7 @@ export default function WorkspaceBar() {
           <span className={cn('font-mono text-[10px]', is(pathname) ? 'text-[var(--brand)]' : 'text-dim')}>{n}</span>{l}
         </NavLink>
       ))}
-      <span className="ml-auto flex shrink-0 items-center gap-1.5 rounded-full border border-line-2 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[.08em] text-dim"><i className="size-1.5 rounded-full bg-warn" />Simulated · mock data</span>
+      <SearchButton compact label="Search the workspace" className="ml-auto size-7 shrink-0" /><span className="ml-1 flex shrink-0 items-center gap-1.5 rounded-full border border-line-2 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[.08em] text-dim"><i className="size-1.5 rounded-full bg-warn" />Simulated · mock data</span>
     </div>
   )
 }

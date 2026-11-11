@@ -1,5 +1,5 @@
 import { Brand } from '../components/logos.jsx'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ArrowRight, Check, Cloud, Database, Gamepad2, Globe, Mail, Menu, Server, X } from 'lucide-react'
@@ -16,14 +16,31 @@ import { BlogIndex, BlogPost } from './BlogPages.jsx'
 import { ChangelogPage, ContactPage, LegalPage, StatusPage } from './MorePages.jsx'
 import { CookieConsent } from './CookieConsent.jsx'
 import { PageLoad } from '../components/loaders.jsx'
+import { CommandPalette, usePaletteHotkey } from '../components/Palette.jsx'
+import { APPS as SITE_APPS } from './appsData.js'
+import { POSTS } from './blogData.js'
 import { Sk, siteKind } from '../components/pageSkeletons.jsx'
 import { PLAN_DATA } from '../components/product.jsx'
 import { cn, money } from '../lib/utils'
 
+function SitePalette({ open, setOpen }) {
+  const groups = useMemo(() => [
+    { heading: 'Pages', items: [['Home', '/site', Globe], ['Products and pricing', '/site/products', Server], ['App catalogue', '/site/apps', Database], ['Blog', '/site/blog', Mail], ['Changelog', '/site/changelog', Check], ['System status', '/site/status', Cloud], ['Documentation', '/site/docs', Gamepad2], ['Contact', '/site/contact', Mail], ['Terms of service', '/site/legal/terms', Check], ['Privacy policy', '/site/legal/privacy', Check]].map(([l, to, I]) => ({ id: 'p' + to, label: l, to, icon: I })) },
+    { heading: 'Products', items: CATALOG.map((c) => ({ id: 'c' + c.id, label: c.name, hint: `from ${money(c.from)} / mo`, icon: Server, to: '/site/products/' + c.id, keywords: [c.blurb] })) },
+    { heading: 'Apps and games', items: SITE_APPS.map((a) => ({ id: 'a' + a.id, label: a.name, hint: `from ${money(a.from)} / mo`, icon: Gamepad2, to: '/site/apps/' + a.id, keywords: [a.tagline, a.category] })) },
+    { heading: 'Blog', items: POSTS.map((p) => ({ id: 'b' + p.id, label: p.title, hint: p.category, icon: Mail, to: '/site/blog/' + p.id, keywords: [p.excerpt] })) },
+    { heading: 'Help', items: [['Quick start', 'start'], ['Connect by SSH', 'ssh'], ['Point a domain', 'dns'], ['API reference', 'api']].map(([l, k]) => ({ id: 'd' + k, label: l, hint: 'docs', icon: Cloud, to: '/site/docs' })) },
+    { heading: 'Account', items: [{ id: 'l-in', label: 'Log in', icon: ArrowRight, to: '/site/login' }, { id: 'l-up', label: 'Create an account', icon: ArrowRight, to: '/site/register', keywords: ['sign up', 'free'] }, { id: 'l-abuse', label: 'Report abuse', icon: ArrowRight, to: '/site/legal/aup' }] },
+    { heading: 'Elsewhere', items: [{ id: 'x-app', label: 'Customer area', icon: ArrowRight, to: '/' }, { id: 'x-ds', label: 'Design workspace', icon: ArrowRight, to: '/ds/foundations' }] },
+  ], [])
+  return <CommandPalette open={open} onOpenChange={setOpen} scope="site" placeholder="Search products, games, guides and articles…" groups={groups} />
+}
 function Shell({ children }) {
   const { pathname } = useLocation()
   const home = /^\/site\/?$/.test(pathname)
   const scroller = useRef(null)
+  const [pal, setPal] = useState(false)
+  usePaletteHotkey(setPal, { slash: true })
   /* a new page starts at the top (the shell is the scroll container, so the browser does not do it for us) */
   useEffect(() => { scroller.current?.scrollTo({ top: 0, behavior: 'auto' }) }, [pathname])
   return (
@@ -32,6 +49,7 @@ function Shell({ children }) {
       <div className="flex-1">{children}</div>
       <SiteFooter cta={!home} />
       <CookieConsent />
+      <SitePalette open={pal} setOpen={setPal} />
     </div>
   )
 }
