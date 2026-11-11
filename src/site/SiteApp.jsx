@@ -15,6 +15,8 @@ import { AppPage, AppsCatalog } from './AppsPages.jsx'
 import { BlogIndex, BlogPost } from './BlogPages.jsx'
 import { ChangelogPage, ContactPage, LegalPage, StatusPage } from './MorePages.jsx'
 import { CookieConsent } from './CookieConsent.jsx'
+import { PageLoad } from '../components/loaders.jsx'
+import { Sk, siteKind } from '../components/pageSkeletons.jsx'
 import { PLAN_DATA } from '../components/product.jsx'
 import { cn, money } from '../lib/utils'
 
@@ -136,5 +138,5 @@ export default function SiteApp() {
   const { pathname } = useLocation()
   const [, seg = '', arg] = pathname.replace(/^\/site\/?/, '/').split('/')
   const page = { '': <HomePage />, products: <Products id={arg} />, apps: arg ? <AppPage key={arg} id={arg} /> : <AppsCatalog />, blog: arg ? <BlogPost key={arg} id={arg} /> : <BlogIndex />, login: <Auth key="l" mode="login" />, register: <Auth key="r" mode="register" />, recover: <Auth key="c" mode="recover" />, docs: <Docs />, status: <StatusPage />, changelog: <ChangelogPage />, contact: <ContactPage />, legal: <LegalPage key={arg || 'terms'} id={arg || 'terms'} /> }[seg] || <NotFound />
-  return <Shell>{page}</Shell>
+  return <Shell><PageLoad key={pathname} id={pathname} wrap="" skeleton={<Sk kind={siteKind(seg, arg)} />}>{page}</PageLoad></Shell>
 }

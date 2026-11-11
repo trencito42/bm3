@@ -365,3 +365,10 @@ Not verified
 - They are drawn on a canvas that fills its parent (`contain: paint`, `overflow: hidden`), so they have the parent's size and cannot grow or overflow. They idle when off screen or in a hidden tab, and are static under reduced motion. `MatrixLoader` also re-assembles the dot-matrix word LOADING (the same `assemble` effect as the headlines) every 2.6 s.
 - `Decode` (text that resolves out of noise) no longer uses wide block glyphs: the real text always reserves the box, the noise is drawn on top, clipped, using letters for letters and digits for digits.
 - Verified: canvases fill their parents exactly, pixels change over time while visible, no page overflow. Not watched in motion.
+
+## Page-shaped loaders (2026-11-11)
+- Every page now shows a loading screen built from its own frames before the page appears: `components/pageSkeletons.jsx` has 32 of them (customer app: overview, apps and databases, instance, services, VPS, domains, email, billing, invoices, support, deploy, builder, account, notifications; admin: dashboard, list, detail, desk, catalogue studio, editor; public site: homepage, products, product and plans, app catalogue, blog, article, docs, status, changelog, contact, legal, sign-in), plus a fallback each for the app, the admin and the site.
+- `PageLoad` (components/loaders.jsx) wraps the route area of the customer app, the admin and the public site (the site keeps its header and footer). It renders the skeleton for about 0.7 s on every route change, then the page itself with no wrapper, so the parent's spacing rules keep applying. In the real app that moment is the data request; here it is simulated. Skipped under reduced motion.
+- The dot field now runs on one shared ticker (a page can hold dozens of blocks) and sleeps when nothing is visible.
+- `#/ds/loading` (22 in the bar) lists every skeleton next to a link to its real page.
+- Verified: every customer, admin and public route shows its skeleton and then loads; at 390 px no skeleton spills out of the screen; no console or build errors. Not watched in motion. Public pages are long, so their skeleton covers the first screen only.

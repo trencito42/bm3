@@ -195,7 +195,7 @@ export const CodeBlock = ({ code, lang }) => (
 
 /* ---------- Feedback ---------- */
 /* Loading placeholders (dot-matrix, glitchy): see loaders.jsx */
-export { Skeleton, MatrixLoader } from './loaders.jsx'
+export { Skeleton, MatrixLoader, PageLoad } from './loaders.jsx'
 const ALERT = { info: [Info, 'border-info/25 bg-info/[0.06] text-info'], ok: [CheckCircle2, 'border-ok/25 bg-ok/[0.06] text-ok'], warn: [AlertTriangle, 'border-warn/25 bg-warn/[0.06] text-warn'], bad: [XCircle, 'border-bad/25 bg-bad/[0.06] text-bad'] }
 export const InlineAlert = ({ tone = 'info', title, children, action }) => {
   const [Icon, cls] = ALERT[tone]

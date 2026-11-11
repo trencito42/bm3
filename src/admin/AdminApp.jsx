@@ -125,6 +125,8 @@ const Pricing = () => <Page title="Pricing" desc="Price books and regional overr
 /* The workflow screens designed in the studio replace the generic list pages wherever there is one. The older
    components above stay only as the base the studio versions grew from (and as the fallback for sections without one). */
 import * as Studio from '../studio/AdminCommerce.jsx'
+import { PageLoad } from '../components/loaders.jsx'
+import { Sk, adminKind } from '../components/pageSkeletons.jsx'
 import * as StudioOps from '../studio/AdminOps.jsx'
 const SECTIONS = { '': <Dashboard />, ...GEN, customers: <Studio.Customers />, orders: <Studio.Orders />, services: <Studio.Services />, products: <Studio.CatalogStudio />, editor: <Studio.ProductEditor />, pricing: <Studio.Pricing />, promotions: <Studio.Pricing />, reports: <StudioOps.Reports />, support: <StudioOps.SupportDesk />, bots: <StudioOps.BotBuilder />, automations: <StudioOps.Automations />, analytics: <StudioOps.SupportStats />, abuse: <StudioOps.Abuse />, infrastructure: <StudioOps.Infra />, incidents: <StudioOps.Incidents />, operations: <StudioOps.Operations />, backups: <StudioOps.Backups />, mail: <StudioOps.MailAdmin />, templates: <StudioOps.Content />, staff: <StudioOps.Staff />, audit: <StudioOps.AuditLog />, integrations: <StudioOps.Integrations /> }
 
@@ -146,7 +148,7 @@ export default function AdminApp() {
       <MobileSheet open={mob} onClose={() => setMob(false)}>{Side()}</MobileSheet>
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line px-5"><button className="grid size-9 place-items-center rounded-lg text-mute md:hidden" onClick={() => setMob(true)} aria-label="Menu"><Boxes className="size-4" /></button><span className="grid size-8 place-items-center rounded-lg border border-line-2 bg-white/[0.04] text-mute"><CurIcon className="size-4" /></span><h2 className="text-[15px] font-semibold tracking-tight">{cur[1]}</h2><div className="flex-1" /><div className="hidden items-center gap-2 rounded-lg border border-line px-2.5 py-1.5 text-[12.5px] text-dim sm:flex"><Search className="size-3.5" />Search everything<kbd className="ml-6 font-mono text-[10px]">⌘K</kbd></div></header>
-        <main className="min-h-0 flex-1 overflow-y-auto"><div className="anim-page mx-auto max-w-6xl p-6 md:p-8" key={pathname}>{SECTIONS[seg] ?? (seg === '' ? SECTIONS[''] : <NotFoundScene home="/admin" homeLabel="Back to dashboard" links={ADMIN_LINKS} />)}</div></main>
+        <main className="min-h-0 flex-1 overflow-y-auto"><div className="anim-page mx-auto max-w-6xl p-6 md:p-8" key={pathname}><PageLoad id={pathname} skeleton={<Sk kind={adminKind(seg, pathname)} />}>{SECTIONS[seg] ?? (seg === '' ? SECTIONS[''] : <NotFoundScene home="/admin" homeLabel="Back to dashboard" links={ADMIN_LINKS} />)}</PageLoad></div></main>
       </div>
     </div>
   )

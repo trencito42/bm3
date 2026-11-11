@@ -38,8 +38,11 @@ import System from './workspace/System.jsx'
 import Pages from './workspace/Pages.jsx'
 import Advanced from './workspace/Advanced.jsx'
 import Deploy from './workspace/Deploy.jsx'
+import Loading from './workspace/Loading.jsx'
 import { AdminStudioPage, BillingStudioPage, InstancePage, MailPage, VpsPage } from './workspace/Studios.jsx'
 import { FrameScreen, Screen } from './studio/screens.jsx'
+import { PageLoad } from './components/loaders.jsx'
+import { Sk, customerKind } from './components/pageSkeletons.jsx'
 import AdminApp from './admin/AdminApp.jsx'
 import SiteApp from './site/SiteApp.jsx'
 
@@ -236,6 +239,7 @@ function Layout() {
           {!builder && <DotField className="pointer-events-none absolute inset-0 size-full" pitch={34} glyphs strength={0.5} />}
           <main className={cn('absolute inset-0', builder ? 'overflow-hidden' : 'overflow-y-auto')}>
             <div className={builder ? 'h-full' : 'anim-page mx-auto max-w-5xl space-y-6 p-4 pb-28 sm:p-6 sm:pb-28 md:p-8 md:pb-8'} key={loc.pathname}>
+              <PageLoad id={loc.pathname} ms={builder ? 1 : 720} wrap={builder ? 'h-full' : 'space-y-6'} skeleton={<Sk kind={customerKind(loc.pathname)} />}>
               <Routes>
                 <Route path="/" element={<Overview />} />
                 <Route path="/services" element={<Services />} />
@@ -256,6 +260,7 @@ function Layout() {
                 <Route path="/account" element={<AccountPage />} />
                 <Route path="*" element={<NotFoundScene home="/" homeLabel="Back to overview" links={APP_LINKS} />} />
               </Routes>
+              </PageLoad>
             </div>
           </main>
         </div>
@@ -296,6 +301,7 @@ function Root() {
             <Route path="/ds/vps" element={<VpsPage />} />
             <Route path="/ds/mail" element={<MailPage />} />
             <Route path="/ds/billing" element={<BillingStudioPage />} />
+            <Route path="/ds/loading" element={<Loading />} />
             <Route path="/ds/adminstudio" element={<AdminStudioPage />} />
             <Route path="*" element={<NotFoundScene home="/ds/foundations" homeLabel="Back to foundations" />} />
           </Routes>

@@ -162,6 +162,10 @@ button { cursor: pointer; }
 /* status page: the 90-day strip draws itself left to right the first time it is seen */
 .up-strip[data-seen] > i { transform-origin: 50% 100%; animation: up-bar 460ms var(--ease-expo) both; animation-delay: calc(var(--n) * 5ms); }
 @keyframes up-bar { from { opacity: 0; transform: scaleY(.2) } }
+/* the page replaces its skeleton without a jump: it fades in over the same box */
+.load-in { animation: load-in 320ms var(--ease-out) both; }
+@keyframes load-in { from { opacity: 0 } }
+@media (prefers-reduced-motion: reduce) { .load-in { animation: none } }
 /* decoding text: real text reserves the box, noise sits on top of it and is clipped to it */
 .dc { display: inline-grid; max-width: 100%; vertical-align: baseline; }
 .dc > * { grid-area: 1 / 1; min-width: 0; }
