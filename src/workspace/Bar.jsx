@@ -13,7 +13,7 @@ export const SECTIONS = [
   ['04', 'Product', '/ds/product', (p) => p.startsWith('/ds/product')],
   ['05', 'Customer app', '/', (p) => !/^\/(ds|admin|site)/.test(p)],
   ['06', 'Admin', '/admin', (p) => p.startsWith('/admin')],
-  ['07', 'Public site', '/site', (p) => p.startsWith('/site') && !p.startsWith('/site/blog')],
+  ['07', 'Public site', '/site', (p) => p.startsWith('/site') && !p.startsWith('/site/blog') && !p.startsWith('/site/games')],
   ['08', 'Blog', '/site/blog', (p) => p.startsWith('/site/blog')],
   ['09', 'States & mobile', '/ds/states', (p) => p.startsWith('/ds/states')],
   ['10', 'Logo lab', '/ds/logos', (p) => p.startsWith('/ds/logos')],
@@ -29,7 +29,8 @@ export const SECTIONS = [
   ['20', 'Admin studio', '/ds/adminstudio', (p) => p.startsWith('/ds/adminstudio')],
   ['21', 'Loading screens', '/ds/loading', (p) => p.startsWith('/ds/loading')],
   ['22', 'Coming soon', '/ds/soon', (p) => p.startsWith('/ds/soon') || p.startsWith('/soon')],
-  ['23', 'All pages', '/ds/pages', (p) => p.startsWith('/ds/pages')],
+  ['23', 'Game hosting', '/site/games', (p) => p.startsWith('/site/games')],
+  ['24', 'All pages', '/ds/pages', (p) => p.startsWith('/ds/pages')],
 ]
 
 export default function WorkspaceBar() {

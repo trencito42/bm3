@@ -18,7 +18,7 @@ export const HERO = {
 export const STAGE = [
   { id: 'site', word: 'YOUR WEBSITE.', label: 'Website', icon: Wand2, url: 'crumbandco.blipmade.site', from: 4, to: '/site/products/web', cta: 'Build a website' },
   { id: 'app', word: 'YOUR APP.', label: 'App', icon: Code2, url: 'console.blipmade.cloud', from: 3.2, to: '/site/apps', cta: 'Deploy an app' },
-  { id: 'game', word: 'YOUR GAME SERVER.', label: 'Game', icon: Gamepad2, url: 'play.blipmade.gg', from: 6.24, to: '/site/apps/minecraft', cta: 'Start a game server' },
+  { id: 'game', word: 'YOUR GAME SERVER.', label: 'Game', icon: Gamepad2, url: 'play.blipmade.gg', from: 6.24, to: '/site/games', cta: 'Start a game server' },
   { id: 'vps', word: 'YOUR SERVER.', label: 'VPS', icon: Server, url: 'vps-fra-01 · 45.83.12.9', from: 4, to: '/site/products/vps', cta: 'Configure a VPS' },
 ]
 

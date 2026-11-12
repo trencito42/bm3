@@ -20,7 +20,7 @@ function AppCard({ app, i }) {
   const Ico = catOf(app.category).icon
   return (
     <li className="anim-rise" style={{ '--i': Math.min(i, 10) }}>
-      <button onClick={() => nav('/site/apps/' + app.id)} className="group relative flex h-full w-full flex-col gap-3 rounded-xl border border-line bg-card p-5 text-left outline-none transition-[border-color,background-color,transform] duration-200 ease-[var(--ease-out)] hover:-translate-y-0.5 hover:border-line-2 hover:bg-[#161619] focus-visible:border-white/40 active:translate-y-0">
+      <button onClick={() => nav((app.category === 'games' ? '/site/games/' : '/site/apps/') + app.id)} className="group relative flex h-full w-full flex-col gap-3 rounded-xl border border-line bg-card p-5 text-left outline-none transition-[border-color,background-color,transform] duration-200 ease-[var(--ease-out)] hover:-translate-y-0.5 hover:border-line-2 hover:bg-[#161619] focus-visible:border-white/40 active:translate-y-0">
         <div className="flex items-start justify-between">
           <IconTile><Ico /></IconTile>
           {app.soon
@@ -147,7 +147,7 @@ function Summary({ app, ed, ram, cpu, disk, region, yearly, setYearly, price, de
   )
 }
 
-export function AppPage({ id }) {
+export function AppPage({ id, game }) {
   const nav = useNavigate()
   const app = APPS.find((a) => a.id === id)
   const [edId, setEdId] = useState('paper')
@@ -180,13 +180,13 @@ export function AppPage({ id }) {
   return (
     <div key={app.id} className="anim-page mx-auto max-w-6xl px-5 pb-10 pt-10 md:px-10 md:pt-14">
       <div className="anim-rise" style={{ '--i': 0 }}>
-        <BackLink onClick={() => nav('/site/apps')}>Catalog</BackLink>
+        <BackLink onClick={() => nav(game ? '/site/games' : '/site/apps')}>{game ? 'All games' : 'Catalog'}</BackLink>
         <div className="mt-5 flex items-start gap-4 md:gap-5">
           <span className="grid size-14 shrink-0 place-items-center rounded-2xl border border-line-2 bg-card text-fg md:size-16"><cat.icon className="size-6 md:size-7" /></span>
           <div className="min-w-0">
-            <div className={eyebrow}>{cat.label}</div>
+            <div className={eyebrow}>{game ? `Game hosting · ${game.group}` : cat.label}</div>
             <h1 className="mt-1.5 flex flex-wrap items-center gap-3 text-[clamp(28px,4.4vw,44px)] font-semibold leading-none tracking-tight">{app.name}{app.soon && <Badge tone="warn" dot={false}>Coming soon</Badge>}</h1>
-            <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-mute">{app.tagline}</p>
+            <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-mute">{game ? game.intro : app.tagline}</p>
           </div>
         </div>
       </div>

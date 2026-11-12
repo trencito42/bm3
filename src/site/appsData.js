@@ -22,6 +22,7 @@ export const EDITIONS = [
 export const APPS = [
   mk('minecraft', 'Minecraft', 'games', 'Choose Paper, Forge, Vanilla, Bedrock or Folia.', 6.24, { ram: [2, 32, 4], rate: 1.56, editions: true, slots: 6 }),
   mk('cs2', 'Counter-Strike 2', 'games', 'Dedicated server with RCON and workshop maps.', 9.5, { ram: [4, 16, 4], rate: 2.4, slots: 5 }),
+  mk('cs', 'Counter-Strike 1.6', 'games', 'Classic Counter-Strike with AMX Mod X and custom maps.', 3, { ram: [1, 8, 2], rate: 1.5, slots: 12 }),
   mk('rust', 'Rust', 'games', 'Vanilla or Oxide, with wipe schedules.', 14, { ram: [8, 32, 8], rate: 1.8, slots: 12 }),
   mk('valheim', 'Valheim', 'games', 'Persistent worlds with automatic backups.', 7.5, { ram: [2, 8, 4], rate: 1.9, slots: 4 }),
   mk('terraria', 'Terraria', 'games', 'tModLoader ready, one-click world upload.', 4.2, { ram: [1, 8, 2], rate: 2.1, slots: 8 }),

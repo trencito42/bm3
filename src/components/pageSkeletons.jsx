@@ -116,6 +116,7 @@ export const siteKind = (seg, arg) => {
   if (seg === '') return 'home'
   if (seg === 'products') return arg ? 'product' : 'products'
   if (seg === 'apps') return arg ? 'product' : 'appsCatalog'
+  if (seg === 'games') return arg ? 'product' : 'home'
   if (seg === 'blog') return arg ? 'post' : 'blog'
   if (['login', 'register', 'recover'].includes(seg)) return 'auth'
   return { docs: 'docs', status: 'status', changelog: 'changelog', contact: 'contact', legal: 'legal' }[seg] || 'siteGeneric'

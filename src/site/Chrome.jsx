@@ -24,7 +24,7 @@ export const MENU = [
       { h: 'Hosting', items: [
         { t: 'Web hosting', d: 'Managed PHP, static and Node sites.', to: P + 'web', I: Globe },
         { t: 'VPS', d: 'NVMe servers with full root access.', to: P + 'vps', I: Server },
-        { t: 'Game servers', d: 'One-click Minecraft, Rust, CS2.', to: P + 'game', I: Gamepad2 },
+        { t: 'Game servers', d: 'One-click Minecraft, Rust, CS2.', to: '/site/games', I: Gamepad2 },
       ] },
       { h: 'Data & identity', items: [
         { t: 'Databases', d: 'PostgreSQL, MySQL and Redis with backups.', to: P + 'db', I: Database },
@@ -40,7 +40,7 @@ export const MENU = [
       { h: 'By team', items: [
         { t: 'Startups', d: 'Start on one VPS, grow without re-platforming.', to: '/site/products', I: Rocket },
         { t: 'Agencies', d: 'Client billing, access and per-site backups.', to: '/site/products', I: Users },
-        { t: 'Game communities', d: 'Servers that stay up during the launch rush.', to: P + 'game', I: Gamepad2 },
+        { t: 'Game communities', d: 'Servers that stay up during the launch rush.', to: '/site/games', I: Gamepad2 },
       ] },
       { h: 'By need', items: [
         { t: 'Launch a site fast', d: 'Describe it, review it, publish it.', to: '/site/register', I: Zap },
@@ -67,7 +67,7 @@ export const MENU = [
     feature: { tag: 'CLI', t: 'Deploy in one line', d: 'blip deploy vps --plan pro --region fra', mono: true, to: '/site/docs', cta: 'Read the quick start' },
   },
 ]
-const FLAT = [['/site/apps', 'Apps'], ['/site/products', 'Pricing'], ['/site/blog', 'Blog'], ['/site/status', 'Status']]
+const FLAT = [['/site/apps', 'Apps'], ['/site/games', 'Games'], ['/site/products', 'Pricing'], ['/site/blog', 'Blog'], ['/site/status', 'Status']]
 
 /* ------------------------------ desktop mega panel ------------------------------ */
 function MegaLink({ it }) {
@@ -440,8 +440,8 @@ function useSeenOnce(ref, margin = '0px 0px -6% 0px') {
 }
 
 const COLS = [
-  ['Hosting', [['Web hosting', P + 'web'], ['VPS', P + 'vps'], ['Game servers', '/site/apps'], ['Databases', P + 'db'], ['Email hosting', P + 'mail'], ['Domains', P + 'dom']]],
-  ['Solutions', [['Startups', '/site/products'], ['Agencies', '/site/products'], ['Game communities', P + 'game'], ['Migrations', '/site/docs'], ['Site builder', '/site/register']]],
+  ['Hosting', [['Web hosting', P + 'web'], ['VPS', P + 'vps'], ['Game servers', '/site/games'], ['Databases', P + 'db'], ['Email hosting', P + 'mail'], ['Domains', P + 'dom']]],
+  ['Solutions', [['Startups', '/site/products'], ['Agencies', '/site/products'], ['Game communities', '/site/games'], ['Migrations', '/site/docs'], ['Site builder', '/site/register']]],
   ['Developers', [['Documentation', '/site/docs'], ['API reference', '/site/docs'], ['CLI', '/site/docs'], ['System status', '/site/status'], ['Changelog', '/site/changelog']]],
   ['Company', [['Blog', '/site/blog'], ['Changelog', '/site/changelog'], ['Contact', '/site/contact'], ['Support', '/site/login'], ['Client area', '/site/login']]],
   ['Legal', [['Terms of service', '/site/legal/terms'], ['Privacy policy', '/site/legal/privacy'], ['Acceptable use', '/site/legal/aup'], ['SLA', '/site/legal/sla'], ['DPA', '/site/legal/dpa'], ['Cookie policy', '/site/legal/cookies']]],

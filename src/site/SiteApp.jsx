@@ -12,6 +12,7 @@ import HomePage from './HomePage.jsx'
 import { SiteFooter, SiteHeader } from './Chrome.jsx'
 import { NotFoundScene, SITE_LINKS } from '../components/NotFound.jsx'
 import { AppPage, AppsCatalog } from './AppsPages.jsx'
+import { GamePage, GamesCatalog } from './GamesPages.jsx'
 import { BlogIndex, BlogPost } from './BlogPages.jsx'
 import { ChangelogPage, ContactPage, LegalPage, StatusPage } from './MorePages.jsx'
 import { CookieConsent } from './CookieConsent.jsx'
@@ -27,7 +28,7 @@ function SitePalette({ open, setOpen }) {
   const groups = useMemo(() => [
     { heading: 'Pages', items: [['Home', '/site', Globe], ['Products and pricing', '/site/products', Server], ['App catalogue', '/site/apps', Database], ['Blog', '/site/blog', Mail], ['Changelog', '/site/changelog', Check], ['System status', '/site/status', Cloud], ['Documentation', '/site/docs', Gamepad2], ['Contact', '/site/contact', Mail], ['Terms of service', '/site/legal/terms', Check], ['Privacy policy', '/site/legal/privacy', Check]].map(([l, to, I]) => ({ id: 'p' + to, label: l, to, icon: I })) },
     { heading: 'Products', items: CATALOG.map((c) => ({ id: 'c' + c.id, label: c.name, hint: `from ${money(c.from)} / mo`, icon: Server, to: '/site/products/' + c.id, keywords: [c.blurb] })) },
-    { heading: 'Apps and games', items: SITE_APPS.map((a) => ({ id: 'a' + a.id, label: a.name, hint: `from ${money(a.from)} / mo`, icon: Gamepad2, to: '/site/apps/' + a.id, keywords: [a.tagline, a.category] })) },
+    { heading: 'Apps and games', items: [{ id: 'games-catalog', label: 'Game hosting', to: '/site/games', icon: Gamepad2, keywords: ['games', 'servers'] }, ...SITE_APPS.map((a) => ({ id: 'a' + a.id, label: a.name, hint: a.soon ? 'Coming soon' : `from ${money(a.from)} / mo`, icon: Gamepad2, to: (a.category === 'games' ? '/site/games/' : '/site/apps/') + a.id, keywords: [a.tagline, a.category] }))] },
     { heading: 'Blog', items: POSTS.map((p) => ({ id: 'b' + p.id, label: p.title, hint: p.category, icon: Mail, to: '/site/blog/' + p.id, keywords: [p.excerpt] })) },
     { heading: 'Help', items: [['Quick start', 'start'], ['Connect by SSH', 'ssh'], ['Point a domain', 'dns'], ['API reference', 'api']].map(([l, k]) => ({ id: 'd' + k, label: l, hint: 'docs', icon: Cloud, to: '/site/docs' })) },
     { heading: 'Account', items: [{ id: 'l-in', label: 'Log in', icon: ArrowRight, to: '/site/login' }, { id: 'l-up', label: 'Create an account', icon: ArrowRight, to: '/site/register', keywords: ['sign up', 'free'] }, { id: 'l-abuse', label: 'Report abuse', icon: ArrowRight, to: '/site/legal/aup' }] },
@@ -38,6 +39,7 @@ function SitePalette({ open, setOpen }) {
 function Shell({ children }) {
   const { pathname } = useLocation()
   const home = /^\/site\/?$/.test(pathname)
+  const gameCatalog = /^\/site\/(games|products\/game)\/?$/.test(pathname)
   const scroller = useRef(null)
   const [pal, setPal] = useState(false)
   usePaletteHotkey(setPal, { slash: true })
@@ -47,7 +49,7 @@ function Shell({ children }) {
     <div ref={scroller} className="flex h-full flex-col overflow-y-auto bg-bg">
       <SiteHeader />
       <div className="flex-1">{children}</div>
-      <SiteFooter cta={!home} />
+      <SiteFooter cta={!home && !gameCatalog} />
       <CookieConsent />
       <SitePalette open={pal} setOpen={setPal} />
     </div>
@@ -155,6 +157,6 @@ const NotFound = () => <NotFoundScene home="/site" homeLabel="Back to home" link
 export default function SiteApp() {
   const { pathname } = useLocation()
   const [, seg = '', arg] = pathname.replace(/^\/site\/?/, '/').split('/')
-  const page = { '': <HomePage />, products: <Products id={arg} />, apps: arg ? <AppPage key={arg} id={arg} /> : <AppsCatalog />, blog: arg ? <BlogPost key={arg} id={arg} /> : <BlogIndex />, login: <Auth key="l" mode="login" />, register: <Auth key="r" mode="register" />, recover: <Auth key="c" mode="recover" />, docs: <Docs />, status: <StatusPage />, changelog: <ChangelogPage />, contact: <ContactPage />, legal: <LegalPage key={arg || 'terms'} id={arg || 'terms'} /> }[seg] || <NotFound />
+  const page = { '': <HomePage />, products: arg === 'game' ? <GamesCatalog /> : <Products id={arg} />, games: arg ? <GamePage key={arg} id={arg} /> : <GamesCatalog />, apps: arg ? <AppPage key={arg} id={arg} /> : <AppsCatalog />, blog: arg ? <BlogPost key={arg} id={arg} /> : <BlogIndex />, login: <Auth key="l" mode="login" />, register: <Auth key="r" mode="register" />, recover: <Auth key="c" mode="recover" />, docs: <Docs />, status: <StatusPage />, changelog: <ChangelogPage />, contact: <ContactPage />, legal: <LegalPage key={arg || 'terms'} id={arg || 'terms'} /> }[seg] || <NotFound />
   return <Shell><PageLoad key={pathname} id={pathname} wrap="" skeleton={<Sk kind={siteKind(seg, arg)} />}>{page}</PageLoad></Shell>
 }
