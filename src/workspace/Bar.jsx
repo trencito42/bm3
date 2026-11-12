@@ -28,7 +28,8 @@ export const SECTIONS = [
   ['19', 'Billing', '/ds/billing', (p) => p.startsWith('/ds/billing')],
   ['20', 'Admin studio', '/ds/adminstudio', (p) => p.startsWith('/ds/adminstudio')],
   ['21', 'Loading screens', '/ds/loading', (p) => p.startsWith('/ds/loading')],
-  ['22', 'All pages', '/ds/pages', (p) => p.startsWith('/ds/pages')],
+  ['22', 'Coming soon', '/ds/soon', (p) => p.startsWith('/ds/soon') || p.startsWith('/soon')],
+  ['23', 'All pages', '/ds/pages', (p) => p.startsWith('/ds/pages')],
 ]
 
 export default function WorkspaceBar() {

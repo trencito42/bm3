@@ -1,0 +1,30 @@
+/* Coming soon / pre-register. */
+
+/* the button that becomes the form: one element travels from the button's place to the middle of the screen, exactly like the chat
+   launcher becomes the conversation, only centred. Opening is slow and soft, closing is quicker. */
+.pre-shell { transition: left 520ms var(--ease-expo), top 520ms var(--ease-expo), width 520ms var(--ease-expo), height 520ms var(--ease-expo), border-radius 520ms var(--ease-expo), background-color 300ms, box-shadow 300ms; will-change: left, top, width, height; contain: layout style; }
+.pre-shell[data-phase=from] { transition: none; }
+.pre-shell[data-phase=closing] { transition-duration: 320ms, 320ms, 320ms, 320ms, 320ms, 200ms, 200ms; transition-timing-function: var(--ease-std); }
+.pre-panel { transition: opacity 200ms ease-out; }
+.pre-label { transition: opacity 140ms ease-out; }
+.pre-back { transition: opacity 320ms ease-out, backdrop-filter 320ms ease-out; }
+/* a step inside the form replaces the previous one without a jump: the shell animates its height, the content fades up */
+.pre-step { animation: pre-step 380ms var(--ease-expo) both; }
+@keyframes pre-step { from { opacity: 0; transform: translateY(8px) } }
+
+/* the headline glitches now and then: the word slips sideways in two slices and a red copy of it flashes out of register */
+.gl { position: relative; display: inline-flex; max-width: 100%; }
+.gl-main { animation: gl-main 4.2s steps(1, end) infinite; }
+.gl-ghost { position: absolute; inset: 0; opacity: 0; pointer-events: none; animation: gl-ghost 4.2s steps(1, end) infinite; }
+.gl-ghost circle { fill: var(--brand) !important; }
+@keyframes gl-main { 0%, 70%, 100% { transform: none; clip-path: none } 71% { transform: translateX(4px); clip-path: inset(0 0 58% 0) } 73% { transform: translateX(-3px); clip-path: inset(42% 0 0 0) } 75% { transform: translateX(2px); clip-path: inset(18% 0 30% 0) } 77% { transform: none; clip-path: none } }
+@keyframes gl-ghost { 0%, 70%, 100% { opacity: 0 } 71% { opacity: .85; transform: translate(-5px, 1px); clip-path: inset(38% 0 20% 0) } 73% { opacity: .7; transform: translate(6px, -1px); clip-path: inset(0 0 62% 0) } 75% { opacity: .6; transform: translate(-2px, 0); clip-path: inset(66% 0 0 0) } 77% { opacity: 0 } }
+
+/* boot log: a cursor at the end of the last line */
+.soon-cursor { display: inline-block; width: 7px; height: 13px; margin-left: 3px; vertical-align: -2px; background: currentColor; animation: mx-blink-s 1s steps(1) infinite; }
+@keyframes mx-blink-s { 50% { opacity: 0 } }
+/* the four Blips wait in a row and take turns looking busy */
+.soon-cast > * { transition: transform 400ms var(--ease-expo), opacity 400ms; }
+.soon-cast > [data-on] { transform: translateY(-4px); }
+
+@media (prefers-reduced-motion: reduce) { .pre-shell, .pre-panel, .pre-label, .pre-back { transition-duration: 1ms !important } .pre-step, .gl-main, .gl-ghost, .soon-cursor { animation: none } }

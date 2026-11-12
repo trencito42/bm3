@@ -40,6 +40,8 @@ import Advanced from './workspace/Advanced.jsx'
 import Deploy from './workspace/Deploy.jsx'
 import Loading from './workspace/Loading.jsx'
 import WorkspacePalette from './workspace/WorkspacePalette.jsx'
+import SoonApp from './soon/Soon.jsx'
+import SoonDoc from './workspace/Soon.jsx'
 import { AdminStudioPage, BillingStudioPage, InstancePage, MailPage, VpsPage } from './workspace/Studios.jsx'
 import { FrameScreen, Screen } from './studio/screens.jsx'
 import { PageLoad } from './components/loaders.jsx'
@@ -259,6 +261,9 @@ function Root() {
   const admin = pathname.startsWith('/admin')
   const site = pathname.startsWith('/site')
   /* a screen on its own, without the workspace bar: what the "Mobile" previews load */
+  const soon = pathname.startsWith('/soon')
+  /* the coming-soon pages on their own, as a visitor gets them (what the previews in the workspace load) */
+  if (pathname.startsWith('/bare/soon')) return <div className="h-dvh overflow-y-auto"><SoonApp base="/bare/soon" /></div>
   if (pathname.startsWith('/frame/')) return <div className="h-dvh overflow-y-auto"><FrameScreen id={pathname.split('/')[2]} /></div>
   return (
     <div className="flex h-dvh flex-col">
@@ -284,12 +289,13 @@ function Root() {
             <Route path="/ds/mail" element={<MailPage />} />
             <Route path="/ds/billing" element={<BillingStudioPage />} />
             <Route path="/ds/loading" element={<Loading />} />
+            <Route path="/ds/soon" element={<SoonDoc />} />
             <Route path="/ds/adminstudio" element={<AdminStudioPage />} />
             <Route path="*" element={<NotFoundScene home="/ds/foundations" homeLabel="Back to foundations" />} />
           </Routes>
-        ) : admin ? <AdminApp /> : site ? <SiteApp /> : <Layout />}
+        ) : admin ? <AdminApp /> : site ? <SiteApp /> : soon ? <div className="h-full overflow-y-auto"><SoonApp /></div> : <Layout />}
       </div>
-      {(!ds || pathname.startsWith('/ds/product')) && !admin && !pathname.startsWith('/builder') && <ChatWidget inApp={!site && !ds} />}
+      {(!ds || pathname.startsWith('/ds/product')) && !admin && !soon && !pathname.startsWith('/builder') && <ChatWidget inApp={!site && !ds} />}
     </div>
   )
 }

@@ -27,6 +27,18 @@ const verifyEmail = () => ({
   text: 'Confirm your email address\n\nYour code: 482 913 (works for 30 minutes)\nOr open: https://blipmade.cloud/verify\n\nIf you did not create an account, ignore this email.\n',
 })
 
+const preRegistration = () => ({
+  subject: 'One step left: choose your password', preheader: 'You pre-registered for Blipmade. This link finishes it.',
+  body: logoBar('PRE-REGISTRATION') + card(
+    eyebrow('You are on the list') + h1('One step left, {{first_name}}') + p('Thanks for pre-registering. Choose a password and your account is ready for the day we open.') + spacer(24) +
+    button('Choose my password') + spacer(22) +
+    kv([['Account', '{{email}}'], ['Link works for', '24 hours'], ['Opening day', 'We email you']]) + spacer(18) +
+    small('If you did not pre-register, ignore this email. No account is created until a password is chosen.') +
+    signoff('chat', 'Pip', 'I will be the first to say hello when the doors open.')
+  ) + footerSystem(),
+  text: 'One step left: choose your password\n\nThanks for pre-registering for Blipmade. Choose a password (link works for 24 hours): https://blipmade.cloud/soon/password\n\nIf you did not pre-register, ignore this email.\n',
+})
+
 const passwordReset = () => ({
   subject: 'Reset your Blipmade password', preheader: 'The link works for one hour. If you did not ask, nothing changes.',
   body: logoBar('SECURITY') + card(
@@ -383,6 +395,7 @@ const seasonalSale = () => ({
 })
 
 export const EMAILS = [
+  { id: 'prereg', kind: 'system', group: 'Account', name: 'Pre-registration', build: preRegistration },
   { id: 'verify', kind: 'system', group: 'Account', name: 'Confirm email', build: verifyEmail },
   { id: 'reset', kind: 'system', group: 'Account', name: 'Password reset', build: passwordReset },
   { id: 'security', kind: 'system', group: 'Account', name: 'New sign-in', build: securityAlert },
