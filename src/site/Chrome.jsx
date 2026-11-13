@@ -67,7 +67,7 @@ export const MENU = [
     feature: { tag: 'CLI', t: 'Deploy in one line', d: 'blip deploy vps --plan pro --region fra', mono: true, to: '/site/docs', cta: 'Read the quick start' },
   },
 ]
-const FLAT = [['/site/apps', 'Apps'], ['/site/games', 'Games'], ['/site/products', 'Pricing'], ['/site/blog', 'Blog'], ['/site/status', 'Status']]
+const FLAT = [['/site/apps', 'Apps'], ['/site/games', 'Games'], ['/site/referral', 'Referrals'], ['/site/products', 'Pricing'], ['/site/blog', 'Blog'], ['/site/status', 'Status']]
 
 /* ------------------------------ desktop mega panel ------------------------------ */
 function MegaLink({ it }) {
@@ -443,7 +443,7 @@ const COLS = [
   ['Hosting', [['Web hosting', P + 'web'], ['VPS', P + 'vps'], ['Game servers', '/site/games'], ['Databases', P + 'db'], ['Email hosting', P + 'mail'], ['Domains', P + 'dom']]],
   ['Solutions', [['Startups', '/site/products'], ['Agencies', '/site/products'], ['Game communities', '/site/games'], ['Migrations', '/site/docs'], ['Site builder', '/site/register']]],
   ['Developers', [['Documentation', '/site/docs'], ['API reference', '/site/docs'], ['CLI', '/site/docs'], ['System status', '/site/status'], ['Changelog', '/site/changelog']]],
-  ['Company', [['Blog', '/site/blog'], ['Changelog', '/site/changelog'], ['Contact', '/site/contact'], ['Support', '/site/login'], ['Client area', '/site/login']]],
+  ['Company', [['Blog', '/site/blog'], ['Referral program', '/site/referral'], ['Changelog', '/site/changelog'], ['Contact', '/site/contact'], ['Support', '/site/login'], ['Client area', '/site/login']]],
   ['Legal', [['Terms of service', '/site/legal/terms'], ['Privacy policy', '/site/legal/privacy'], ['Acceptable use', '/site/legal/aup'], ['SLA', '/site/legal/sla'], ['DPA', '/site/legal/dpa'], ['Cookie policy', '/site/legal/cookies']]],
 ]
 

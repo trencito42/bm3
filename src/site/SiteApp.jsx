@@ -13,6 +13,9 @@ import { SiteFooter, SiteHeader } from './Chrome.jsx'
 import { NotFoundScene, SITE_LINKS } from '../components/NotFound.jsx'
 import { AppPage, AppsCatalog } from './AppsPages.jsx'
 import { GamePage, GamesCatalog } from './GamesPages.jsx'
+import ReferralPage from './ReferralPage.jsx'
+import InvitationPage from './InvitationPage.jsx'
+import { readReferral, referralPath } from './referrals.js'
 import { BlogIndex, BlogPost } from './BlogPages.jsx'
 import { ChangelogPage, ContactPage, LegalPage, StatusPage } from './MorePages.jsx'
 import { CookieConsent } from './CookieConsent.jsx'
@@ -27,6 +30,7 @@ import { cn, money } from '../lib/utils'
 function SitePalette({ open, setOpen }) {
   const groups = useMemo(() => [
     { heading: 'Pages', items: [['Home', '/site', Globe], ['Products and pricing', '/site/products', Server], ['App catalogue', '/site/apps', Database], ['Blog', '/site/blog', Mail], ['Changelog', '/site/changelog', Check], ['System status', '/site/status', Cloud], ['Documentation', '/site/docs', Gamepad2], ['Contact', '/site/contact', Mail], ['Terms of service', '/site/legal/terms', Check], ['Privacy policy', '/site/legal/privacy', Check]].map(([l, to, I]) => ({ id: 'p' + to, label: l, to, icon: I })) },
+    { heading: 'Referrals', items: [{ id: 'referral-program', label: 'Referral program', to: '/site/referral', icon: ArrowRight, hint: '15–20% commission', keywords: ['affiliate', 'partner', 'earn', 'referrals', 'commission'] }] },
     { heading: 'Products', items: CATALOG.map((c) => ({ id: 'c' + c.id, label: c.name, hint: `from ${money(c.from)} / mo`, icon: Server, to: '/site/products/' + c.id, keywords: [c.blurb] })) },
     { heading: 'Apps and games', items: [{ id: 'games-catalog', label: 'Game hosting', to: '/site/games', icon: Gamepad2, keywords: ['games', 'servers'] }, ...SITE_APPS.map((a) => ({ id: 'a' + a.id, label: a.name, hint: a.soon ? 'Coming soon' : `from ${money(a.from)} / mo`, icon: Gamepad2, to: (a.category === 'games' ? '/site/games/' : '/site/apps/') + a.id, keywords: [a.tagline, a.category] }))] },
     { heading: 'Blog', items: POSTS.map((p) => ({ id: 'b' + p.id, label: p.title, hint: p.category, icon: Mail, to: '/site/blog/' + p.id, keywords: [p.excerpt] })) },
@@ -37,9 +41,17 @@ function SitePalette({ open, setOpen }) {
   return <CommandPalette open={open} onOpenChange={setOpen} scope="site" placeholder="Search products, games, guides and articles…" groups={groups} />
 }
 function Shell({ children }) {
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
+  const navigate = useNavigate()
+  const referral = useRef(readReferral(search, window.location.search))
+  // Keep attribution in the visible URL throughout the public-site journey.
+  // No localStorage or optional analytics are needed for this prototype.
+  useEffect(() => {
+    if (new URLSearchParams(search).has('ref')) { referral.current = readReferral(search); return }
+    if (referral.current) navigate(referralPath(pathname + search, referral.current), { replace: true })
+  }, [pathname, search, navigate])
   const home = /^\/site\/?$/.test(pathname)
-  const gameCatalog = /^\/site\/(games|products\/game)\/?$/.test(pathname)
+  const ownCta = /^\/site\/(games|products\/game|referral|invite)\/?$/.test(pathname)
   const scroller = useRef(null)
   const [pal, setPal] = useState(false)
   usePaletteHotkey(setPal, { slash: true })
@@ -49,7 +61,7 @@ function Shell({ children }) {
     <div ref={scroller} className="flex h-full flex-col overflow-y-auto bg-bg">
       <SiteHeader />
       <div className="flex-1">{children}</div>
-      <SiteFooter cta={!home && !gameCatalog} />
+      <SiteFooter cta={!home && !ownCta} />
       <CookieConsent />
       <SitePalette open={pal} setOpen={setPal} />
     </div>
@@ -119,6 +131,8 @@ function Products({ id }) {
 
 function Auth({ mode }) {
   const nav = useNavigate()
+  const { search } = useLocation()
+  const referral = readReferral(search, window.location.search)
   const [tab, setTab] = useState(mode)
   const [otp, setOtp] = useState('')
   const [email, setEmail] = useState('')
@@ -130,6 +144,7 @@ function Auth({ mode }) {
       <div className="relative w-full max-w-sm">
         <span className="absolute -inset-10 -z-0 bg-black/80 backdrop-blur-[10px] [mask-image:radial-gradient(closest-side,#000_62%,transparent)]" />
         <div className="relative rounded-2xl border border-line-2 bg-card p-7 shadow-2xl shadow-black/60">
+          {referral && <p className="mb-5 border-b border-line pb-4 text-[12px] text-mute">Introduced by <span className="font-medium text-fg">@{referral.handle}</span><span className="mt-1 block text-[10px] text-dim">Affiliate referral · prototype</span></p>}
           <div className="mb-6 flex items-center gap-3"><Orb size={36} /><div><div className="text-[17px] font-semibold tracking-tight">{tab === 'login' ? 'Welcome back' : tab === 'register' ? 'Create your account' : tab === 'recover' ? 'Reset password' : 'Two-factor'}</div><div className="text-xs text-dim">{tab === 'login' ? 'Log in to your client area' : tab === 'register' ? 'Free to start. No card required.' : tab === 'recover' ? 'We will email you a reset link' : 'Enter the 6-digit code'}</div></div></div>
           {tab === 'login' && <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); setTab('2fa') }}><FormField label="Email"><input type="email" required className={inputCls()} placeholder="you@example.com" /></FormField><FormField label="Password"><PasswordInput required /></FormField><div className="flex justify-end"><button type="button" onClick={() => setTab('recover')} className="text-xs text-dim hover:text-fg">Forgot password?</button></div><Button size="lg" className="w-full">Log in</Button><p className="text-center text-[13px] text-dim">New here? <button type="button" onClick={() => setTab('register')} className="text-fg underline underline-offset-4">Create account</button></p></form>}
           {tab === 'register' && <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); toast.success('Account created (simulated)'); nav('/') }}><FormField label="Name"><input required className={inputCls()} /></FormField><FormField label="Email" error={bad ? 'Enter a valid email address' : undefined}><input value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls(bad)} /></FormField><FormField label="Password" hint="At least 12 characters"><PasswordInput required autoComplete="new-password" /></FormField><Button size="lg" className="w-full" disabled={!!bad}>Create account</Button><p className="text-center text-[13px] text-dim">Have an account? <button type="button" onClick={() => setTab('login')} className="text-fg underline underline-offset-4">Log in</button></p></form>}
@@ -158,5 +173,5 @@ export default function SiteApp() {
   const { pathname } = useLocation()
   const [, seg = '', arg] = pathname.replace(/^\/site\/?/, '/').split('/')
   const page = { '': <HomePage />, products: arg === 'game' ? <GamesCatalog /> : <Products id={arg} />, games: arg ? <GamePage key={arg} id={arg} /> : <GamesCatalog />, apps: arg ? <AppPage key={arg} id={arg} /> : <AppsCatalog />, blog: arg ? <BlogPost key={arg} id={arg} /> : <BlogIndex />, login: <Auth key="l" mode="login" />, register: <Auth key="r" mode="register" />, recover: <Auth key="c" mode="recover" />, docs: <Docs />, status: <StatusPage />, changelog: <ChangelogPage />, contact: <ContactPage />, legal: <LegalPage key={arg || 'terms'} id={arg || 'terms'} /> }[seg] || <NotFound />
-  return <Shell><PageLoad key={pathname} id={pathname} wrap="" skeleton={<Sk kind={siteKind(seg, arg)} />}>{page}</PageLoad></Shell>
+  return <Shell><PageLoad key={pathname} id={pathname} wrap="" skeleton={<Sk kind={['referral', 'invite'].includes(seg) ? 'home' : siteKind(seg, arg)} />}>{seg === 'referral' ? <ReferralPage /> : seg === 'invite' ? <InvitationPage /> : page}</PageLoad></Shell>
 }

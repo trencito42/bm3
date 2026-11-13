@@ -20,6 +20,8 @@ export default function WorkspacePalette() {
     { heading: 'Design system', items: SECTIONS.filter(([, , to]) => to.startsWith('/ds/')).map(([n, l, to]) => ({ id: 'ds' + to, label: l, hint: n, icon: LayoutGrid, to })) },
     { heading: 'Admin workflows', items: ADMIN_SECTIONS.flatMap(([g, items]) => items.map(([id, l]) => ({ id: 'ad' + id, label: l, hint: g, icon: UserCog, to: '/ds/adminstudio?s=' + id }))) },
     { heading: 'The mock apps', items: [
+      { id: 'site-referral', label: 'Referral program', icon: Globe, to: '/site/referral', hint: '15–20% commission' },
+      { id: 'site-invitation', label: 'Referral invitation', icon: Globe, to: '/site/invite?ref=trencito', hint: 'The invited visitor’s landing page' },
       { id: 'site-games', label: 'Game hosting', icon: Globe, to: '/site/games', hint: 'Minecraft, CS2, CS 1.6 and more' },
       { id: 'app', label: 'Customer app', icon: AppWindow, to: '/', hint: 'overview' }, { id: 'app-deploy', label: 'Deploy', icon: AppWindow, to: '/catalog' }, { id: 'app-vps', label: 'VPS', icon: AppWindow, to: '/vps' }, { id: 'app-mail', label: 'Email', icon: AppWindow, to: '/email' }, { id: 'app-billing', label: 'Billing', icon: AppWindow, to: '/billing' },
       { id: 'adm', label: 'Admin', icon: Shield, to: '/admin', hint: 'dashboard' }, { id: 'adm-c', label: 'Admin customers', icon: Shield, to: '/admin/customers' }, { id: 'adm-s', label: 'Admin support desk', icon: Shield, to: '/admin/support' },
