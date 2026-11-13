@@ -6,12 +6,17 @@ import { TooltipProvider } from '@radix-ui/react-tooltip'
 import App from './App.jsx'
 import './index.css'
 import { readReferral, referralPath } from './site/referrals.js'
+import { validSupportSlug } from './site/communitySupport.js'
 
 // A shared public URL has a normal query string, while this workspace uses hash
 // routes. Resolve it before mounting the router so it never opens the dashboard.
 const invitation = readReferral(window.location.search)
 if (new URLSearchParams(window.location.search).has('ref') && !window.location.hash) {
   history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${referralPath('/site/invite', invitation)}`)
+}
+const community = window.location.pathname.match(/^\/support\/([^/]+)\/?$/)?.[1]
+if (validSupportSlug(community) && !window.location.hash) {
+  history.replaceState(null, '', `${window.location.pathname}${window.location.search}#/site/support/${community}`)
 }
 
 createRoot(document.getElementById('root')).render(

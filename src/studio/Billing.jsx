@@ -9,6 +9,7 @@ import { Orb } from '../builder/FxBits.jsx'
 import { BulkTable, JobTimeline } from './patterns.jsx'
 import { Kv, Panel, ScreenHead, StateHero, Tile, eyebrow, useSim } from './kit.jsx'
 import { cn, money } from '../lib/utils'
+import { useStore } from '../lib/store.jsx'
 
 const SUBS = [
   { id: 's1', name: 'web-01 · VPS Pro', price: 12, state: 'active', next: 'Dec 02', since: 'Mar 2026', period: 'Monthly' },
@@ -75,11 +76,13 @@ function Payment() {
   )
 }
 function Credit() {
-  const [bal, setBal] = useState(42.5), [open, setOpen] = useState(false), [amt, setAmt] = useState(25), [st, run, reset] = useSim(1300)
+  const { balance: bal, addFunds, supportEntries } = useStore()
+  const [open, setOpen] = useState(false), [amt, setAmt] = useState(25), [st, run, reset] = useSim(1300)
+  const history = [...supportEntries.filter(e => e.source === 'community-support').map(e => [`Community support · ${e.name || 'Anonymous'}`, '+' + money(e.amountCents / 100), e.when]), ['Top-up', '+$50.00', 'Nov 02'], ['Applied to INV-1031', '−$7.50', 'Oct 09'], ['Refund · INV-0990', '+$12.00', 'Aug 21'], ['Welcome credit', '+$10.00', 'Mar 04']]
   return (
     <div className="grid gap-5 lg:grid-cols-3"><Panel title="Balance" className="lg:col-span-1"><div className="flex items-center gap-4"><Orb size={44} role="chat" state={st === 'ok' ? 'happy' : 'idle'} /><div><div className="font-mono text-[30px] leading-none tabular-nums">{money(bal)}</div><div className="mt-1 text-[12px] text-dim">Used before your card</div></div></div><Button className="mt-5 w-full" onClick={() => { reset(); setOpen(true) }}><Plus />Add funds</Button></Panel>
-      <Panel title="History" className="lg:col-span-2"><ul className="divide-y divide-line text-[13.5px]">{[['Top-up', '+$50.00', 'Nov 02'], ['Applied to INV-1031', '−$7.50', 'Oct 09'], ['Refund · INV-0990', '+$12.00', 'Aug 21'], ['Welcome credit', '+$10.00', 'Mar 04']].map(([a, b, c]) => <li key={a} className="flex items-center gap-3 py-3"><span className="flex-1">{a}</span><span className={cn('font-mono', b.startsWith('+') ? 'text-ok' : 'text-mute')}>{b}</span><span className="font-mono text-[11px] text-dim">{c}</span></li>)}</ul></Panel>
-      <Dialog open={open} onOpenChange={setOpen}><DialogContent title="Add funds" description="Credit never expires and is used first.">{st === 'ok' ? <StateHero state="happy" role="chat" word="ADDED." sub={`${money(amt)} is in your balance.`} small size={56}><Button onClick={() => { setBal((b) => b + amt); setOpen(false); reset() }}>Done</Button></StateHero> : <div className="space-y-4"><div className="grid grid-cols-4 gap-2">{[10, 25, 50, 100].map((a) => <button key={a} onClick={() => setAmt(a)} aria-pressed={amt === a} className={cn('h-10 rounded-lg border font-mono text-[13px] transition-colors', amt === a ? 'border-fg bg-fg text-black' : 'border-line-2 text-mute hover:text-fg')}>${a}</button>)}</div><div className="flex items-center justify-between rounded-lg border border-line p-3 text-[13px]"><span className="flex items-center gap-2 text-dim"><CreditCard className="size-4" />Visa ending 6411</span><span className="font-mono">{money(amt)}</span></div><Button className="w-full" size="lg" loading={st === 'running'} onClick={() => run(false)}>Pay {money(amt)}</Button></div>}</DialogContent></Dialog></div>
+      <Panel title="History" className="lg:col-span-2"><ul className="divide-y divide-line text-[13.5px]">{history.map(([a, b, c], i) => <li key={a + i} className="flex items-center gap-3 py-3"><span className="flex-1">{a}</span><span className={cn('font-mono', b.startsWith('+') ? 'text-ok' : 'text-mute')}>{b}</span><span className="font-mono text-[11px] text-dim">{c}</span></li>)}</ul></Panel>
+      <Dialog open={open} onOpenChange={setOpen}><DialogContent title="Add funds" description="Credit never expires and is used first.">{st === 'ok' ? <StateHero state="happy" role="chat" word="ADDED." sub={`${money(amt)} is in your balance.`} small size={56}><Button onClick={() => { addFunds(amt); setOpen(false); reset() }}>Done</Button></StateHero> : <div className="space-y-4"><div className="grid grid-cols-4 gap-2">{[10, 25, 50, 100].map((a) => <button key={a} onClick={() => setAmt(a)} aria-pressed={amt === a} className={cn('h-10 rounded-lg border font-mono text-[13px] transition-colors', amt === a ? 'border-fg bg-fg text-black' : 'border-line-2 text-mute hover:text-fg')}>${a}</button>)}</div><div className="flex items-center justify-between rounded-lg border border-line p-3 text-[13px]"><span className="flex items-center gap-2 text-dim"><CreditCard className="size-4" />Visa ending 6411</span><span className="font-mono">{money(amt)}</span></div><Button className="w-full" size="lg" loading={st === 'running'} onClick={() => run(false)}>Pay {money(amt)}</Button></div>}</DialogContent></Dialog></div>
   )
 }
 function PlanChange() {

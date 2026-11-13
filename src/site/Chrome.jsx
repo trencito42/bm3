@@ -41,6 +41,7 @@ export const MENU = [
         { t: 'Startups', d: 'Start on one VPS, grow without re-platforming.', to: '/site/products', I: Rocket },
         { t: 'Agencies', d: 'Client billing, access and per-site backups.', to: '/site/products', I: Users },
         { t: 'Game communities', d: 'Servers that stay up during the launch rush.', to: '/site/games', I: Gamepad2 },
+        { t: 'Community support', d: 'A shareable page to help with hosting.', to: '/site/support', I: Users },
       ] },
       { h: 'By need', items: [
         { t: 'Launch a site fast', d: 'Describe it, review it, publish it.', to: '/site/register', I: Zap },
@@ -441,7 +442,7 @@ function useSeenOnce(ref, margin = '0px 0px -6% 0px') {
 
 const COLS = [
   ['Hosting', [['Web hosting', P + 'web'], ['VPS', P + 'vps'], ['Game servers', '/site/games'], ['Databases', P + 'db'], ['Email hosting', P + 'mail'], ['Domains', P + 'dom']]],
-  ['Solutions', [['Startups', '/site/products'], ['Agencies', '/site/products'], ['Game communities', '/site/games'], ['Migrations', '/site/docs'], ['Site builder', '/site/register']]],
+  ['Solutions', [['Startups', '/site/products'], ['Agencies', '/site/products'], ['Game communities', '/site/games'], ['Community support', '/site/support'], ['Migrations', '/site/docs'], ['Site builder', '/site/register']]],
   ['Developers', [['Documentation', '/site/docs'], ['API reference', '/site/docs'], ['CLI', '/site/docs'], ['System status', '/site/status'], ['Changelog', '/site/changelog']]],
   ['Company', [['Blog', '/site/blog'], ['Referral program', '/site/referral'], ['Changelog', '/site/changelog'], ['Contact', '/site/contact'], ['Support', '/site/login'], ['Client area', '/site/login']]],
   ['Legal', [['Terms of service', '/site/legal/terms'], ['Privacy policy', '/site/legal/privacy'], ['Acceptable use', '/site/legal/aup'], ['SLA', '/site/legal/sla'], ['DPA', '/site/legal/dpa'], ['Cookie policy', '/site/legal/cookies']]],

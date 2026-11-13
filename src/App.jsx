@@ -295,7 +295,7 @@ function Root() {
           </Routes>
         ) : admin ? <AdminApp /> : site ? <SiteApp /> : soon ? <div className="h-full overflow-y-auto"><SoonApp /></div> : <Layout />}
       </div>
-      {(!ds || pathname.startsWith('/ds/product')) && !admin && !soon && !pathname.startsWith('/builder') && <ChatWidget inApp={!site && !ds} />}
+      {(!ds || pathname.startsWith('/ds/product')) && !admin && !soon && !pathname.startsWith('/builder') && !pathname.startsWith('/site/support/') && <ChatWidget inApp={!site && !ds} />}
     </div>
   )
 }

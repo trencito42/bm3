@@ -15,6 +15,7 @@ import { AppPage, AppsCatalog } from './AppsPages.jsx'
 import { GamePage, GamesCatalog } from './GamesPages.jsx'
 import ReferralPage from './ReferralPage.jsx'
 import InvitationPage from './InvitationPage.jsx'
+import { PublicSupportPage, SupportOwnerPage } from './CommunitySupport.jsx'
 import { readReferral, referralPath } from './referrals.js'
 import { BlogIndex, BlogPost } from './BlogPages.jsx'
 import { ChangelogPage, ContactPage, LegalPage, StatusPage } from './MorePages.jsx'
@@ -51,7 +52,7 @@ function Shell({ children }) {
     if (referral.current) navigate(referralPath(pathname + search, referral.current), { replace: true })
   }, [pathname, search, navigate])
   const home = /^\/site\/?$/.test(pathname)
-  const ownCta = /^\/site\/(games|products\/game|referral|invite)\/?$/.test(pathname)
+  const ownCta = /^\/site\/(games|products\/game|referral|invite|support)\/?$/.test(pathname)
   const scroller = useRef(null)
   const [pal, setPal] = useState(false)
   usePaletteHotkey(setPal, { slash: true })
@@ -172,6 +173,7 @@ const NotFound = () => <NotFoundScene home="/site" homeLabel="Back to home" link
 export default function SiteApp() {
   const { pathname } = useLocation()
   const [, seg = '', arg] = pathname.replace(/^\/site\/?/, '/').split('/')
+  if (seg === 'support' && arg) return <PublicSupportPage key={arg} slug={arg} />
   const page = { '': <HomePage />, products: arg === 'game' ? <GamesCatalog /> : <Products id={arg} />, games: arg ? <GamePage key={arg} id={arg} /> : <GamesCatalog />, apps: arg ? <AppPage key={arg} id={arg} /> : <AppsCatalog />, blog: arg ? <BlogPost key={arg} id={arg} /> : <BlogIndex />, login: <Auth key="l" mode="login" />, register: <Auth key="r" mode="register" />, recover: <Auth key="c" mode="recover" />, docs: <Docs />, status: <StatusPage />, changelog: <ChangelogPage />, contact: <ContactPage />, legal: <LegalPage key={arg || 'terms'} id={arg || 'terms'} /> }[seg] || <NotFound />
-  return <Shell><PageLoad key={pathname} id={pathname} wrap="" skeleton={<Sk kind={['referral', 'invite'].includes(seg) ? 'home' : siteKind(seg, arg)} />}>{seg === 'referral' ? <ReferralPage /> : seg === 'invite' ? <InvitationPage /> : page}</PageLoad></Shell>
+  return <Shell><PageLoad key={pathname} id={pathname} wrap="" skeleton={<Sk kind={['referral', 'invite', 'support'].includes(seg) ? 'home' : siteKind(seg, arg)} />}>{seg === 'support' ? <SupportOwnerPage /> : seg === 'referral' ? <ReferralPage /> : seg === 'invite' ? <InvitationPage /> : page}</PageLoad></Shell>
 }

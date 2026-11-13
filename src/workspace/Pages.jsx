@@ -8,6 +8,8 @@ import { openCookieSettings } from '../site/CookieConsent.jsx'
 const FILE = import.meta.env.BASE_URL + 'deploying.html'
 /* [name, route, what it is, 'new' when added in the latest pass] */
 const SITE = [
+  ['Community support · owner', '/site/support', 'Personalise a shareable support page, set a goal, copy the link and see contributions credited to the demo balance.', 'new'],
+  ['Community support · public', '/site/support/preview', 'A server’s support page: custom amounts, optional public messages, expanding checkout and a simulated service-credit contribution.', 'new'],
   ['Referral invitation', '/site/invite?ref=trencito', 'The invited visitor’s landing page: all Blipmade hosting, a personal introduction and attribution through signup.', 'new'],
   ['Referral program', '/site/referral', 'Referral promotion, 15–20% commission calculator and a button that expands into a referral link preview.', 'new'],
   ['Home', '/site', 'Hero with the rotating headline, products, Blips, pricing, FAQ.'],

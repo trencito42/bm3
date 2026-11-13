@@ -13,7 +13,7 @@ export const SECTIONS = [
   ['04', 'Product', '/ds/product', (p) => p.startsWith('/ds/product')],
   ['05', 'Customer app', '/', (p) => !/^\/(ds|admin|site)/.test(p)],
   ['06', 'Admin', '/admin', (p) => p.startsWith('/admin')],
-  ['07', 'Public site', '/site', (p) => p.startsWith('/site') && !p.startsWith('/site/blog') && !p.startsWith('/site/games') && !p.startsWith('/site/referral') && !p.startsWith('/site/invite')],
+  ['07', 'Public site', '/site', (p) => p.startsWith('/site') && !p.startsWith('/site/blog') && !p.startsWith('/site/games') && !p.startsWith('/site/referral') && !p.startsWith('/site/invite') && !p.startsWith('/site/support')],
   ['08', 'Blog', '/site/blog', (p) => p.startsWith('/site/blog')],
   ['09', 'States & mobile', '/ds/states', (p) => p.startsWith('/ds/states')],
   ['10', 'Logo lab', '/ds/logos', (p) => p.startsWith('/ds/logos')],
@@ -32,7 +32,9 @@ export const SECTIONS = [
   ['23', 'Game hosting', '/site/games', (p) => p.startsWith('/site/games')],
   ['24', 'Referrals', '/site/referral', (p) => p.startsWith('/site/referral')],
   ['25', 'Invitation', '/site/invite?ref=trencito', (p) => p.startsWith('/site/invite')],
-  ['26', 'All pages', '/ds/pages', (p) => p.startsWith('/ds/pages')],
+  ['26', 'Community support', '/site/support', (p) => p === '/site/support'],
+  ['27', 'Support page', '/site/support/preview', (p) => p.startsWith('/site/support/')],
+  ['28', 'All pages', '/ds/pages', (p) => p.startsWith('/ds/pages')],
 ]
 
 export default function WorkspaceBar() {

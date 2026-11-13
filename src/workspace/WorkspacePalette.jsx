@@ -20,6 +20,8 @@ export default function WorkspacePalette() {
     { heading: 'Design system', items: SECTIONS.filter(([, , to]) => to.startsWith('/ds/')).map(([n, l, to]) => ({ id: 'ds' + to, label: l, hint: n, icon: LayoutGrid, to })) },
     { heading: 'Admin workflows', items: ADMIN_SECTIONS.flatMap(([g, items]) => items.map(([id, l]) => ({ id: 'ad' + id, label: l, hint: g, icon: UserCog, to: '/ds/adminstudio?s=' + id }))) },
     { heading: 'The mock apps', items: [
+      { id: 'site-community-support', label: 'Community support · owner', icon: Globe, to: '/site/support', hint: 'Share a server support page' },
+      { id: 'site-support-page', label: 'Community support · public', icon: Globe, to: '/site/support/preview', hint: 'One-time contributions to service credit' },
       { id: 'site-referral', label: 'Referral program', icon: Globe, to: '/site/referral', hint: '15–20% commission' },
       { id: 'site-invitation', label: 'Referral invitation', icon: Globe, to: '/site/invite?ref=trencito', hint: 'The invited visitor’s landing page' },
       { id: 'site-games', label: 'Game hosting', icon: Globe, to: '/site/games', hint: 'Minecraft, CS2, CS 1.6 and more' },

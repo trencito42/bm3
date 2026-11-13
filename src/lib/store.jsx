@@ -1,7 +1,13 @@
 import { createContext, useContext, useMemo, useState } from 'react'
+import { readSupportProfile, saveSupportProfile } from '../site/communitySupport.js'
 
 const seed = {
   balance: 42.5,
+  supportEntries: [
+    { id: 'support-demo-1', amountCents: 1500, name: 'Mara', message: 'For the next late-night adventure.', public: true, when: 'Earlier in this demo' },
+    { id: 'support-demo-2', amountCents: 1000, name: 'Tudor', message: 'See you at spawn.', public: true, when: 'Earlier in this demo' },
+    { id: 'support-demo-3', amountCents: 750, name: '', message: '', public: false, when: 'Earlier in this demo' },
+  ],
   services: [
     { id: 'vps-01', name: 'blipmade-prod', type: 'VPS Pro', icon: 'server', ip: '45.83.12.9', region: 'Frankfurt', status: 'running', cpu: 34, ram: 61, disk: 48, price: 12, due: 'Dec 02' },
     { id: 'web-02', name: 'portfolio.site', type: 'Web Hosting Nano', icon: 'globe', ip: '45.83.14.21', region: 'Amsterdam', status: 'running', cpu: 8, ram: 22, disk: 15, price: 4, due: 'Dec 09' },
@@ -33,8 +39,18 @@ const Ctx = createContext(null)
 export const useStore = () => useContext(Ctx)
 
 export function StoreProvider({ children }) {
-  const [s, setS] = useState(seed)
+  const [s, setS] = useState(() => ({ ...seed, supportProfile: readSupportProfile() }))
   const actions = useMemo(() => ({
+    patchSupportProfile: (profile) => {
+      saveSupportProfile(profile)
+      setS(p => ({ ...p, supportProfile: profile }))
+    },
+    // Mock only: one state update credits the owner and records the contribution.
+    // Production must use a verified payment webhook and an idempotent wallet ledger.
+    addSupportContribution: entry => setS(p => {
+      if (!p.supportProfile.accepting || !Number.isInteger(entry.amountCents) || entry.amountCents < 100 || entry.amountCents > 100000 || p.supportEntries.some(e => e.id === entry.id)) return p
+      return { ...p, balance: (Math.round(p.balance * 100) + entry.amountCents) / 100, supportEntries: [{ ...entry, source: 'community-support', referralEligible: false }, ...p.supportEntries] }
+    }),
     payInvoice: (id) => setS((p) => ({ ...p, invoices: p.invoices.map((i) => (i.id === id ? { ...i, status: 'paid' } : i)) })),
     addFunds: (n) => setS((p) => ({ ...p, balance: p.balance + n })),
     addService: (svc) => setS((p) => ({ ...p, services: [svc, ...p.services] })),
