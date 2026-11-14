@@ -385,3 +385,9 @@ Not verified
 - Shell: the page's one primary action sits in the bar (a plus on phones); on phones inside the app the floating chat launcher is replaced by a chat button in the bar, so nothing covers the rows. A page shown inside a preview frame no longer carries the workspace bar.
 - Loading skeletons of the three pages reshaped to the new rows.
 - Verified by eye in the preview at 390 and 1440 px (all three pages, the action sheet on a phone), no horizontal overflow, no build errors. Not verified: real touch, keyboard-only pass, the live blipmade.com pages (seen only in the three screenshots sent).
+
+## Checks told by a Blip (2026-11-14)
+- `src/studio/BlipCheck.jsx`: `BlipCheck`, plus `VpsCheck` (Byte, "Cannot connect?": account, machine, load, SSH) and `LagCheck` (Glitch, "Is the server lagging?": answer, ticks per second with 1 / 5 / 15 minute bars, memory, processor). The Blip runs the checks as a log, one line at a time, then gives one sentence and the next step. Each has a healthy run and a problem run (switch on the card).
+- Ticks are green when fine, amber when worth a look, red only when broken (the live version used red ticks for success).
+- Mounted on the server Overview (`studio/Vps.jsx`), on the Game tab (`studio/Instance.jsx`) and shown in `#/ds/advanced`.
+- Build passes. Not looked at in the browser: the preview server was down and the check was skipped on request.

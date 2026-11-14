@@ -11,6 +11,7 @@ import { Orb } from '../builder/FxBits.jsx'
 import { AsyncOperation, ConfigEditor, DestructiveDialog, DiffViewer, JobTimeline, LogViewer, PermissionMatrix, ResourceAllocator, genLogs } from './patterns.jsx'
 import { Decode, Kv, Panel, SaveBar, ScreenHead, StateHero, Tile, eyebrow } from './kit.jsx'
 import { cn } from '../lib/utils'
+import { LagCheck } from './BlipCheck.jsx'
 
 const KIND = {
   app: { name: 'api-gateway', sub: 'Node.js 22 · fra-1 · :3000', blip: 'dev', tabs: ['overview', 'console', 'files', 'git', 'startup', 'schedules', 'backups', 'databases', 'network', 'access', 'settings'] },
@@ -161,6 +162,7 @@ function Game({ status }) {
   const PROPS = '{\n  "motd": "Survival SMP",\n  "max-players": 40,\n  "difficulty": "normal",\n  "view-distance": 10,\n  "white-list": true\n}'
   return (
     <div className="space-y-5">
+      <LagCheck />
       <Panel pad={false}><div className="flex flex-wrap items-center gap-5 p-5"><Orb size={56} role="game" state="thinking" /><div className="min-w-0 flex-1"><div className="text-[15px] font-semibold"><Decode text="Glitch noticed lag at 21:00" per={20} /></div><p className="mt-1 text-[13.5px] text-mute">DynmapRenderer used 41% of tick time and kept growing for six hours. Lowering its render threads fixes it without a restart.</p></div><div className="flex gap-2"><Button size="sm" onClick={() => toast.success('Applied (simulated)')}>Apply the fix</Button><Button size="sm" variant="outline">Show the profile</Button></div></div></Panel>
       <div className="grid gap-5 lg:grid-cols-3">
         <Panel title="Server" className="lg:col-span-1"><div className="grid grid-cols-2 gap-2"><Tile label="TPS" value="19.2" sub="of 20" tone="ok" /><Tile label="Players" value={`${players.length} / 40`} /><Tile label="Memory" value="3.4 GB" sub="of 4 GB" tone="warn" /><Tile label="World" value="2.1 GB" /></div></Panel>

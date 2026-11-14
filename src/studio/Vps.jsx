@@ -9,6 +9,7 @@ import { FirewallRules, IPAddressDisplay, NetworkTraffic, OSSelector, PowerContr
 import { AsyncOperation, BulkTable, DestructiveDialog, ResourceAllocator } from './patterns.jsx'
 import { Decode, Kv, Panel, ScreenHead, StateHero, Tile, eyebrow } from './kit.jsx'
 import { cn, money } from '../lib/utils'
+import { VpsCheck } from './BlipCheck.jsx'
 
 const SERVERS = [
   { id: 'web-01', name: 'web-01', plan: 'Pro', region: 'Frankfurt', ip: '45.83.12.9', os: 'Ubuntu 24.04', status: 'running', cpu: 31, price: 12 },
@@ -41,7 +42,7 @@ function Detail({ s, onBack }) {
   const act = (a) => { if (a === 'restart') { setStatus('restarting'); setTimeout(() => setStatus('running'), 1800) } else setStatus(a === 'stop' ? 'stopped' : 'running') }
   const T = [['overview', 'Overview'], ['console', 'Console'], ['network', 'Networking'], ['firewall', 'Firewall'], ['keys', 'SSH keys'], ['snapshots', 'Snapshots'], ['media', 'ISO and rescue'], ['reinstall', 'Reinstall'], ['resources', 'Resources'], ['billing', 'Billing']]
   const body = {
-    overview: <div className="grid gap-5 lg:grid-cols-3"><Panel title="Usage" className="lg:col-span-2"><ResourceUsage cpu={status === 'running' ? s.cpu || 31 : 0} ram={status === 'running' ? 54 : 0} disk={22} /><div className="mt-5"><NetworkTraffic values={Array.from({ length: 36 }, (_, i) => 40 + Math.sin(i / 4) * 30 + ((i * 13) % 17))} /></div></Panel><Panel title="Server"><div className="space-y-4"><div className="grid grid-cols-3 gap-2"><Tile label="vCPU" value="4" /><Tile label="RAM" value="8 GB" /><Tile label="NVMe" value="100 GB" /></div><IPAddressDisplay /></div></Panel></div>,
+    overview: <div className="space-y-5"><VpsCheck actions={{ 'Open the console': () => setTab('console') }} /><div className="grid gap-5 lg:grid-cols-3"><Panel title="Usage" className="lg:col-span-2"><ResourceUsage cpu={status === 'running' ? s.cpu || 31 : 0} ram={status === 'running' ? 54 : 0} disk={22} /><div className="mt-5"><NetworkTraffic values={Array.from({ length: 36 }, (_, i) => 40 + Math.sin(i / 4) * 30 + ((i * 13) % 17))} /></div></Panel><Panel title="Server"><div className="space-y-4"><div className="grid grid-cols-3 gap-2"><Tile label="vCPU" value="4" /><Tile label="RAM" value="8 GB" /><Tile label="NVMe" value="100 GB" /></div><IPAddressDisplay /></div></Panel></div></div>,
     console: <RemoteConsole status={status} rescue={rescue} onPower={act} />,
     network: <div className="grid gap-5 lg:grid-cols-2"><Panel title="Addresses"><IPAddressDisplay /><div className="mt-4 space-y-3"><FormField label="Reverse DNS (IPv4)" hint="Must resolve back to this address"><div className="flex gap-2"><input value={rdns} onChange={(e) => setRdns(e.target.value)} className={cn(inputCls(), 'font-mono')} /><Button variant="outline" onClick={() => toast.success('Reverse DNS saved (simulated)')}>Save</Button></div></FormField></div></Panel><Panel title="Private network" actions={<Switch defaultChecked aria-label="Private network" />}><Kv rows={[['Network', 'default · 10.0.4.0/24'], ['This server', '10.0.4.12'], ['Other servers', '2 connected']]} /></Panel></div>,
     firewall: <Panel title="Firewall" desc="Applied before traffic reaches your server" pad={false}><FirewallRules /></Panel>,

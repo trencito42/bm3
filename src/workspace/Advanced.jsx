@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { Trash2 } from 'lucide-react'
 import { Badge, Button, Segmented } from '../components/ui.jsx'
 import { Doc, Demo } from './Doc.jsx'
+import { LagCheck, VpsCheck } from '../studio/BlipCheck.jsx'
 import { AsyncOperation, AuditInspector, BulkTable, ConfigEditor, DestructiveDialog, DiffViewer, JobTimeline, LogViewer, PermissionMatrix, ResourceAllocator, genLogs } from '../studio/patterns.jsx'
 
 const CFG = `{
@@ -50,6 +51,7 @@ export default function Advanced() {
   return (
     <Doc title="Advanced patterns" lead="The heavier building blocks the product screens are made of. Each one is interactive here and carries its loading, empty, error and disabled states. Press / inside the log viewer to focus its filter." sections={[
       { id: 'log', title: 'Log viewer', note: 'filter, search, follow, pause', node: <><Segmented value={lstate} onValueChange={(v) => v && setLstate(v)} options={[['ready', 'Streaming'], ['loading', 'Loading'], ['error', 'Disconnected']]} /><LogViewer lines={genLogs(160, 3)} state={lstate} title="api · live" /></> },
+      { id: 'blipcheck', title: 'A check told by a Blip', note: 'Byte for servers, Glitch for game servers; switch the scenario, then run it', node: <div className="space-y-5"><VpsCheck /><LagCheck /></div> },
       { id: 'timeline', title: 'Job and provisioning timeline', note: 'click a step with a log; retry resumes from the failed step', node: <div className="grid gap-5 lg:grid-cols-2"><Demo label="Failed step with retry" sim><JobTimeline steps={tl} onRetry={(i) => { setTl((s) => s.map((x, k) => k < i ? x : k === i ? { ...x, state: 'running', hint: 'attempt 3 of 3', log: undefined } : { ...x, state: 'queued' })); setTimeout(() => setTl(STEPS.map((x) => ({ ...x, state: 'done', hint: x.hint, log: undefined, ms: x.ms || 1500 }))), 1800); toast('Retrying (simulated)') }} /></Demo><Demo label="Compact"><JobTimeline compact steps={STEPS.slice(0, 3).map((s, i) => ({ ...s, state: i < 2 ? 'done' : 'running', ms: i < 2 ? s.ms : undefined }))} /></Demo></div> },
       { id: 'diff', title: 'Diff viewer', note: 'unified or split, changes only', node: <DiffViewer before={BEFORE} after={AFTER} name="nginx/site.conf" /> },
       { id: 'config', title: 'Configuration editor', note: 'validates as you type, Ctrl/Cmd+S saves', node: <ConfigEditor initial={CFG} name="blipmade.json" schemaHint="autoscale.max up to 8" /> },
