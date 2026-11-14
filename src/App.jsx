@@ -39,6 +39,7 @@ import Pages from './workspace/Pages.jsx'
 import Advanced from './workspace/Advanced.jsx'
 import Deploy from './workspace/Deploy.jsx'
 import Loading from './workspace/Loading.jsx'
+import ListsDoc from './workspace/Lists.jsx'
 import WorkspacePalette from './workspace/WorkspacePalette.jsx'
 import SoonApp from './soon/Soon.jsx'
 import SoonDoc from './workspace/Soon.jsx'
@@ -46,6 +47,10 @@ import { AdminStudioPage, BillingStudioPage, InstancePage, MailPage, VpsPage } f
 import { FrameScreen, Screen } from './studio/screens.jsx'
 import { PageLoad } from './components/loaders.jsx'
 import { CommandPalette, SearchButton, usePaletteHotkey } from './components/Palette.jsx'
+import { DomainsList, InstancesList, ServersList } from './studio/Lists.jsx'
+import { chat } from './chat/store.js'
+import { MessageCircle } from 'lucide-react'
+import { Button } from './components/ui.jsx'
 import { Sk, customerKind } from './components/pageSkeletons.jsx'
 import AdminApp from './admin/AdminApp.jsx'
 import SiteApp from './site/SiteApp.jsx'
@@ -181,6 +186,7 @@ function Palette({ open, setOpen }) {
   ], [store.services])
   return <CommandPalette open={open} onOpenChange={setOpen} scope="app" placeholder="Search your services, pages and actions…" groups={groups} />
 }
+const SHELL_ACTION = { apps: ['Deploy', '/catalog'], vps: ['New server', '/catalog'] }
 function Layout() {
   const [pal, setPal] = useState(false)
   const [rail, setRail] = useState(false)
@@ -201,7 +207,9 @@ function Layout() {
           <span className="hidden size-8 place-items-center rounded-lg border border-line-2 bg-white/[0.04] text-mute sm:grid"><Icon className="size-4" /></span>
           <h2 className="min-w-0 truncate text-[15px] font-semibold tracking-tight">{title}</h2>
           <div className="flex-1" />
+          {SHELL_ACTION[seg] && loc.pathname.split('/').length === 2 && <Button size="sm" onClick={() => nav(SHELL_ACTION[seg][1])} aria-label={SHELL_ACTION[seg][0]} className="max-sm:size-10 max-sm:px-0"><Plus /><span className="max-sm:sr-only">{SHELL_ACTION[seg][0]}</span></Button>}
           <SearchButton className="hidden md:flex" label="Search" /><SearchButton compact className="md:hidden" />
+          <button onClick={() => chat.open()} aria-label="Chat with support" className="grid size-9 place-items-center rounded-lg text-mute outline-none transition-colors hover:bg-hover hover:text-fg md:hidden"><MessageCircle className="size-4" /></button>
           <NotificationCenter />
           <Menu>
             <MenuTrigger className="flex h-9 items-center gap-2 rounded-full border border-line-2 py-1 pl-1 pr-1 text-[13px] sm:pr-3 font-medium outline-none transition-colors hover:bg-hover">
@@ -229,13 +237,13 @@ function Layout() {
                 <Route path="/services/:id" element={<ServiceDetail />} />
                 <Route path="/invoices" element={<Invoices />} />
                 <Route path="/order" element={<Order />} />
-                <Route path="/domains" element={<Domains />} />
+                <Route path="/domains" element={<DomainsList />} />
                 <Route path="/support" element={<Support />} />
                 <Route path="/builder" element={<Builder />} />
                 <Route path="/catalog" element={<Screen id="deploy" hideSwitch />} />
-                <Route path="/apps" element={<Apps />} />
+                <Route path="/apps" element={<InstancesList />} />
                 <Route path="/apps/:id" element={<Screen id="instance" hideSwitch />} />
-                <Route path="/vps" element={<Screen id="vps" />} />
+                <Route path="/vps" element={<ServersList />} />
                 <Route path="/vps/:id" element={<VpsDetail />} />
                 <Route path="/email" element={<Screen id="mail" />} />
                 <Route path="/billing" element={<Screen id="billing" />} />
@@ -267,7 +275,7 @@ function Root() {
   if (pathname.startsWith('/frame/')) return <div className="h-dvh overflow-y-auto"><FrameScreen id={pathname.split('/')[2]} /></div>
   return (
     <div className="flex h-dvh flex-col">
-      <WorkspaceBar />
+      {!(typeof window !== 'undefined' && window.self !== window.top) && <WorkspaceBar />}
       {ds && <WorkspacePalette />}
       <div className="min-h-0 flex-1">
         {ds ? (
@@ -289,6 +297,7 @@ function Root() {
             <Route path="/ds/mail" element={<MailPage />} />
             <Route path="/ds/billing" element={<BillingStudioPage />} />
             <Route path="/ds/loading" element={<Loading />} />
+            <Route path="/ds/lists" element={<ListsDoc />} />
             <Route path="/ds/soon" element={<SoonDoc />} />
             <Route path="/ds/adminstudio" element={<AdminStudioPage />} />
             <Route path="*" element={<NotFoundScene home="/ds/foundations" homeLabel="Back to foundations" />} />

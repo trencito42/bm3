@@ -85,7 +85,7 @@ export function ChatWidget({ inApp = false }) {
       </div>
 
       <div role="dialog" aria-label="Chat with Blipmade" aria-modal={open && phone ? true : undefined} data-open={open || undefined}
-        className={cn('chat-shell fixed z-[60] border bg-[#121214] shadow-[0_8px_30px_rgba(0,0,0,.55),inset_0_1px_0_rgba(255,255,255,.05)] data-[open]:shadow-[0_30px_90px_rgba(0,0,0,.7)]', pill ? 'border-white/25' : 'border-line-2')}
+        className={cn(phone && inApp && !open && 'pointer-events-none opacity-0', 'chat-shell fixed z-[60] border bg-[#121214] shadow-[0_8px_30px_rgba(0,0,0,.55),inset_0_1px_0_rgba(255,255,255,.05)] data-[open]:shadow-[0_30px_90px_rgba(0,0,0,.7)]', pill ? 'border-white/25' : 'border-line-2')}
         style={shell}>
         {/* unread badge sits outside the clip */}
         <span aria-hidden className={cn('absolute -right-1 -top-1 z-10 grid h-5 min-w-5 place-items-center rounded-full border-2 border-bg bg-[var(--brand)] px-1 font-mono text-[10px] font-semibold leading-none text-white transition-[opacity,transform] duration-200 ease-[var(--ease-out)]', unread && !open ? 'scale-100 opacity-100' : 'scale-50 opacity-0')}>{unread}</span>

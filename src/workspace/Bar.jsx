@@ -34,7 +34,8 @@ export const SECTIONS = [
   ['25', 'Invitation', '/site/invite?ref=trencito', (p) => p.startsWith('/site/invite')],
   ['26', 'Community support', '/site/support', (p) => p === '/site/support'],
   ['27', 'Support page', '/site/support/preview', (p) => p.startsWith('/site/support/')],
-  ['28', 'All pages', '/ds/pages', (p) => p.startsWith('/ds/pages')],
+  ['28', 'App lists', '/ds/lists', (p) => p.startsWith('/ds/lists')],
+  ['29', 'All pages', '/ds/pages', (p) => p.startsWith('/ds/pages')],
 ]
 
 export default function WorkspaceBar() {
