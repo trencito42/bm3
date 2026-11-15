@@ -1,0 +1,35 @@
+/* Design tokens for the refinement stage (workspace screens 30-32).
+   Nothing here replaces the system in src/index.css: the colour, border, type and radius
+   tokens stay exactly where they were. This file only adds what the new screens need:
+   a density scale, a few durations and two easings, all named after the existing ones
+   (--t-*, --ease-*) so the two systems read as one.
+
+   Rule for everyone who uses this file: a new token is added here only when an existing
+   token cannot express the thing. Duplicated values are a bug, not a convenience. */
+
+:root {
+  /* ---- density --------------------------------------------------------
+     A compact rhythm for the refined list and overview screens. The values are
+     small on purpose: BM3 is a dense tool, not a landing page. */
+  --row-pad-y: 11px;      /* a table row, vertical */
+  --row-pad-x: 16px;      /* a table row, horizontal */
+  --cell-pad-y: 9px;      /* a card cell */
+  --cell-pad-x: 14px;
+  --tap: 44px;            /* the smallest comfortable touch target on a phone */
+
+  /* ---- motion ---------------------------------------------------------
+     --t-fast (120ms), --t-sel (180ms), --t-menu (150ms), --t-dialog (240ms)
+     and --t-drawer (280ms) already exist. These are the three the feedback
+     components need, and they keep the same rule: an exit is always shorter
+     than its entrance. */
+  --t-quick: 140ms;       /* a value changing under the reader */
+  --t-swap: 180ms;        /* a label swapping for another label */
+  --t-morph: 520ms;       /* a surface travelling into another shape */
+  --t-undo: 6000ms;       /* how long an undo stays available */
+
+  /* ---- easing ---------------------------------------------------------
+     --ease-out lands, --ease-in leaves, --ease-std moves, --ease-expo travels.
+     --ease-data is for numbers: it lands harder than --ease-out so a changed
+     figure reads as a new figure, not as a repaint. */
+  --ease-data: cubic-bezier(.32, .72, 0, 1);
+}

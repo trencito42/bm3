@@ -36,6 +36,9 @@ export const SECTIONS = [
   ['27', 'Support page', '/site/support/preview', (p) => p.startsWith('/site/support/')],
   ['28', 'App lists', '/ds/lists', (p) => p.startsWith('/ds/lists')],
   ['29', 'All pages', '/ds/pages', (p) => p.startsWith('/ds/pages')],
+  ['30', 'Overview · refined', '/ds/overview', (p) => p.startsWith('/ds/overview')],
+  ['31', 'Apps · refined', '/ds/apps', (p) => p.startsWith('/ds/apps')],
+  ['32', 'Motion lab', '/ds/motion', (p) => p.startsWith('/ds/motion')],
 ]
 
 export default function WorkspaceBar() {

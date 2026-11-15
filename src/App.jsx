@@ -45,6 +45,10 @@ import SoonApp from './soon/Soon.jsx'
 import SoonDoc from './workspace/Soon.jsx'
 import { AdminStudioPage, BillingStudioPage, InstancePage, MailPage, VpsPage } from './workspace/Studios.jsx'
 import { FrameScreen, Screen } from './studio/screens.jsx'
+import OverviewPolish from './studio/OverviewPolish.jsx'
+import AppsPolish from './studio/AppsPolish.jsx'
+import MotionLab from './studio/MotionLab.jsx'
+import { OverviewDoc, AppsDoc } from './workspace/Polish.jsx'
 import { PageLoad } from './components/loaders.jsx'
 import { CommandPalette, SearchButton, usePaletteHotkey } from './components/Palette.jsx'
 import { DomainsList, InstancesList, ServersList } from './studio/Lists.jsx'
@@ -67,6 +71,19 @@ const NAV = [
   { to: '/support', label: 'Support', icon: LifeBuoy, count: (s) => s.tickets.filter((t) => t.status === 'open').length },
 ]
 const TITLES = { '': ['Overview', LayoutDashboard], catalog: ['Deploy', Rocket], apps: ['Apps & databases', Boxes], vps: ['VPS', Cloud], services: ['Services', Server], invoices: ['Invoices', Receipt], order: ['Order', ShoppingCart], domains: ['Domains', Globe], email: ['Email hosting', Mail], billing: ['Billing', Receipt], notifications: ['Notifications', Bell], account: ['Account', UserCog], support: ['Support', LifeBuoy], builder: ['Site builder', Wand2] }
+/* the refinement previews (screens 30 and 31) are pages of the customer app, so they get the
+   real shell: the sidebar on a desktop, the bottom bar on a phone */
+const PREVIEW_TITLES = { overview: ['Overview · refined', LayoutDashboard], apps: ['Apps & databases · refined', Boxes] }
+function PreviewOverview() {
+  const { search } = useLocation()
+  const s = new URLSearchParams(search).get('s') || 'attention'
+  return <OverviewPolish state={s} />
+}
+function PreviewApps() {
+  const { search } = useLocation()
+  const s = new URLSearchParams(search).get('s') || 'ready'
+  return <AppsPolish state={s} />
+}
 
 /* nav row in the Klinch style: 36px, radius 10, red icon when active */
 function Item({ to, end, icon: Icon, label, count, rail, onNavigate }) {
@@ -194,7 +211,7 @@ function Layout() {
   const loc = useLocation()
   const nav = useNavigate()
   const seg = loc.pathname.split('/')[1] || ''
-  const [title, Icon] = TITLES[seg] || TITLES['']
+  const [title, Icon] = seg === 'preview' ? (PREVIEW_TITLES[loc.pathname.split('/')[2]] || TITLES['']) : TITLES[seg] || TITLES['']
   const builder = seg === 'builder'
   usePaletteHotkey(setPal)
   useEffect(() => { setRail(builder) }, [builder])
@@ -243,6 +260,8 @@ function Layout() {
                 <Route path="/catalog" element={<Screen id="deploy" hideSwitch />} />
                 <Route path="/apps" element={<InstancesList />} />
                 <Route path="/apps/:id" element={<Screen id="instance" hideSwitch />} />
+                <Route path="/preview/overview" element={<PreviewOverview />} />
+                <Route path="/preview/apps" element={<PreviewApps />} />
                 <Route path="/vps" element={<ServersList />} />
                 <Route path="/vps/:id" element={<VpsDetail />} />
                 <Route path="/email" element={<Screen id="mail" />} />
@@ -298,6 +317,9 @@ function Root() {
             <Route path="/ds/billing" element={<BillingStudioPage />} />
             <Route path="/ds/loading" element={<Loading />} />
             <Route path="/ds/lists" element={<ListsDoc />} />
+            <Route path="/ds/overview" element={<OverviewDoc />} />
+            <Route path="/ds/apps" element={<AppsDoc />} />
+            <Route path="/ds/motion" element={<MotionLab />} />
             <Route path="/ds/soon" element={<SoonDoc />} />
             <Route path="/ds/adminstudio" element={<AdminStudioPage />} />
             <Route path="*" element={<NotFoundScene home="/ds/foundations" homeLabel="Back to foundations" />} />

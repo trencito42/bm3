@@ -11,6 +11,11 @@ export const SCREENS = {
   mail: L(() => import('./Mail.jsx')),
   billing: L(() => import('./Billing.jsx')),
   adminstudio: L(() => import('./AdminStudio.jsx')),
+  /* the refinement stage: screen 30 (overview), 31 (apps & databases) and 32 (the motion lab).
+     They live next to the product screens so they can be compared with them side by side. */
+  'overview-polish': L(() => import('./OverviewPolish.jsx')),
+  'apps-polish': L(() => import('./AppsPolish.jsx')),
+  'motion-lab': L(() => import('./MotionLab.jsx')),
 }
 const wait = <MatrixLoader label="Loading the screen" />
 

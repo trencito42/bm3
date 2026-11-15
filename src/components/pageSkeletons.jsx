@@ -104,6 +104,8 @@ export const Sk = ({ kind }) => { const C = (SKELETONS[kind] || SKELETONS.generi
 export const customerKind = (p) => {
   const seg = p.split('/')[1] || '', deep = p.split('/').length > 2
   if (seg === '') return 'overview'
+  /* the refinement previews (screen 30 and 31) borrow the skeleton of the page they refine */
+  if (seg === 'preview') return p.split('/')[2] === 'apps' ? 'apps' : 'overview'
   if (['apps', 'services', 'vps'].includes(seg)) return deep ? 'instance' : seg === 'apps' ? 'apps' : seg === 'vps' ? 'vps' : 'services'
   return { domains: 'domains', email: 'mail', billing: 'billing', invoices: 'invoices', support: 'support', catalog: 'catalog', builder: 'builder', account: 'account', notifications: 'notifications' }[seg] || 'generic'
 }

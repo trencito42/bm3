@@ -1,5 +1,7 @@
 @import "tailwindcss";
 @import "./builder/builder-fx.css";
+@import "./design/tokens.css";
+@import "./design/motion.css";
 
 @theme {
   --color-bg: #0d0d0f;

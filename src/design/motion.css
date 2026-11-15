@@ -1,0 +1,61 @@
+/* Motion for the feedback and interaction components (src/components/feedback.jsx).
+   Every animation here is transform/opacity only, so it stays on the compositor,
+   and every one of them is switched off under prefers-reduced-motion. */
+
+/* a label swapping for another label (AsyncActionButton): the width is already
+   reserved by the grid, so only the opacity moves */
+@keyframes fb-swap { from { opacity: 0; transform: translateY(3px) } }
+.fb-swap-in { animation: fb-swap var(--t-swap) var(--ease-out) both }
+
+/* a figure changing (AnimatedValue): the new number arrives from below and the
+   old one leaves. It is deliberately small - a metric should not perform */
+@keyframes fb-value-in { from { opacity: 0; transform: translateY(-4px) } }
+@keyframes fb-value-out { to { opacity: 0; transform: translateY(4px) } }
+.fb-value-in { animation: fb-value-in 260ms var(--ease-data) both }
+.fb-value-out { animation: fb-value-out 200ms var(--ease-in) both }
+
+/* the undo window (InlineUndo): a line that empties, and the bar that leaves */
+@keyframes fb-undo-in { from { opacity: 0; transform: translateY(10px) } }
+@keyframes fb-undo-out { to { opacity: 0; transform: translateY(6px) } }
+.fb-undo-in { animation: fb-undo-in 320ms var(--ease-expo) both }
+.fb-undo-out { animation: fb-undo-out 180ms var(--ease-in) both }
+
+/* a state that changed (StatusTransition): one soft pulse, never a loop */
+@keyframes fb-state-pulse { 0% { transform: scale(1); opacity: .35 } 45% { transform: scale(1.5); opacity: 1 } 100% { transform: scale(1); opacity: 1 } }
+.fb-state-pulse { animation: fb-state-pulse 420ms var(--ease-out) both }
+
+/* one stage of a journey (ProgressJourney) */
+@keyframes fb-stage-in { from { opacity: 0; transform: translateY(4px) } }
+.fb-stage-in { animation: fb-stage-in 300ms var(--ease-out) both }
+
+/* content that arrives where a skeleton was (ContentReveal) */
+@keyframes fb-content-in { from { opacity: 0 } }
+.fb-content-in { animation: fb-content-in 240ms var(--ease-out) both }
+
+/* the sheet that answers a row on a phone (SmartSheet) */
+@keyframes fb-sheet-up { from { transform: translateY(100%) } }
+@keyframes fb-sheet-down { to { transform: translateY(100%); opacity: .6 } }
+.fb-sheet[data-state=open] { animation: fb-sheet-up 320ms var(--ease-expo) both; }
+.fb-sheet[data-state=closed] { animation: fb-sheet-down 180ms var(--ease-in) both; }
+
+/* a source surface travelling into a dialog (MorphActionSurface) */
+.bm-surface {
+  position: fixed; z-index: 66; overflow: hidden;
+  border: 1px solid var(--color-line-2); background: #121214;
+  box-shadow: 0 30px 90px #0009;
+  transition: left var(--t-morph) var(--ease-expo), top var(--t-morph) var(--ease-expo),
+              width var(--t-morph) var(--ease-expo), height var(--t-morph) var(--ease-expo),
+              border-radius var(--t-morph) var(--ease-expo);
+}
+.bm-surface[data-ready=false] { border-color: transparent; }
+.bm-surface-inner { position: absolute; left: 50%; height: 100%; overflow-y: auto; overscroll-behavior: contain; transform: translateX(-50%); transition: opacity 180ms; }
+.bm-surface[data-ready=false] .bm-surface-inner { opacity: 0; }
+.bm-surface[data-ready=true] .bm-surface-inner { opacity: 1; transition-delay: 160ms; }
+.bm-surface-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; background: var(--color-fg); color: #000; font-size: 14px; transition: opacity 140ms; }
+.bm-surface[data-ready=true] .bm-surface-label { opacity: 0; pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fb-swap-in, .fb-value-in, .fb-value-out, .fb-undo-in, .fb-undo-out,
+  .fb-state-pulse, .fb-stage-in, .fb-content-in, .fb-sheet { animation: none !important; }
+  .bm-surface, .bm-surface-inner, .bm-surface-label { transition: none !important; }
+}
