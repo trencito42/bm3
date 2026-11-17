@@ -70,8 +70,18 @@
 .p-tilt { transform: perspective(900px) rotateX(calc(var(--ty, 0) * -10deg)) rotateY(calc(var(--tx, 0) * 10deg)) translateY(calc(var(--ty, 0) * -4px)); transition: transform 380ms var(--ease); }
 .p-deck-card:hover .p-tilt { transition-duration: 90ms; }
 
+/* scene 1's composition: a bespoke, hand-placed arrangement (see LAYOUT in scene1.jsx), not a generated grid.
+   Same settle-in principle as .p-deck-card (rotation is fixed, only opacity/scale/position animate in). */
+.p-art-card { position: absolute; opacity: 0; transform: translateY(26px) scale(.88) rotate(var(--rot, 0deg)); transition: opacity 640ms var(--ease), transform 640ms var(--ease); z-index: var(--z, 1); }
+.p-art-card[data-seen] { opacity: 1; transform: translateY(0) scale(1) rotate(var(--rot, 0deg)); }
+.p-art-card:hover { z-index: 30; }
+@media (prefers-reduced-motion: reduce) { .p-art-card { opacity: 1 !important; transform: rotate(var(--rot, 0deg)) !important; transition: none !important; } }
+
 /* inline kinetic pill: the icon+word swap in place, the pill itself breathes width to fit the new word */
-.p-pill { display: inline-flex; align-items: center; gap: 7px; border-radius: 99px; background: var(--accent-bg); color: var(--accent); padding: 2px 14px 2px 8px; font-weight: 800; white-space: nowrap; transition: background-color 200ms var(--ease); }
+/* the pill carries the brand colour in its icon only — the word itself stays the same weight and colour as the
+   sentence around it, so it reads as one calm sentence with an illustration in it, not a shouted keyword. */
+.p-pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 99px; background: var(--s2); color: var(--ink); padding: 3px 12px 3px 7px; font-weight: inherit; white-space: nowrap; transition: background-color 200ms var(--ease); }
+.p-pill svg { color: var(--accent); }
 .p-pill-stage { display: inline-grid; vertical-align: -6px; }
 .p-pill-stage > * { grid-area: 1 / 1; transition: opacity 280ms var(--ease), transform 280ms var(--ease), filter 280ms var(--ease); }
 .p-pill-stage > :not([data-on]) { opacity: 0; transform: translateY(8px) scale(.9); filter: blur(4px); pointer-events: none; }
