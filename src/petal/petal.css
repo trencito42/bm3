@@ -62,6 +62,42 @@
 .petal-option:hover, .petal-option:focus-visible { background: var(--s2); transform: translateY(-3px); }
 .petal-option:active { transform: translateY(-1px) scale(.99); }
 
+/* ---------- composition: a scattered deck that settles into a fan, each card tilting toward the cursor ----------
+   Two layers per card: the outer .p-deck-card positions it and plays the settle-in (opacity/scale/translateY,
+   the fan angle itself --rot never animates, borrowed from Graphical's footer card scatter); the inner .p-tilt
+   leans toward the cursor on hover (a believable 3-D depth cue, not a static card). */
+.p-deck { position: relative; }
+.p-deck-card { position: absolute; top: 0; left: 0; opacity: 0; transform: translateY(34px) scale(.82) rotate(var(--rot, 0deg)); transition: opacity 560ms var(--ease), transform 560ms var(--ease); z-index: var(--z, 1); }
+.p-deck-card[data-seen] { opacity: 1; transform: translateY(0) scale(1) rotate(var(--rot, 0deg)); }
+.p-deck-card:hover { z-index: 20; }
+.p-tilt { transform: perspective(900px) rotateX(calc(var(--ty, 0) * -10deg)) rotateY(calc(var(--tx, 0) * 10deg)) translateY(calc(var(--ty, 0) * -4px)); transition: transform 380ms var(--ease); }
+.p-deck-card:hover .p-tilt { transition-duration: 90ms; }
+
+/* inline kinetic pill: the icon+word swap in place, the pill itself breathes width to fit the new word */
+.p-pill { display: inline-flex; align-items: center; gap: 7px; border-radius: 99px; background: var(--accent-bg); color: var(--accent); padding: 2px 14px 2px 8px; font-weight: 800; white-space: nowrap; transition: background-color 200ms var(--ease); }
+.p-pill-stage { display: inline-grid; vertical-align: -6px; }
+.p-pill-stage > * { grid-area: 1 / 1; transition: opacity 280ms var(--ease), transform 280ms var(--ease), filter 280ms var(--ease); }
+.p-pill-stage > :not([data-on]) { opacity: 0; transform: translateY(8px) scale(.9); filter: blur(4px); pointer-events: none; }
+.p-pill-stage > [data-on] { opacity: 1; transform: none; filter: blur(0); }
+
+/* pagination dots, auto-advancing lists */
+.p-dot { width: 6px; height: 6px; border-radius: 99px; background: var(--s4); transition: background-color 200ms var(--ease), width 200ms var(--ease); }
+.p-dot[data-on] { background: var(--accent); width: 18px; }
+
+/* accordion without measuring JS height: grid-template-rows 0fr -> 1fr */
+.p-acc-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 320ms var(--ease); }
+.p-acc-body > div { overflow: hidden; min-height: 0; }
+.p-acc[data-open] .p-acc-body { grid-template-rows: 1fr; }
+.p-acc-chev { transition: transform 280ms var(--ease); }
+.p-acc[data-open] .p-acc-chev { transform: rotate(180deg); }
+
+/* explorer: product rows on the left, the active one marked by a sliding rail */
+.p-rail { position: absolute; left: 0; width: 2px; background: var(--accent); border-radius: 2px; transition: top 320ms var(--ease), height 320ms var(--ease); }
+.p-xfade { display: grid; }
+.p-xfade > * { grid-area: 1 / 1; transition: opacity 360ms var(--ease), transform 360ms var(--ease); }
+.p-xfade > :not([data-on]) { opacity: 0; transform: scale(.97) translateY(6px); pointer-events: none; }
+.p-xfade > [data-on] { opacity: 1; transform: none; }
+
 /* ---------- motion: Petal's own easing/durations, extended only for the longer marketing scroll ---------- */
 .p-reveal { opacity: 0; transform: translateY(18px); }
 .p-reveal[data-seen] { animation: p-rise 520ms var(--ease) both; animation-delay: calc(var(--d, 0) * 70ms); }
@@ -89,7 +125,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .p-reveal { opacity: 1 !important; transform: none !important; animation: none !important; }
-  .p-word > * { transition: none !important; }
-  .p-word > :not([data-on]) { display: none; }
+  .p-word > *, .p-pill-stage > *, .p-xfade > * { transition: none !important; }
+  .p-word > :not([data-on]), .p-pill-stage > :not([data-on]) { display: none; }
   .p-float { animation: none !important; }
+  .p-deck-card { opacity: 1 !important; transform: rotate(var(--rot, 0deg)) !important; transition: none !important; }
+  .p-tilt { transform: none !important; transition: none !important; }
 }

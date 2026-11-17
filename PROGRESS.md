@@ -398,3 +398,35 @@ Not verified
 - Reachable inside the workspace at `/ds/petal` (frame, desktop/mobile switch) and standalone at `/petal-home` or `/bare/petal-home`. Does not touch bm3's own tokens, the real `/site` homepage, the app or the admin — a separate, additive route and a CSS scope under `.petal`.
 - Verified in the browser this time, not just by build: screenshots at 1440 and 390px, scrolled through every section, both themes, real DOM geometry checked where a screenshot looked off (it was a scaling/scroll-restoration artifact both times, not a real bug), zero console errors, zero horizontal overflow.
 - Not verified: 320/768/1920px, a real device, keyboard-only pass, screen reader, Lighthouse/CLS numbers, light theme at every section (only the hero was checked in light).
+
+## Petal homepage, rebuilt from scratch after visual rejection (2026-11-17)
+The first pass read as "a generic SaaS template with Petal colors" (rotating headline, two floating cards, a 3-column
+grid, a basic slider, flat metrics, three pricing cards, a generic CTA) — exactly what was asked not to build.
+Rendered the actual references in the browser this time (not source/descriptions) before rebuilding:
+- graphicalui.com: centred pill logo, a sentence-style hero with inline icon pills ("visual 🎨 themes, 🎨 colors, 🌸 Claude"),
+  a scattered deck of overlapping rotated screenshot cards that reads as a photo pile, a single black terminal card
+  ("Build with your agent"), a component-switch panel with a sliding tab + dot pagination, a plain 2-col icon/heading
+  feature list with no card background, a hairline-divided FAQ accordion, and a footer that fans out the same card deck
+  at a smaller scale.
+- the Alloy theme preview: components sit in plain white cards on a light-gray canvas (validates Petal's own
+  no-border/no-shadow law), generous label-top spacing, "Primary action: Neutral" (their buttons are black, not
+  colourful) and "Neutrals: Mono".
+Rebuilt `src/petal/` on those actual devices instead of generic cards:
+- `petal.css`: new `.p-deck`/`.p-deck-card` (a scattered-then-settled fan, the rotation angle itself never animates,
+  only opacity/scale/translateY — borrowed straight from Graphical's footer), `.p-tilt` (a card leans toward the
+  cursor, computed from real pointer position via two CSS custom properties, not a canned keyframe), `.p-pill`/
+  `.p-pill-stage` (an inline icon-pill inside the hero sentence that swaps word+icon in place), `.p-rail`/`.p-xfade`
+  (a sliding active-row rail + cross-fade, for the product explorer), `.p-acc`/`.p-acc-body` (a grid-template-rows
+  0fr→1fr accordion, no JS height measurement).
+- `sections.jsx`: Hero (the pill-sentence + a 6-card deck that settles in, a horizontal snap-strip of the same cards
+  on phones), Explorer (a rail-and-crossfade product switcher on desktop, a true accordion with its own inline
+  preview per row on phones — not the desktop layout scaled down), Deploy (a single black terminal card: a log that
+  types itself out once, then a real slider against `appsData.js`'s actual rate for Minecraft, price recomputed
+  live), Included (Alloy's plain 2-col icon list, no card background), PanelShowcase (the Petal→BM3 dashboard bridge
+  as a tilted overlapping pair, not side-by-side), Pricing (3 cards in a cascade — alternating vertical offset and
+  indent, not an equal grid), Faq (hairline accordion), FinalCta (a second, smaller scattered deck bookends the
+  hero's, around the closing statement).
+Verified in the browser at 1440 and 390px this time, scrolled through every section in both widths, toggled dark→
+light, zero console errors, zero horizontal overflow (`scrollWidth - innerWidth`, not eyeballed).
+Not verified: 320/768/1920px, a real touch device (the tilt and the mobile snap-strip were only checked in the
+emulator), keyboard-only pass, screen reader, light theme past the hero, Lighthouse/CLS numbers.

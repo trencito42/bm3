@@ -1,24 +1,25 @@
-/* The Blipmade homepage, redesigned in Petal's visual language (flat, no borders/shadows/gradients, color-block
-   hierarchy) with Graphical's composition pacing and Alloy's component polish folded in. Scoped entirely under
-   the .petal class in petal.css: nothing here touches bm3's own tokens, routes or components, and nothing bm3
-   already has (the real /site homepage, the app, the admin) changes because of this file.
-   Reachable at /petal-home (inside this workspace's own frame, for comparison) and standalone at /bare/petal-home
-   (what the frame previews load, and what an isolated production page would look like). */
+/* The Blipmade homepage, redesigned in Petal's visual language with Graphical's own devices (a scattered card deck
+   that settles into a fan, inline icon-pills inside a sentence, a black terminal card, a rail-and-crossfade product
+   explorer, a hairline accordion) rather than a generic three-card SaaS layout. Alloy's restraint shows in the
+   components: plain surfaces, one neutral/accent action, label-top spacing.
+   Reachable at /petal-home (inside this workspace's own frame) and standalone at /bare/petal-home. */
 import { useEffect, useState } from 'react'
-import { Deploy, FinalCta, Footer, Hero, Nav, PanelShowcase, Pricing, Products } from './sections.jsx'
+import { Deploy, Explorer, Faq, FinalCta, Footer, Hero, Included, Nav, PanelShowcase, Pricing } from './sections.jsx'
 import './petal.css'
 
 export default function PetalHome() {
   const [theme, setTheme] = useState(() => { try { return localStorage.getItem('petal-theme') || 'dark' } catch { return 'dark' } })
   useEffect(() => { try { localStorage.setItem('petal-theme', theme) } catch { /* private window */ } }, [theme])
   return (
-    <div id="petal-scroll" data-theme={theme} className="petal h-full overflow-y-auto">
+    <div id="petal-scroll" data-theme={theme} className="petal h-full overflow-y-auto overflow-x-hidden">
       <Nav theme={theme} setTheme={setTheme} />
       <Hero />
-      <Products />
+      <Explorer />
       <Deploy />
+      <Included />
       <PanelShowcase />
       <Pricing />
+      <Faq />
       <FinalCta />
       <Footer />
     </div>
