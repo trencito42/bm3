@@ -42,6 +42,8 @@ import Loading from './workspace/Loading.jsx'
 import ListsDoc from './workspace/Lists.jsx'
 import WorkspacePalette from './workspace/WorkspacePalette.jsx'
 import SoonApp from './soon/Soon.jsx'
+import PetalHome from './petal/PetalHome.jsx'
+import PetalDoc from './workspace/Petal.jsx'
 import SoonDoc from './workspace/Soon.jsx'
 import { AdminStudioPage, BillingStudioPage, InstancePage, MailPage, VpsPage } from './workspace/Studios.jsx'
 import { FrameScreen, Screen } from './studio/screens.jsx'
@@ -289,8 +291,10 @@ function Root() {
   const site = pathname.startsWith('/site')
   /* a screen on its own, without the workspace bar: what the "Mobile" previews load */
   const soon = pathname.startsWith('/soon')
+  const petalHome = pathname.startsWith('/petal-home')
   /* the coming-soon pages on their own, as a visitor gets them (what the previews in the workspace load) */
   if (pathname.startsWith('/bare/soon')) return <div className="h-dvh overflow-y-auto"><SoonApp base="/bare/soon" /></div>
+  if (pathname.startsWith('/bare/petal-home')) return <PetalHome />
   if (pathname.startsWith('/frame/')) return <div className="h-dvh overflow-y-auto"><FrameScreen id={pathname.split('/')[2]} /></div>
   return (
     <div className="flex h-dvh flex-col">
@@ -321,12 +325,13 @@ function Root() {
             <Route path="/ds/apps" element={<AppsDoc />} />
             <Route path="/ds/motion" element={<MotionLab />} />
             <Route path="/ds/soon" element={<SoonDoc />} />
+            <Route path="/ds/petal" element={<PetalDoc />} />
             <Route path="/ds/adminstudio" element={<AdminStudioPage />} />
             <Route path="*" element={<NotFoundScene home="/ds/foundations" homeLabel="Back to foundations" />} />
           </Routes>
-        ) : admin ? <AdminApp /> : site ? <SiteApp /> : soon ? <div className="h-full overflow-y-auto"><SoonApp /></div> : <Layout />}
+        ) : admin ? <AdminApp /> : site ? <SiteApp /> : soon ? <div className="h-full overflow-y-auto"><SoonApp /></div> : petalHome ? <PetalHome /> : <Layout />}
       </div>
-      {(!ds || pathname.startsWith('/ds/product')) && !admin && !soon && !pathname.startsWith('/builder') && !pathname.startsWith('/site/support/') && <ChatWidget inApp={!site && !ds} />}
+      {(!ds || pathname.startsWith('/ds/product')) && !admin && !soon && !petalHome && !pathname.startsWith('/builder') && !pathname.startsWith('/site/support/') && <ChatWidget inApp={!site && !ds} />}
     </div>
   )
 }

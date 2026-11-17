@@ -1,0 +1,95 @@
+/* Petal, scoped to the new homepage only (everything under .petal).
+   No borders. No shadows. No gradients (except the one allowed spot: the filled part of a progress-style track).
+   Hierarchy is background-color steps only: --bg page, --s1 cards, --s2 inset, --s3 hover/press, --s4 strong dividers.
+   Tokens copied from PROMPT-design-system.md / DESIGN-BRIEF-hosting-panel.md. Dark is the default (this audience, and the
+   Graphical reference, are both dark-first); light is fully supported via [data-theme="light"] to prove the system is
+   genuinely both, not dark-only with a decorative switch. */
+.petal {
+  --bg: #0a0e15; --s1: #141a24; --s2: #1b2330; --s3: #252f3f; --s4: #344156;
+  --ink: #eef2f7; --ink2: #a0adbd; --ink3: #8d9bae; --on-ink: #0a0e15;
+  --accent: #7aa2ff; --accent-bg: #1a2750; --on-accent: #0a0e15;
+  --good: #3ddc84; --good-bg: #123525; --warn: #f0b232; --warn-bg: #352a0e;
+  --bad: #ff6b70; --bad-bg: #3b1618; --info: #8f9bff; --info-bg: #1f2250;
+  --overlay: rgba(0, 0, 0, .6);
+  /* Inter is already loaded by the app and covers the Inter Tight role; Geist Mono (also already loaded) fills the
+     mono role, so the homepage adds no new font request. */
+  --font: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  /* marketing-scale spacing, named and kept apart from Petal's admin scale (4,6,8,10,12,14,16,18,20,24) rather than
+     silently overloading it: a homepage section needs more air than a panel row. */
+  --sec-y: clamp(64px, 10vw, 128px);
+  --sec-x: clamp(20px, 5vw, 64px);
+  background: var(--bg); color: var(--ink); font-family: var(--font);
+  font-variant-numeric: tabular-nums;
+}
+.petal[data-theme="light"] {
+  --bg: #eff1f5; --s1: #ffffff; --s2: #f5f6fa; --s3: #e5e8ee; --s4: #d5dae3;
+  --ink: #0b1a2b; --ink2: #4a576a; --ink3: #5a687b; --on-ink: #ffffff;
+  --accent: #2a5fe8; --accent-bg: #e6edff; --on-accent: #ffffff;
+  --good: #0e6b35; --good-bg: #d6f5e0; --warn: #855000; --warn-bg: #fdefc8;
+  --bad: #b8232a; --bad-bg: #fde1e2; --info: #4a56e2; --info-bg: #e3e5ff;
+  --overlay: rgba(8, 14, 24, .42);
+}
+.petal * { box-sizing: border-box; }
+.petal ::selection { background: var(--accent-bg); color: var(--accent); }
+
+/* ---------- surfaces (color-block hierarchy, never a border or a shadow) ---------- */
+.petal-card { background: var(--s1); border-radius: 24px; }
+.petal-inset { background: var(--s2); border-radius: 18px; }
+.petal-chip { background: var(--s2); border-radius: 99px; }
+.petal-divider { background: var(--s4); height: 1px; }
+
+/* ---------- type ---------- */
+.petal-display { font-weight: 800; letter-spacing: -0.03em; line-height: 1.02; }
+.petal-title { font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+.petal-label { font-weight: 700; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink3); }
+.petal-mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* ---------- buttons: pills or 14px rects, no border, no shadow, press = scale(.97) ---------- */
+.petal-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 99px; font-weight: 700; font-size: 14.5px; white-space: nowrap; transition: background-color 150ms var(--ease), color 150ms var(--ease), transform 150ms var(--ease); }
+.petal-btn:active { transform: scale(.97); }
+.petal-btn-accent { background: var(--accent); color: var(--on-accent); }
+.petal-btn-accent:hover { background: color-mix(in srgb, var(--accent) 88%, white 12%); }
+.petal-btn-tint { background: var(--accent-bg); color: var(--accent); }
+.petal-btn-tint:hover { background: color-mix(in srgb, var(--accent-bg) 80%, var(--accent) 20%); }
+.petal-btn-ghost { background: transparent; color: var(--ink); }
+.petal-btn-ghost:hover { background: var(--s2); }
+.petal-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* option cards (products): lift is a transform + a surface step, never a shadow */
+.petal-option { background: var(--s1); border-radius: 24px; transition: background-color 220ms var(--ease), transform 220ms var(--ease); }
+.petal-option:hover, .petal-option:focus-visible { background: var(--s2); transform: translateY(-3px); }
+.petal-option:active { transform: translateY(-1px) scale(.99); }
+
+/* ---------- motion: Petal's own easing/durations, extended only for the longer marketing scroll ---------- */
+.p-reveal { opacity: 0; transform: translateY(18px); }
+.p-reveal[data-seen] { animation: p-rise 520ms var(--ease) both; animation-delay: calc(var(--d, 0) * 70ms); }
+@keyframes p-rise { to { opacity: 1; transform: none; } }
+
+.p-word { display: inline-grid; }
+.p-word > * { grid-area: 1 / 1; transition: opacity 360ms var(--ease), transform 360ms var(--ease), filter 360ms var(--ease); }
+.p-word > :not([data-on]) { opacity: 0; transform: translateY(10px); filter: blur(6px); pointer-events: none; }
+.p-word > [data-on] { opacity: 1; transform: none; filter: blur(0); }
+
+.p-nav { transition: padding 200ms var(--ease), background-color 200ms var(--ease); }
+
+.p-float { animation: p-float 7s var(--ease) infinite; }
+@keyframes p-float { 0%, 100% { transform: translateY(0) rotate(var(--r, -2deg)); } 50% { transform: translateY(-10px) rotate(var(--r, -2deg)); } }
+
+/* range input: the one permitted "gradient-like" effect is the filled part of the track, built from two solid
+   color stops at the same position (a hard edge), never a soft gradient. No border, no shadow on the thumb. */
+.petal-range { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 99px; background: var(--s3); }
+.petal-range::-webkit-slider-runnable-track { height: 6px; border-radius: 99px; background: linear-gradient(90deg, var(--accent) 0 var(--pct, 50%), var(--s3) var(--pct, 50%) 100%); }
+.petal-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 99px; background: var(--accent); margin-top: -6px; transition: transform 150ms var(--ease); }
+.petal-range::-webkit-slider-thumb:active { transform: scale(1.15); }
+.petal-range::-moz-range-track { height: 6px; border-radius: 99px; background: var(--s3); }
+.petal-range::-moz-range-progress { height: 6px; border-radius: 99px; background: var(--accent); }
+.petal-range::-moz-range-thumb { width: 18px; height: 18px; border: 0; border-radius: 99px; background: var(--accent); }
+
+@media (prefers-reduced-motion: reduce) {
+  .p-reveal { opacity: 1 !important; transform: none !important; animation: none !important; }
+  .p-word > * { transition: none !important; }
+  .p-word > :not([data-on]) { display: none; }
+  .p-float { animation: none !important; }
+}

@@ -29,6 +29,7 @@ export const SECTIONS = [
   ['20', 'Admin studio', '/ds/adminstudio', (p) => p.startsWith('/ds/adminstudio')],
   ['21', 'Loading screens', '/ds/loading', (p) => p.startsWith('/ds/loading')],
   ['22', 'Coming soon', '/ds/soon', (p) => p.startsWith('/ds/soon') || p.startsWith('/soon')],
+  ['22b', 'Homepage · Petal', '/ds/petal', (p) => p.startsWith('/ds/petal') || p.startsWith('/petal-home')],
   ['23', 'Game hosting', '/site/games', (p) => p.startsWith('/site/games')],
   ['24', 'Referrals', '/site/referral', (p) => p.startsWith('/site/referral')],
   ['25', 'Invitation', '/site/invite?ref=trencito', (p) => p.startsWith('/site/invite')],
