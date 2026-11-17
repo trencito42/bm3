@@ -7,7 +7,7 @@
    spacing. Data is real mock, reused from lib/mock.js and site/appsData.js; every mock UI is labelled "Example". */
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, Bot, Check, ChevronDown, Database, Gamepad2, Globe, Lock, Mail, Minus, Moon, Plus, RefreshCw, Server, ShieldCheck, Sun, Terminal, X } from 'lucide-react'
+import { ArrowRight, Bot, Check, ChevronDown, Database, Gamepad2, Globe, Lock, Mail, RefreshCw, Server, ShieldCheck, X } from 'lucide-react'
 import { CATALOG } from '../lib/mock'
 import { APPS } from '../site/appsData.js'
 import { cn } from '../lib/utils'
@@ -43,7 +43,7 @@ function DeckCard({ i, rot, x, y, w, className, children, style }) {
 }
 
 /* ---------------------------------------------------------------- nav ---------------------------------------------------------------- */
-export function Nav({ theme, setTheme }) {
+export function Nav() {
   const nav = useNavigate()
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
@@ -63,9 +63,6 @@ export function Nav({ theme, setTheme }) {
           {links.map(([l, to]) => <a key={l} href={to} className="rounded-full px-3.5 py-2 text-[13.5px] font-semibold text-[var(--ink2)] transition-colors duration-150 hover:bg-[var(--s2)] hover:text-[var(--ink)]">{l}</a>)}
         </nav>
         <div className="ml-auto flex items-center gap-2">
-          <button aria-label={theme === 'dark' ? 'Switch to light' : 'Switch to dark'} onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))} className="grid size-9 place-items-center rounded-full text-[var(--ink2)] transition-colors hover:bg-[var(--s2)] hover:text-[var(--ink)]">
-            {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
-          </button>
           <PetalBtn variant="ghost" size="sm" className="hidden sm:inline-flex" onClick={() => nav('/site/login')}>Log in</PetalBtn>
           <PetalBtn size="sm" onClick={() => nav('/site/register')}>Get started</PetalBtn>
           <button aria-label="Menu" onClick={() => setOpen(true)} className="grid size-9 place-items-center rounded-full text-[var(--ink2)] md:hidden text-[13px] font-bold">☰</button>
@@ -241,8 +238,8 @@ export function PanelShowcase() {
   return (
     <section className="mx-auto max-w-5xl" style={{ padding: '0 var(--sec-x) var(--sec-y)' }}>
       <Reveal><Eyebrow>Your dashboard</Eyebrow></Reveal>
-      <Reveal i={1} as="h2" className="petal-title mt-3 max-w-xl text-[28px] md:text-[34px]">This calm page is the storefront. Once you're in, it looks like this.</Reveal>
-      <Reveal i={2} className="mt-3 max-w-lg text-[14px] leading-relaxed text-[var(--ink2)]">On purpose, not an oversight: logs and live metrics read better darker and denser. The two are meant to feel like two rooms of the same place.</Reveal>
+      <Reveal i={1} as="h2" className="petal-title mt-3 max-w-xl text-[28px] md:text-[34px]">This is the storefront. A minute after you sign up, you're in here.</Reveal>
+      <Reveal i={2} className="mt-3 max-w-lg text-[14px] leading-relaxed text-[var(--ink2)]">The console, logs and live metrics go denser the closer you get to the machine — same system, same panel, just more detail once you need it.</Reveal>
       <div className="relative mt-14 h-[360px] sm:h-[300px]">
         <Reveal i={2} className="petal-card absolute left-1/2 top-0 w-[86%] -translate-x-1/2 p-6 sm:left-[8%] sm:w-[62%] sm:translate-x-0" style={{ transform: 'rotate(-2deg)' }}>
           <Eyebrow>blipmade.com</Eyebrow>

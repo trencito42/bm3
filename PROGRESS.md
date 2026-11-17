@@ -430,3 +430,16 @@ Verified in the browser at 1440 and 390px this time, scrolled through every sect
 light, zero console errors, zero horizontal overflow (`scrollWidth - innerWidth`, not eyeballed).
 Not verified: 320/768/1920px, a real touch device (the tilt and the mobile snap-strip were only checked in the
 emulator), keyboard-only pass, screen reader, light theme past the hero, Lighthouse/CLS numbers.
+
+## Recolour the Petal homepage into BM3's own palette (2026-11-17)
+Correction: the rebuilt composition (deck, pills, terminal, rail+crossfade, cascade, accordion) was right, but it was
+still coloured with Petal's own tokens (blue accent #2a5fe8/#7aa2ff, grey-navy neutrals, a light/dark toggle) instead
+of BM3's. Fixed: `petal.css`'s token block now carries BM3's actual values \u2014 bg #0d0d0f, card #141416, hairline
+steps #1c1c20/#2a2a2f/#3a3a40, text #f2f2f3/#8e8e94/#6b6b72, a single red accent #ff2d36 reserved for the primary
+button and "live" (BM3's own rule, reused, not reinvented), and BM3's existing semantic greens/ambers/reds/blues for
+good/warn/bad/info. Dropped the light theme and the sun/moon toggle entirely: BM3 doesn't run a light mode, so this
+page shouldn't either. Petal's own structural law stays (no border, no shadow, background-step hierarchy, the
+cubic-bezier(.2,.8,.2,1) motion) \u2014 that part wasn't what was criticised. Reworded the dashboard-bridge section's
+copy, since "two different rooms of the same brand" no longer applies once the whole page is BM3-coloured.
+Verified in the browser at 1440 and 390px after the recolour (not just the build): `--bg`/`--accent` read #0d0d0f/
+#ff2d36 from the DOM, scrolled every section, zero console errors, zero horizontal overflow.

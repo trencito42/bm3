@@ -5,14 +5,19 @@
    Graphical reference, are both dark-first); light is fully supported via [data-theme="light"] to prove the system is
    genuinely both, not dark-only with a decorative switch. */
 .petal {
-  --bg: #0a0e15; --s1: #141a24; --s2: #1b2330; --s3: #252f3f; --s4: #344156;
-  --ink: #eef2f7; --ink2: #a0adbd; --ink3: #8d9bae; --on-ink: #0a0e15;
-  --accent: #7aa2ff; --accent-bg: #1a2750; --on-accent: #0a0e15;
-  --good: #3ddc84; --good-bg: #123525; --warn: #f0b232; --warn-bg: #352a0e;
-  --bad: #ff6b70; --bad-bg: #3b1618; --info: #8f9bff; --info-bg: #1f2250;
+  /* BM3's own palette, not Petal's: near-black, hairline-step surfaces, one red accent reserved for the single
+     primary action and for "live" — exactly the rule the rest of this workspace already follows. Petal supplied
+     the law (no border, no shadow, hierarchy from background steps only, Inter Tight / JetBrains Mono roles,
+     cubic-bezier(.2,.8,.2,1) motion); the actual hex values are BM3's, so this page reads as Blipmade, not as a
+     borrowed admin-panel brand. BM3 does not run a light mode, so neither does this page. */
+  --bg: #0d0d0f; --s1: #141416; --s2: #1c1c20; --s3: #2a2a2f; --s4: #3a3a40;
+  --ink: #f2f2f3; --ink2: #8e8e94; --ink3: #6b6b72; --on-ink: #0d0d0f;
+  --accent: #ff2d36; --accent-bg: rgba(255, 45, 54, .14); --on-accent: #f2f2f3;
+  --good: #4ade80; --good-bg: rgba(74, 222, 128, .12); --warn: #fbbf24; --warn-bg: rgba(251, 191, 36, .12);
+  --bad: #f87171; --bad-bg: rgba(248, 113, 113, .12); --info: #60a5fa; --info-bg: rgba(96, 165, 250, .12);
   --overlay: rgba(0, 0, 0, .6);
   /* Inter is already loaded by the app and covers the Inter Tight role; Geist Mono (also already loaded) fills the
-     mono role, so the homepage adds no new font request. */
+     mono role — the same two families bm3 itself uses, so the homepage adds no new font request and no new voice. */
   --font: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
   --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --ease: cubic-bezier(.2, .8, .2, 1);
@@ -22,14 +27,6 @@
   --sec-x: clamp(20px, 5vw, 64px);
   background: var(--bg); color: var(--ink); font-family: var(--font);
   font-variant-numeric: tabular-nums;
-}
-.petal[data-theme="light"] {
-  --bg: #eff1f5; --s1: #ffffff; --s2: #f5f6fa; --s3: #e5e8ee; --s4: #d5dae3;
-  --ink: #0b1a2b; --ink2: #4a576a; --ink3: #5a687b; --on-ink: #ffffff;
-  --accent: #2a5fe8; --accent-bg: #e6edff; --on-accent: #ffffff;
-  --good: #0e6b35; --good-bg: #d6f5e0; --warn: #855000; --warn-bg: #fdefc8;
-  --bad: #b8232a; --bad-bg: #fde1e2; --info: #4a56e2; --info-bg: #e3e5ff;
-  --overlay: rgba(8, 14, 24, .42);
 }
 .petal * { box-sizing: border-box; }
 .petal ::selection { background: var(--accent-bg); color: var(--accent); }
